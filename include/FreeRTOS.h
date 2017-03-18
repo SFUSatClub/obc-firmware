@@ -191,7 +191,7 @@ extern "C" {
 #endif
 
 #ifndef INCLUDE_xTaskGetHandle
-    #define INCLUDE_xTaskGetHandle 0
+    #define INCLUDE_xTaskGetHandle 1
 #endif
 
 #ifndef INCLUDE_uxTaskGetStackHighWaterMark
@@ -774,7 +774,7 @@ extern "C" {
 
 #ifndef configSUPPORT_STATIC_ALLOCATION
     /* Defaults to 0 for backward compatibility. */
-    #define configSUPPORT_STATIC_ALLOCATION 0
+    #define configSUPPORT_STATIC_ALLOCATION 1
 #endif
 
 #ifndef configSUPPORT_DYNAMIC_ALLOCATION

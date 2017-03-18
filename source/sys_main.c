@@ -91,6 +91,7 @@ int main(void)
 
     gioInit();
     serialSendln("Hello!");
+    serialSendln("Hello 2!");
 
     xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
                  "100 Hz Blinky",/* Text name for the task. This is to facilitate debugging only. */
@@ -98,8 +99,9 @@ int main(void)
                  NULL, /* This example does not use the task parameter. */
                  1, /* This task will run at priority 1. */
                  NULL ); /* This example does not use the task handle. */
-
+    serialSendln("created hundred blnky");
    xQueue = xQueueCreate( 5, sizeof( char * ) );
+   serialSendln("created queue");
 //    if( xQueue != NULL )
 //    {
 //        /* Create two instances of the task that will send to the queue. The task
@@ -107,12 +109,14 @@ int main(void)
 //   In this case, a string (character pointer) will be passed to the queue.
 //   */
 //
-      xTaskCreate(periodicSenderTask, "Periodic Sending Task", 300, ( void * )  1000, 1, NULL);
+      xTaskCreate(periodicSenderTask, "PST", 600, ( void * )  1000, 1, NULL);
+      serialSendln("created pst");
 //        xTaskCreate(periodicSenderTask, "INFREQUENT Sending Task", 300, ( void * )  5000, 1, NULL);
 //
 //        /* Create the task that will read from the queue. The task is created with
 //    priority 2, so above the priority of the sender tasks. */
-     xTaskCreate( vReceiverTask, "Receiver", 800, NULL, 2, NULL );
+     //xTaskCreate( vReceiverTask, "Receiver", 800, NULL, 2, NULL );
+     serialSendln("created rcvr");
 //        /* Start the scheduler so the created tasks start executing. */
 //        vTaskStartScheduler();
 //    }
@@ -121,6 +125,7 @@ int main(void)
 //        /* The queue could not be created. */
 //    }
     vTaskStartScheduler();
+
     for(;;); // keep running the scheduler
 
     /* USER CODE END */

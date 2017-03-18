@@ -15,52 +15,83 @@ void vTask2(void *pvParameters){
 }
 
 
+
+/* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
+implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
+used by the Idle task. */
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+/* If the buffers to be provided to the Idle task are declared inside this
+function then they must be declared static - otherwise they will be allocated on
+the stack and so not exists after this function exits. */
+static StaticTask_t xIdleTaskTCB;
+static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+    state will be stored. */
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    /* Pass out the array that will be used as the Idle task's stack. */
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+#define STACK_SIZE 200
+StaticTask_t xTaskBuffer;
+StackType_t xStack[ STACK_SIZE ];
+void vTaskCode( void * pvParameters )
+{
+    /* The parameter value is expected to be 1 as 1 is passed in the
+    pvParameters value in the call to xTaskCreateStatic(). */
+    configASSERT( ( uint32_t ) pvParameters == 1UL );
+
+    for( ;; )
+    {
+        /* Task code goes here. */
+    }
+}
 void periodicSenderTask(void *pvParameters){ // uses the task parameter to delay itself at a different frequency. Creates UART sender tasks to send whether it was a frequent or infrequent call.
     while(1){
+        serialSendln( "periodic dbg" );
         uint32_t delayInput;
-        delayInput = (uint32_t) pvParameters;
+        delayInput = 1000;
         if(delayInput > 4000){
-            xTaskCreate( vSenderTask, "Infreq", configMINIMAL_STACK_SIZE, ( void * )  "INFREQUENT Task", 1,  NULL);
+            //xTaskCreate( vSenderTask, "Infreq", configMINIMAL_STACK_SIZE, ( void * )  "INFREQUENT Task", 1,  NULL);
         }
         else{
-            xTaskCreate( vSenderTask, "Sender1", configMINIMAL_STACK_SIZE, ( void * )  "Sender Task", 1,  NULL);
+            TaskHandle_t xHandle = NULL;
+
+            /* Create the task without using any dynamic memory allocation. */
+            xHandle = xTaskCreateStatic(
+                          vTaskCode,       /* Function that implements the task. */
+                          "NAME",          /* Text name for the task. */
+                          STACK_SIZE,      /* Number of indexes in the xStack array. */
+                          ( void * ) 1,    /* Parameter passed into the task. */
+                          tskIDLE_PRIORITY,/* Priority at which the task is created. */
+                          xStack,          /* Array to use as the task's stack. */
+                          &xTaskBuffer );  /* Variable to hold the task's data structure. */
+
+            int b = 2 + 2;
+            BaseType_t ret = xTaskCreate( vSenderTask, "Sender1", configMINIMAL_STACK_SIZE, NULL  , 2,  NULL);
+            int a = 1 + 1;
         }
-        vTaskDelay(pdMS_TO_TICKS( delayInput)); // delay a certain time. Use the macro
+        vTaskDelay(pdMS_TO_TICKS(delayInput)); // delay a certain time. Use the macro
     }
 }
 
 void vSenderTask( void *pvParameters ) // sends stuff to the UART
 {
-    char * toSend;
-    BaseType_t xStatus;
-    /* Two instances of this task are created so the value that is sent to the
- queue is passed in via the task parameter - this way each instance can use
- a different value. The queue was created to hold values of type int32_t,
- so cast the parameter to the required type. */
-    toSend = (char*)pvParameters;
     /* As per most tasks, this task is implemented within an infinite loop. */
-    for( ;; )
-    {
-        /* Send the value to the queue.
- The first parameter is the queue to which data is being sent. The
- queue was created before the scheduler was started, so before this task
- started to execute.
- The second parameter is the address of the data to be sent, in this case
- the address of lValueToSend.
- The third parameter is the Block time – the time the task should be kept
- in the Blocked state to wait for space to become available on the queue
- should the queue already be full. In this case a block time is not
- specified because the queue should never contain more than one item, and
- therefore never be full. */
-      //  xStatus = xQueueSendToBack( xQueue, &toSend, 0 );
-        if( xQueueSendToBack( xQueue, &toSend, 0 ) != pdPASS )
-        {
-            /* The send operation could not complete because the queue was full -
- this must be an error as the queue should never contain more than
- one item! */
-            serialSendln( "Could not send to the queue." );
-        }
-        vTaskDelete( NULL );  // once complete, delete the current instance of the task.
+    while(1) {
+        serialSendln( "sender dbg" );
+        vTaskDelay(pdMS_TO_TICKS(3000));
+        //vTaskDelete( NULL );  // once complete, delete the current instance of the task.
     }
 }
 

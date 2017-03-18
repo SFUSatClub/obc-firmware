@@ -98,8 +98,10 @@ task.h is included from an application file. */
 #pragma SWI_ALIAS(prvRaisePrivilege, 1);
 extern BaseType_t prvRaisePrivilege( void );
 
-/*-----------------------------------------------------------*/
-
+/* Steven: surround with ifdef to prevent compilation since we're not using MPU.
+ * Otherwise, xTaskCreateRestricted would be undefined
+ */
+#if (portUSING_MPU_WRAPPERS == 1)
 BaseType_t MPU_xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition, TaskHandle_t *pxCreatedTask )
 {
 BaseType_t xReturn;
@@ -114,6 +116,7 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     // portRESET_PRIVILEGE( xRunningPrivileged ); // Richard: removed and replaced with above
     return xReturn;
 }
+#endif
 /*-----------------------------------------------------------*/
 
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
@@ -146,7 +149,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     }
 #endif /* configSUPPORT_STATIC_ALLOCATION */
 /*-----------------------------------------------------------*/
-
+/* Steven: surround with ifdef to prevent compilation since we're not using MPU.
+ * Otherwise, vTaskAllocateMPURegions would be undefined
+ */
+#if (portUSING_MPU_WRAPPERS == 1)
 void MPU_vTaskAllocateMPURegions( TaskHandle_t xTask, const MemoryRegion_t * const xRegions )
 {
 BaseType_t xRunningPrivileged = prvRaisePrivilege();
@@ -155,6 +161,7 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     portRESET_PRIVILEGE( xRunningPrivileged );
 //    portRESET_PRIVILEGE( xRunningPrivileged );
 }
+#endif
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskDelete == 1 )

@@ -200,7 +200,7 @@ unsigned long ulPortCountLeadingZeros(unsigned long ulBitmap);
 #define portTASK_FUNCTION_PROTO(vFunction, pvParameters) void vFunction(void *pvParameters)
 
 /* MPU specific constants.  */
-#define portUSING_MPU_WRAPPERS                  1
+#define portUSING_MPU_WRAPPERS                  0
 #define portPRIVILEGE_BIT                       ( 0x80000000UL )
 
 #define portMPU_REGION_READ_WRITE               ( 0x03UL << 8UL )
