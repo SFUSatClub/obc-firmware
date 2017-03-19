@@ -678,6 +678,7 @@ void linHighLevelInterrupt(void)
     uint32 vec = scilinREG->INTVECT0;
     uint8 byte;
     /* USER CODE BEGIN (29) */
+    #pragma diag_suppress 179 // Steven: suppress these warnings
     long xHigherPriorityTaskWoken = pdFALSE;
     uint8 ch;
     /* USER CODE END */

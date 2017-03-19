@@ -1,5 +1,5 @@
 /*
-    FreeRTOS V8.2.0 - Copyright (C) 2015 Real Time Engineers Ltd.
+    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
 
     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
@@ -8,14 +8,14 @@
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+    Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
 
-	***************************************************************************
+    ***************************************************************************
     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
     >>!   distribute a combined work that includes FreeRTOS without being   !<<
     >>!   obliged to provide the source code for proprietary components     !<<
     >>!   outside of the FreeRTOS kernel.                                   !<<
-	***************************************************************************
+    ***************************************************************************
 
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -37,17 +37,17 @@
     ***************************************************************************
 
     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
-	the FAQ page "My application does not run, what could be wrong?".  Have you
-	defined configASSERT()?
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
 
-	http://www.FreeRTOS.org/support - In return for receiving this top quality
-	embedded software for free we request you assist our global community by
-	participating in the support forum.
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
 
-	http://www.FreeRTOS.org/training - Investing in training allows your team to
-	be as productive as possible as early as possible.  Now you can receive
-	FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
-	Ltd, and the world's leading authority on the world's leading RTOS.
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
 
     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
@@ -74,40 +74,56 @@
 #ifndef PORTABLE_H
 #define PORTABLE_H
 
-/* Include the macro file relevant to the port being used. */
-#include "rtos_portmacro.h"
-/* Catch all to ensure portmacro.h is included in the build.  Newer demos
-have the path as part of the project options, rather than as relative from
-the project location.  If portENTER_CRITICAL() has not been defined then
-portmacro.h has not yet been included - as every portmacro.h provides a
-portENTER_CRITICAL() definition.  Check the demo application for your demo
-to find the path to the correct portmacro.h file. */
+/* Each FreeRTOS port has a unique portmacro.h header file.  Originally a
+pre-processor definition was used to ensure the pre-processor found the correct
+portmacro.h file for the port being used.  That scheme was deprecated in favour
+of setting the compiler's include path such that it found the correct
+portmacro.h file - removing the need for the constant and allowing the
+portmacro.h file to be located anywhere in relation to the port being used.
+Purely for reasons of backward compatibility the old method is still valid, but
+to make it clear that new projects should not use it, support for the port
+specific constants has been moved into the deprecated_definitions.h header
+file. */
+//#include "deprecated_definitions.h"
+
+/* If portENTER_CRITICAL is not defined then including deprecated_definitions.h
+did not result in a portmacro.h header file being included - and it should be
+included here.  In this case the path to the correct portmacro.h header file
+must be set in the compiler's include path. */
 #ifndef portENTER_CRITICAL
-	#include "portmacro.h"
+    #include "rtos_portmacro.h"
+#endif
+
+#if portBYTE_ALIGNMENT == 32
+    #define portBYTE_ALIGNMENT_MASK ( 0x001f )
+#endif
+
+#if portBYTE_ALIGNMENT == 16
+    #define portBYTE_ALIGNMENT_MASK ( 0x000f )
 #endif
 
 #if portBYTE_ALIGNMENT == 8
-	#define portBYTE_ALIGNMENT_MASK ( 0x0007U )
+    #define portBYTE_ALIGNMENT_MASK ( 0x0007 )
 #endif
 
 #if portBYTE_ALIGNMENT == 4
-	#define portBYTE_ALIGNMENT_MASK	( 0x0003 )
+    #define portBYTE_ALIGNMENT_MASK ( 0x0003 )
 #endif
 
 #if portBYTE_ALIGNMENT == 2
-	#define portBYTE_ALIGNMENT_MASK	( 0x0001 )
+    #define portBYTE_ALIGNMENT_MASK ( 0x0001 )
 #endif
 
 #if portBYTE_ALIGNMENT == 1
-	#define portBYTE_ALIGNMENT_MASK	( 0x0000 )
+    #define portBYTE_ALIGNMENT_MASK ( 0x0000 )
 #endif
 
 #ifndef portBYTE_ALIGNMENT_MASK
-	#error "Invalid portBYTE_ALIGNMENT definition"
+    #error "Invalid portBYTE_ALIGNMENT definition"
 #endif
 
 #ifndef portNUM_CONFIGURABLE_REGIONS
-	#define portNUM_CONFIGURABLE_REGIONS 1
+    #define portNUM_CONFIGURABLE_REGIONS 1
 #endif
 
 #ifdef __cplusplus
@@ -123,19 +139,16 @@ extern "C" {
  *
  */
 #if( portUSING_MPU_WRAPPERS == 1 )
-//StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) PRIVILEGED_FUNCTION;
-
-// Richard: there's no available definition for this with the xrunprivileged argument, so run it without (where there is a correct definition in the 570 port directly from freertos)
-StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters, BaseType_t xRunPrivileged ) PRIVILEGED_FUNCTION;
+    StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters, BaseType_t xRunPrivileged ) PRIVILEGED_FUNCTION;
 #else
-	StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) PRIVILEGED_FUNCTION;
+    StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters ) PRIVILEGED_FUNCTION;
 #endif
 
 /* Used by heap_5.c. */
 typedef struct HeapRegion
 {
-	uint8_t *pucStartAddress;
-	size_t xSizeInBytes;
+    uint8_t *pucStartAddress;
+    size_t xSizeInBytes;
 } HeapRegion_t;
 
 /*
@@ -149,7 +162,7 @@ typedef struct HeapRegion
  * terminated by a HeapRegions_t structure that has a size of 0.  The region
  * with the lowest start address must appear first in the array.
  */
-void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions );
+void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions ) PRIVILEGED_FUNCTION;
 
 
 /*
@@ -182,8 +195,8 @@ void vPortEndScheduler( void ) PRIVILEGED_FUNCTION;
  * contained in xRegions.
  */
 #if( portUSING_MPU_WRAPPERS == 1 )
-	struct xMEMORY_REGION;
-	void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint16_t usStackDepth ) PRIVILEGED_FUNCTION;
+    struct xMEMORY_REGION;
+    void vPortStoreTaskMPUSettings( xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint32_t ulStackDepth ) PRIVILEGED_FUNCTION;
 #endif
 
 #ifdef __cplusplus

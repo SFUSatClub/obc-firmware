@@ -83,55 +83,41 @@ task.h is included from an application file. */
 #include "rtos_queue.h"
 #include "rtos_timer.h"
 #include "rtos_event_groups.h"
-//#include "os_mpu_prototypes.h"
+#include "mpu_prototypes.h"
 
 #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
-#define portRESET_PRIVILEGE( xRunningPrivileged ) if( xRunningPrivileged == 0 ) portSWITCH_TO_USER_MODE() // Richard: put this in from 8.1
-#define xQueueGetMutexHolder MPU_xQueueGetMutexHolder // Richard: added this. It's also in os_mpu_wrappers
 /*
  * Checks to see if being called from the context of an unprivileged task, and
  * if so raises the privilege level and returns false - otherwise does nothing
  * other than return true.
  */
-// Richard: originally called xPortRaisePrivilege
-#pragma SWI_ALIAS(prvRaisePrivilege, 1);
-extern BaseType_t prvRaisePrivilege( void );
+extern BaseType_t xPortRaisePrivilege( void );
 
-/* Steven: surround with ifdef to prevent compilation since we're not using MPU.
- * Otherwise, xTaskCreateRestricted would be undefined
- */
-#if (portUSING_MPU_WRAPPERS == 1)
+// Steven: do nothing since we're not using MPU
+#define vPortResetPrivilege( xRunningPrivileged )
+
+/*-----------------------------------------------------------*/
+
 BaseType_t MPU_xTaskCreateRestricted( const TaskParameters_t * const pxTaskDefinition, TaskHandle_t *pxCreatedTask )
 {
-BaseType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
-
-    xReturn = xTaskCreateRestricted( pxTaskDefinition, pxCreatedTask );
-    portRESET_PRIVILEGE( xRunningPrivileged );
-
-    // RICHARD:
-    // REPLACED vPortResetPrivilege with portRESET_PRIVILEGE on all lines.
-
-    // portRESET_PRIVILEGE( xRunningPrivileged ); // Richard: removed and replaced with above
-    return xReturn;
+    // Steven: commented this out since we're not using MPU
+    //BaseType_t xReturn;
+    //BaseType_t xRunningPrivileged = xPortRaisePrivilege();
+    //xReturn = xTaskCreateRestricted( pxTaskDefinition, pxCreatedTask );
+    vPortResetPrivilege( xRunningPrivileged );
+    return NULL;
 }
-#endif
 /*-----------------------------------------------------------*/
 
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
     BaseType_t MPU_xTaskCreate( TaskFunction_t pvTaskCode, const char * const pcName, uint16_t usStackDepth, void *pvParameters, UBaseType_t uxPriority, TaskHandle_t *pxCreatedTask )
     {
     BaseType_t xReturn;
-
-    // prvRaisePrivilege();
-
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskCreate( pvTaskCode, pcName, usStackDepth, pvParameters, uxPriority, pxCreatedTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
-
-//        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif /* configSUPPORT_DYNAMIC_ALLOCATION */
@@ -141,38 +127,31 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHandle_t MPU_xTaskCreateStatic( TaskFunction_t pxTaskCode, const char * const pcName, const uint32_t ulStackDepth, void * const pvParameters, UBaseType_t uxPriority, StackType_t * const puxStackBuffer, StaticTask_t * const pxTaskBuffer )
     {
     TaskHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskCreateStatic( pxTaskCode, pcName, ulStackDepth, pvParameters, uxPriority, puxStackBuffer, pxTaskBuffer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif /* configSUPPORT_STATIC_ALLOCATION */
 /*-----------------------------------------------------------*/
-/* Steven: surround with ifdef to prevent compilation since we're not using MPU.
- * Otherwise, vTaskAllocateMPURegions would be undefined
- */
-#if (portUSING_MPU_WRAPPERS == 1)
+
 void MPU_vTaskAllocateMPURegions( TaskHandle_t xTask, const MemoryRegion_t * const xRegions )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vTaskAllocateMPURegions( xTask, xRegions );
-    portRESET_PRIVILEGE( xRunningPrivileged );
-//    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
-#endif
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskDelete == 1 )
     void MPU_vTaskDelete( TaskHandle_t pxTaskToDelete )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskDelete( pxTaskToDelete );
-        portRESET_PRIVILEGE( xRunningPrivileged );
-
-//        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -180,12 +159,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_vTaskDelayUntil == 1 )
     void MPU_vTaskDelayUntil( TickType_t * const pxPreviousWakeTime, TickType_t xTimeIncrement )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskDelayUntil( pxPreviousWakeTime, xTimeIncrement );
-        portRESET_PRIVILEGE( xRunningPrivileged );
-
-//        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -194,10 +171,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskAbortDelay( TaskHandle_t xTask )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskAbortDelay( xTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -206,12 +183,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_vTaskDelay == 1 )
     void MPU_vTaskDelay( TickType_t xTicksToDelay )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskDelay( xTicksToDelay );
-        portRESET_PRIVILEGE( xRunningPrivileged );
-
-//        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -220,12 +195,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     UBaseType_t MPU_uxTaskPriorityGet( TaskHandle_t pxTask )
     {
     UBaseType_t uxReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         uxReturn = uxTaskPriorityGet( pxTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
-
-//        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return uxReturn;
     }
 #endif
@@ -234,10 +207,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_vTaskPrioritySet == 1 )
     void MPU_vTaskPrioritySet( TaskHandle_t pxTask, UBaseType_t uxNewPriority )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskPrioritySet( pxTask, uxNewPriority );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -245,11 +218,11 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_eTaskGetState == 1 )
     eTaskState MPU_eTaskGetState( TaskHandle_t pxTask )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
     eTaskState eReturn;
 
         eReturn = eTaskGetState( pxTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return eReturn;
     }
 #endif
@@ -258,10 +231,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if( configUSE_TRACE_FACILITY == 1 )
     void MPU_vTaskGetInfo( TaskHandle_t xTask, TaskStatus_t *pxTaskStatus, BaseType_t xGetFreeStackSpace, eTaskState eState )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskGetInfo( xTask, pxTaskStatus, xGetFreeStackSpace, eState );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -270,10 +243,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHandle_t MPU_xTaskGetIdleTaskHandle( void )
     {
     TaskHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGetIdleTaskHandle();
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -282,10 +255,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_vTaskSuspend == 1 )
     void MPU_vTaskSuspend( TaskHandle_t pxTaskToSuspend )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskSuspend( pxTaskToSuspend );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -293,30 +266,30 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( INCLUDE_vTaskSuspend == 1 )
     void MPU_vTaskResume( TaskHandle_t pxTaskToResume )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskResume( pxTaskToResume );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
 
 void MPU_vTaskSuspendAll( void )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vTaskSuspendAll();
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t MPU_xTaskResumeAll( void )
 {
 BaseType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xTaskResumeAll();
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -324,10 +297,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 TickType_t MPU_xTaskGetTickCount( void )
 {
 TickType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xTaskGetTickCount();
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -335,10 +308,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 UBaseType_t MPU_uxTaskGetNumberOfTasks( void )
 {
 UBaseType_t uxReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     uxReturn = uxTaskGetNumberOfTasks();
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return uxReturn;
 }
 /*-----------------------------------------------------------*/
@@ -346,10 +319,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 char * MPU_pcTaskGetName( TaskHandle_t xTaskToQuery )
 {
 char *pcReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     pcReturn = pcTaskGetName( xTaskToQuery );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return pcReturn;
 }
 /*-----------------------------------------------------------*/
@@ -358,10 +331,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHandle_t MPU_xTaskGetHandle( const char *pcNameToQuery )
     {
     TaskHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGetHandle( pcNameToQuery );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -370,10 +343,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( ( configUSE_TRACE_FACILITY == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) )
     void MPU_vTaskList( char *pcWriteBuffer )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskList( pcWriteBuffer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -381,10 +354,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( ( configGENERATE_RUN_TIME_STATS == 1 ) && ( configUSE_STATS_FORMATTING_FUNCTIONS > 0 ) )
     void MPU_vTaskGetRunTimeStats( char *pcWriteBuffer )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskGetRunTimeStats( pcWriteBuffer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -392,10 +365,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( configUSE_APPLICATION_TASK_TAG == 1 )
     void MPU_vTaskSetApplicationTaskTag( TaskHandle_t xTask, TaskHookFunction_t pxTagValue )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskSetApplicationTaskTag( xTask, pxTagValue );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -404,10 +377,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHookFunction_t MPU_xTaskGetApplicationTaskTag( TaskHandle_t xTask )
     {
     TaskHookFunction_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGetApplicationTaskTag( xTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -416,10 +389,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if ( configNUM_THREAD_LOCAL_STORAGE_POINTERS != 0 )
     void MPU_vTaskSetThreadLocalStoragePointer( TaskHandle_t xTaskToSet, BaseType_t xIndex, void *pvValue )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTaskSetThreadLocalStoragePointer( xTaskToSet, xIndex, pvValue );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -428,10 +401,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     void *MPU_pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery, BaseType_t xIndex )
     {
     void *pvReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         pvReturn = pvTaskGetThreadLocalStoragePointer( xTaskToQuery, xIndex );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return pvReturn;
     }
 #endif
@@ -441,10 +414,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskCallApplicationTaskHook( TaskHandle_t xTask, void *pvParameter )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskCallApplicationTaskHook( xTask, pvParameter );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -454,10 +427,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     UBaseType_t MPU_uxTaskGetSystemState( TaskStatus_t *pxTaskStatusArray, UBaseType_t uxArraySize, uint32_t *pulTotalRunTime )
     {
     UBaseType_t uxReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         uxReturn = uxTaskGetSystemState( pxTaskStatusArray, uxArraySize, pulTotalRunTime );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return uxReturn;
     }
 #endif
@@ -467,10 +440,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     UBaseType_t MPU_uxTaskGetStackHighWaterMark( TaskHandle_t xTask )
     {
     UBaseType_t uxReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         uxReturn = uxTaskGetStackHighWaterMark( xTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return uxReturn;
     }
 #endif
@@ -480,10 +453,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHandle_t MPU_xTaskGetCurrentTaskHandle( void )
     {
     TaskHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGetCurrentTaskHandle();
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -493,10 +466,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskGetSchedulerState( void )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGetSchedulerState();
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -504,20 +477,20 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
 void MPU_vTaskSetTimeOutState( TimeOut_t * const pxTimeOut )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vTaskSetTimeOutState( pxTimeOut );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t MPU_xTaskCheckForTimeOut( TimeOut_t * const pxTimeOut, TickType_t * const pxTicksToWait )
 {
 BaseType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xTaskCheckForTimeOut( pxTimeOut, pxTicksToWait );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -526,10 +499,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskGenericNotify( TaskHandle_t xTaskToNotify, uint32_t ulValue, eNotifyAction eAction, uint32_t *pulPreviousNotificationValue )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskGenericNotify( xTaskToNotify, ulValue, eAction, pulPreviousNotificationValue );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -539,10 +512,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskNotifyWait( uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit, uint32_t *pulNotificationValue, TickType_t xTicksToWait )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskNotifyWait( ulBitsToClearOnEntry, ulBitsToClearOnExit, pulNotificationValue, xTicksToWait );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -552,10 +525,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     uint32_t MPU_ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksToWait )
     {
     uint32_t ulReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         ulReturn = ulTaskNotifyTake( xClearCountOnExit, xTicksToWait );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return ulReturn;
     }
 #endif
@@ -565,10 +538,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTaskNotifyStateClear( TaskHandle_t xTask )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTaskNotifyStateClear( xTask );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -578,10 +551,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     QueueHandle_t MPU_xQueueGenericCreate( UBaseType_t uxQueueLength, UBaseType_t uxItemSize, uint8_t ucQueueType )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueGenericCreate( uxQueueLength, uxItemSize, ucQueueType );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -591,10 +564,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     QueueHandle_t MPU_xQueueGenericCreateStatic( const UBaseType_t uxQueueLength, const UBaseType_t uxItemSize, uint8_t *pucQueueStorage, StaticQueue_t *pxStaticQueue, const uint8_t ucQueueType )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueGenericCreateStatic( uxQueueLength, uxItemSize, pucQueueStorage, pxStaticQueue, ucQueueType );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -603,10 +576,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 BaseType_t MPU_xQueueGenericReset( QueueHandle_t pxQueue, BaseType_t xNewQueue )
 {
 BaseType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xQueueGenericReset( pxQueue, xNewQueue );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -614,65 +587,65 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 BaseType_t MPU_xQueueGenericSend( QueueHandle_t xQueue, const void * const pvItemToQueue, TickType_t xTicksToWait, BaseType_t xCopyPosition )
 {
 BaseType_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xQueueGenericSend( xQueue, pvItemToQueue, xTicksToWait, xCopyPosition );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
 
 UBaseType_t MPU_uxQueueMessagesWaiting( const QueueHandle_t pxQueue )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 UBaseType_t uxReturn;
 
     uxReturn = uxQueueMessagesWaiting( pxQueue );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return uxReturn;
 }
 /*-----------------------------------------------------------*/
 
 UBaseType_t MPU_uxQueueSpacesAvailable( const QueueHandle_t xQueue )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 UBaseType_t uxReturn;
 
     uxReturn = uxQueueSpacesAvailable( xQueue );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return uxReturn;
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t MPU_xQueueGenericReceive( QueueHandle_t pxQueue, void * const pvBuffer, TickType_t xTicksToWait, BaseType_t xJustPeeking )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 BaseType_t xReturn;
 
     xReturn = xQueueGenericReceive( pxQueue, pvBuffer, xTicksToWait, xJustPeeking );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
 
 BaseType_t MPU_xQueuePeekFromISR( QueueHandle_t pxQueue, void * const pvBuffer )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 BaseType_t xReturn;
 
     xReturn = xQueuePeekFromISR( pxQueue, pvBuffer );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
 
 void* MPU_xQueueGetMutexHolder( QueueHandle_t xSemaphore )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 void * xReturn;
 
     xReturn = ( void * ) xQueueGetMutexHolder( xSemaphore );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
     return xReturn;
 }
 /*-----------------------------------------------------------*/
@@ -681,10 +654,10 @@ void * xReturn;
     QueueHandle_t MPU_xQueueCreateMutex( const uint8_t ucQueueType )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueCreateMutex( ucQueueType );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -694,10 +667,10 @@ void * xReturn;
     QueueHandle_t MPU_xQueueCreateMutexStatic( const uint8_t ucQueueType, StaticQueue_t *pxStaticQueue )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueCreateMutexStatic( ucQueueType, pxStaticQueue );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -707,10 +680,10 @@ void * xReturn;
     QueueHandle_t MPU_xQueueCreateCountingSemaphore( UBaseType_t uxCountValue, UBaseType_t uxInitialCount )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueCreateCountingSemaphore( uxCountValue, uxInitialCount );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -721,10 +694,10 @@ void * xReturn;
     QueueHandle_t MPU_xQueueCreateCountingSemaphoreStatic( const UBaseType_t uxMaxCount, const UBaseType_t uxInitialCount, StaticQueue_t *pxStaticQueue )
     {
     QueueHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueCreateCountingSemaphoreStatic( uxMaxCount, uxInitialCount, pxStaticQueue );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -734,10 +707,10 @@ void * xReturn;
     BaseType_t MPU_xQueueTakeMutexRecursive( QueueHandle_t xMutex, TickType_t xBlockTime )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueTakeMutexRecursive( xMutex, xBlockTime );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -747,10 +720,10 @@ void * xReturn;
     BaseType_t MPU_xQueueGiveMutexRecursive( QueueHandle_t xMutex )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueGiveMutexRecursive( xMutex );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -760,10 +733,10 @@ void * xReturn;
     QueueSetHandle_t MPU_xQueueCreateSet( UBaseType_t uxEventQueueLength )
     {
     QueueSetHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueCreateSet( uxEventQueueLength );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -773,10 +746,10 @@ void * xReturn;
     QueueSetMemberHandle_t MPU_xQueueSelectFromSet( QueueSetHandle_t xQueueSet, TickType_t xBlockTimeTicks )
     {
     QueueSetMemberHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueSelectFromSet( xQueueSet, xBlockTimeTicks );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -786,10 +759,10 @@ void * xReturn;
     BaseType_t MPU_xQueueAddToSet( QueueSetMemberHandle_t xQueueOrSemaphore, QueueSetHandle_t xQueueSet )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueAddToSet( xQueueOrSemaphore, xQueueSet );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -799,10 +772,10 @@ void * xReturn;
     BaseType_t MPU_xQueueRemoveFromSet( QueueSetMemberHandle_t xQueueOrSemaphore, QueueSetHandle_t xQueueSet )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xQueueRemoveFromSet( xQueueOrSemaphore, xQueueSet );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return xReturn;
     }
 #endif
@@ -811,11 +784,11 @@ void * xReturn;
 #if configQUEUE_REGISTRY_SIZE > 0
     void MPU_vQueueAddToRegistry( QueueHandle_t xQueue, const char *pcName )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vQueueAddToRegistry( xQueue, pcName );
 
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -823,11 +796,11 @@ void * xReturn;
 #if configQUEUE_REGISTRY_SIZE > 0
     void MPU_vQueueUnregisterQueue( QueueHandle_t xQueue )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vQueueUnregisterQueue( xQueue );
 
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -835,12 +808,12 @@ void * xReturn;
 #if configQUEUE_REGISTRY_SIZE > 0
     const char *MPU_pcQueueGetName( QueueHandle_t xQueue )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
     const char *pcReturn;
 
         pcReturn = pcQueueGetName( xQueue );
 
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
         return pcReturn;
     }
 #endif
@@ -848,11 +821,11 @@ void * xReturn;
 
 void MPU_vQueueDelete( QueueHandle_t xQueue )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vQueueDelete( xQueue );
 
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 /*-----------------------------------------------------------*/
 
@@ -861,11 +834,11 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     void *MPU_pvPortMalloc( size_t xSize )
     {
     void *pvReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         pvReturn = pvPortMalloc( xSize );
 
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return pvReturn;
     }
@@ -877,11 +850,11 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
     void MPU_vPortFree( void *pv )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vPortFree( pv );
 
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 
 #endif /* configSUPPORT_DYNAMIC_ALLOCATION */
@@ -889,22 +862,22 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
 void MPU_vPortInitialiseBlocks( void )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vPortInitialiseBlocks();
 
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 /*-----------------------------------------------------------*/
 
 size_t MPU_xPortGetFreeHeapSize( void )
 {
 size_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xPortGetFreeHeapSize();
 
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 
     return xReturn;
 }
@@ -914,10 +887,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TimerHandle_t MPU_xTimerCreate( const char * const pcTimerName, const TickType_t xTimerPeriodInTicks, const UBaseType_t uxAutoReload, void * const pvTimerID, TimerCallbackFunction_t pxCallbackFunction )
     {
     TimerHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerCreate( pcTimerName, xTimerPeriodInTicks, uxAutoReload, pvTimerID, pxCallbackFunction );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -928,10 +901,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TimerHandle_t MPU_xTimerCreateStatic( const char * const pcTimerName, const TickType_t xTimerPeriodInTicks, const UBaseType_t uxAutoReload, void * const pvTimerID, TimerCallbackFunction_t pxCallbackFunction, StaticTimer_t *pxTimerBuffer )
     {
     TimerHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerCreateStatic( pcTimerName, xTimerPeriodInTicks, uxAutoReload, pvTimerID, pxCallbackFunction, pxTimerBuffer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -942,10 +915,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     void *MPU_pvTimerGetTimerID( const TimerHandle_t xTimer )
     {
     void * pvReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         pvReturn = pvTimerGetTimerID( xTimer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return pvReturn;
     }
@@ -955,10 +928,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 #if( configUSE_TIMERS == 1 )
     void MPU_vTimerSetTimerID( TimerHandle_t xTimer, void *pvNewID )
     {
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         vTimerSetTimerID( xTimer, pvNewID );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
     }
 #endif
 /*-----------------------------------------------------------*/
@@ -967,10 +940,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTimerIsTimerActive( TimerHandle_t xTimer )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerIsTimerActive( xTimer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -981,10 +954,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TaskHandle_t MPU_xTimerGetTimerDaemonTaskHandle( void )
     {
     TaskHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerGetTimerDaemonTaskHandle();
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -995,10 +968,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTimerPendFunctionCall( PendedFunction_t xFunctionToPend, void *pvParameter1, uint32_t ulParameter2, TickType_t xTicksToWait )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerPendFunctionCall( xFunctionToPend, pvParameter1, ulParameter2, xTicksToWait );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1009,10 +982,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     const char * MPU_pcTimerGetName( TimerHandle_t xTimer )
     {
     const char * pcReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         pcReturn = pcTimerGetName( xTimer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return pcReturn;
     }
@@ -1023,10 +996,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TickType_t MPU_xTimerGetPeriod( TimerHandle_t xTimer )
     {
     TickType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerGetPeriod( xTimer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1037,10 +1010,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     TickType_t MPU_xTimerGetExpiryTime( TimerHandle_t xTimer )
     {
     TickType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerGetExpiryTime( xTimer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1051,10 +1024,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     BaseType_t MPU_xTimerGenericCommand( TimerHandle_t xTimer, const BaseType_t xCommandID, const TickType_t xOptionalValue, BaseType_t * const pxHigherPriorityTaskWoken, const TickType_t xTicksToWait )
     {
     BaseType_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xTimerGenericCommand( xTimer, xCommandID, xOptionalValue, pxHigherPriorityTaskWoken, xTicksToWait );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1065,10 +1038,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     EventGroupHandle_t MPU_xEventGroupCreate( void )
     {
     EventGroupHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xEventGroupCreate();
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1079,10 +1052,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
     EventGroupHandle_t MPU_xEventGroupCreateStatic( StaticEventGroup_t *pxEventGroupBuffer )
     {
     EventGroupHandle_t xReturn;
-    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
         xReturn = xEventGroupCreateStatic( pxEventGroupBuffer );
-        portRESET_PRIVILEGE( xRunningPrivileged );
+        vPortResetPrivilege( xRunningPrivileged );
 
         return xReturn;
     }
@@ -1092,10 +1065,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 EventBits_t MPU_xEventGroupWaitBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToWaitFor, const BaseType_t xClearOnExit, const BaseType_t xWaitForAllBits, TickType_t xTicksToWait )
 {
 EventBits_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xEventGroupWaitBits( xEventGroup, uxBitsToWaitFor, xClearOnExit, xWaitForAllBits, xTicksToWait );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 
     return xReturn;
 }
@@ -1104,10 +1077,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 EventBits_t MPU_xEventGroupClearBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToClear )
 {
 EventBits_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xEventGroupClearBits( xEventGroup, uxBitsToClear );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 
     return xReturn;
 }
@@ -1116,10 +1089,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 EventBits_t MPU_xEventGroupSetBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet )
 {
 EventBits_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xEventGroupSetBits( xEventGroup, uxBitsToSet );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 
     return xReturn;
 }
@@ -1128,10 +1101,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 EventBits_t MPU_xEventGroupSync( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet, const EventBits_t uxBitsToWaitFor, TickType_t xTicksToWait )
 {
 EventBits_t xReturn;
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     xReturn = xEventGroupSync( xEventGroup, uxBitsToSet, uxBitsToWaitFor, xTicksToWait );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 
     return xReturn;
 }
@@ -1139,10 +1112,10 @@ BaseType_t xRunningPrivileged = prvRaisePrivilege();
 
 void MPU_vEventGroupDelete( EventGroupHandle_t xEventGroup )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     vEventGroupDelete( xEventGroup );
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 /*-----------------------------------------------------------*/
 
@@ -1157,11 +1130,11 @@ equals the privilege state on entry.  For example:
 
 void MPU_FunctionName( [parameters ] )
 {
-BaseType_t xRunningPrivileged = prvRaisePrivilege();
+BaseType_t xRunningPrivileged = xPortRaisePrivilege();
 
     FunctionName( [parameters ] );
 
-    portRESET_PRIVILEGE( xRunningPrivileged );
+    vPortResetPrivilege( xRunningPrivileged );
 }
 */
 
