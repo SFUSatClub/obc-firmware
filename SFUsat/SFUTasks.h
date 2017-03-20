@@ -25,5 +25,9 @@ void vSenderTask( void *pvParameters );
 void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
 
+QueueHandle_t xSerialQueue;
+void vSerialTask(void *pvParameters);
+void vSerialSenderTask(void *pvParameters);
+BaseType_t serialSendQ(char * toSend);
 
 #endif /* SFUSAT_SFUTASKS_H_ */

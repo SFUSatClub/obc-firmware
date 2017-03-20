@@ -102,6 +102,10 @@ int main(void)
                  NULL ); /* This example does not use the task handle. */
     serialSendln("created hundred blnky");
     xQueue = xQueueCreate(5, sizeof(char *));
+
+    xSerialQueue = xQueueCreate(10, sizeof(char *));
+    xTaskCreate( vSerialTask, "UART", 200, NULL, 2, NULL);
+
     serialSendln("created queue");
     /* Create two instances of the task that will send to the queue. The task
      parameter is used to pass the value that the task will write to the queue,
