@@ -16,8 +16,8 @@ void serialInit(){
     sciReceive(scilinREG, 1, (unsigned char *)&myCommand); // place into receive mode
 }
 
-void serialSend(unsigned char* myStr){ // simple, just sends what's given to it with no /r/n
-    sciSend(scilinREG, sizeof(myStr) + 1, myStr);
+void serialSend(char* stringToSend) {
+	sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
 }
 
 void serialSendln(char* stringToSend){
