@@ -81,14 +81,18 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
  */
 
 /* USER CODE BEGIN (2) */
-//extern void prvMpuDisable( void );
 /* USER CODE END */
 
 int main(void)
 {
     /* USER CODE BEGIN (3) */
-    //prvMpuDisable();
-    _enable_IRQ(); // global interrupt enable
+	_enable_IRQ(); // global interrupt enable
+
+	// TODO: encapsulate these
+	xQueue = xQueueCreate(5, sizeof(char *));
+	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(5, sizeof(portCHAR *));
+
     serialInit(); // SFU Serial
 
     gioInit();
@@ -101,12 +105,10 @@ int main(void)
                  1, /* This task will run at priority 1. */
                  NULL ); /* This example does not use the task handle. */
     serialSendln("created hundred blnky");
-    xQueue = xQueueCreate(5, sizeof(char *));
 
-    xSerialQueue = xQueueCreate(10, sizeof(char *));
     xTaskCreate( vSerialTask, "UART", 200, NULL, 2, NULL);
 
-    serialSendln("created queue");
+    serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task
      parameter is used to pass the value that the task will write to the queue,
      In this case, a string (character pointer) will be passed to th<e queue.
@@ -114,14 +116,14 @@ int main(void)
 
     xTaskCreate(periodicSenderTask, "FreqPST", 200, (void *) 1000, 1, NULL);
     xTaskCreate(periodicSenderTask, "InfreqPST", 200, (void *) 5000, 1, NULL);
-    serialSendln("created pst");
+    serialSendQ("created pst");
 
     /* Create the task that will read from the queue. The task is created with
      priority 2, so above the priority of the sender tasks. */
     BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 200, NULL, 2, NULL);
-    serialSendln("created rcvr");
+    serialSendQ("created rcvr");
     if(ret == -1) {
-        serialSendln("failed");
+        serialSendQ("failed");
     }
 
     vTaskStartScheduler();

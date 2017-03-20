@@ -22,7 +22,7 @@ static char inputBuffer[10]; // 10 character input buffer
 static int bufferIndex = 0;
 
 void serialInit();
-void serialSend(unsigned char*);
+void serialSend(char*);
 void serialSendln(char*);
 void echoInputBuffer(void);
 

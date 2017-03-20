@@ -14,7 +14,7 @@
 #include "sys_common.h"
 #include "SFU_Serial.h"
 
-QueueHandle_t xQueue;
+extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 
 void hundredBlinky(void *pvParameters);
@@ -25,7 +25,8 @@ void vSenderTask( void *pvParameters );
 void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
 
-QueueHandle_t xSerialQueue;
+extern QueueHandle_t xSerialTXQueue;
+extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
 void vSerialSenderTask(void *pvParameters);
 BaseType_t serialSendQ(char * toSend);
