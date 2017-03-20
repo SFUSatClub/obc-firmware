@@ -81,17 +81,18 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
  */
 
 /* USER CODE BEGIN (2) */
+//extern void prvMpuDisable( void );
 /* USER CODE END */
 
 int main(void)
 {
     /* USER CODE BEGIN (3) */
+    //prvMpuDisable();
     _enable_IRQ(); // global interrupt enable
     serialInit(); // SFU Serial
 
     gioInit();
     serialSendln("Hello!");
-    serialSendln("Hello 2!");
 
     xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
                  "100 Hz Blinky",/* Text name for the task. This is to facilitate debugging only. */
@@ -100,30 +101,25 @@ int main(void)
                  1, /* This task will run at priority 1. */
                  NULL ); /* This example does not use the task handle. */
     serialSendln("created hundred blnky");
-   xQueue = xQueueCreate( 5, sizeof( char * ) );
-   serialSendln("created queue");
-//    if( xQueue != NULL )
-//    {
-//        /* Create two instances of the task that will send to the queue. The task
-//    parameter is used to pass the value that the task will write to the queue,
-//   In this case, a string (character pointer) will be passed to the queue.
-//   */
-//
-      xTaskCreate(periodicSenderTask, "PST", 600, ( void * )  1000, 1, NULL);
-      serialSendln("created pst");
-//        xTaskCreate(periodicSenderTask, "INFREQUENT Sending Task", 300, ( void * )  5000, 1, NULL);
-//
-//        /* Create the task that will read from the queue. The task is created with
-//    priority 2, so above the priority of the sender tasks. */
-     //xTaskCreate( vReceiverTask, "Receiver", 800, NULL, 2, NULL );
-     serialSendln("created rcvr");
-//        /* Start the scheduler so the created tasks start executing. */
-//        vTaskStartScheduler();
-//    }
-//    else
-//    {
-//        /* The queue could not be created. */
-//    }
+    xQueue = xQueueCreate(5, sizeof(char *));
+    serialSendln("created queue");
+    /* Create two instances of the task that will send to the queue. The task
+     parameter is used to pass the value that the task will write to the queue,
+     In this case, a string (character pointer) will be passed to th<e queue.
+     */
+
+    xTaskCreate(periodicSenderTask, "FreqPST", 200, (void *) 1000, 1, NULL);
+    xTaskCreate(periodicSenderTask, "InfreqPST", 200, (void *) 5000, 1, NULL);
+    serialSendln("created pst");
+
+    /* Create the task that will read from the queue. The task is created with
+     priority 2, so above the priority of the sender tasks. */
+    BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 200, NULL, 2, NULL);
+    serialSendln("created rcvr");
+    if(ret == -1) {
+        serialSendln("failed");
+    }
+
     vTaskStartScheduler();
 
     for(;;); // keep running the scheduler

@@ -774,7 +774,7 @@ extern "C" {
 
 #ifndef configSUPPORT_STATIC_ALLOCATION
     /* Defaults to 0 for backward compatibility. */
-    #define configSUPPORT_STATIC_ALLOCATION 1
+    #define configSUPPORT_STATIC_ALLOCATION 0
 #endif
 
 #ifndef configSUPPORT_DYNAMIC_ALLOCATION

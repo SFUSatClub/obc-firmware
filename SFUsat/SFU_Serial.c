@@ -9,8 +9,6 @@
 
 
 #include "SFU_Serial.h"
-#include <string.h>
-#include <stdlib.h>
 
 void serialInit(){
     sciInit(); //initialize the SCI driver

@@ -13,7 +13,9 @@
 #define SFUSAT_SFU_SERIAL_H_
 
 #include "sci.h" // by HALcoGen
-
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 static unsigned char myCommand;
 static char inputBuffer[10]; // 10 character input buffer
