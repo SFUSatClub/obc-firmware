@@ -91,7 +91,7 @@ int main(void)
 	// TODO: encapsulate these
 	xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(5, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
     serialInit(); // SFU Serial
 
@@ -106,7 +106,7 @@ int main(void)
                  NULL ); /* This example does not use the task handle. */
     serialSendln("created hundred blnky");
 
-    xTaskCreate( vSerialTask, "UART", 200, NULL, 2, NULL);
+    xTaskCreate( vSerialTask, "UART", 300, NULL, 2, NULL);
 
     serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task

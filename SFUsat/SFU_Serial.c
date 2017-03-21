@@ -8,14 +8,23 @@
 
 #include "SFU_Serial.h"
 
+unsigned char currChar = '\0';
+unsigned char prevChar = '\0';
+char inputBuffer[10] = "";
+int bufferIndex = 0;
+
 void serialInit(){
     sciInit(); //initialize the SCI driver
-    bufferIndex = 0;
-    sciReceive(scilinREG, 1, &myCommand); // place into receive mode
+    sciReceive(scilinREG, 1, &currChar); // place into receive mode
 }
 
+void serialSendCh(char charToSend) {
+	sciSend(scilinREG, 1, (unsigned char *)&charToSend);
+	sciReceive(scilinREG, 1, &currChar);
+}
 void serialSend(char* stringToSend) {
 	sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
+	sciReceive(scilinREG, 1, &currChar);
 }
 
 void serialSendln(char* stringToSend){
@@ -31,28 +40,34 @@ void serialSendln(char* stringToSend){
 
     free(extended);
 
-    sciReceive(scilinREG, 1, &myCommand);
+    sciReceive(scilinREG, 1, &currChar);
 }
 
 void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt handler callback
-    inputBuffer[bufferIndex] = myCommand;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
+	//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
-    //	sciSend(scilinREG, 1, (unsigned char *)&inputBuffer[bufferIndex]); // echo received character
-    bufferIndex ++;
-
-    if (bufferIndex > 9){ // reset the buffer
-        echoInputBuffer();
-        bufferIndex = 0; // reset our index
-        serialSendln("\r\nBuffer full");
-    }
-    sciReceive(scilinREG, 1, &myCommand); // go back into receive mode
-}
-
-void echoInputBuffer(void){ 	// prints out the entire input buffer so we can see what's in it
-    int i;
-    char sendChar;
-    for (i = 0; i < sizeof(inputBuffer); i++){
-        sendChar = inputBuffer[i];
-        serialSendln(&sendChar);
-    }
+    // check and accept both CR and CRLF EOL
+    // exclude both from extracted command
+//    if(currChar == '\n') {
+//    	if(prevChar == '\r') {
+//    		inputBuffer[bufferIndex - 1] = '\0';
+//    	} else {
+//    		inputBuffer[bufferIndex] = '\0';
+//    	}
+//    	bufferIndex = 0;
+//
+//
+//    }
+//    bufferIndex++;
+//
+//    if (bufferIndex > 9){ // reset the buffer
+//        echoInputBuffer();
+//        bufferIndex = 0; // reset our index
+//        serialSendln("\r\nBuffer full");
+//    }
+//
+//    prevChar = currChar;
+    sciReceive(scilinREG, 1, &currChar); // go back into receive mode
 }

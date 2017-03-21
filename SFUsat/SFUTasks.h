@@ -30,5 +30,7 @@ extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
 void vSerialSenderTask(void *pvParameters);
 BaseType_t serialSendQ(char * toSend);
+BaseType_t serialSendQFromISR(char * toSend);
+
 
 #endif /* SFUSAT_SFUTASKS_H_ */

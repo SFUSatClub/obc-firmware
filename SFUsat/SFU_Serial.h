@@ -12,20 +12,23 @@
 #ifndef SFUSAT_SFU_SERIAL_H_
 #define SFUSAT_SFU_SERIAL_H_
 
-#include "sci.h" // by HALcoGen
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-static unsigned char myCommand;
-static char inputBuffer[10]; // 10 character input buffer
-static int bufferIndex = 0;
+#include "sci.h" // by HALcoGen
+
+#include "SFUTasks.h"
+
+// TODO: put into struct?
+extern unsigned char currChar;
+extern unsigned char prevChar;
+extern char inputBuffer[10];
+extern int bufferIndex;
 
 void serialInit();
+void serialSendCh(char charToSend);
 void serialSend(char*);
 void serialSendln(char*);
-void echoInputBuffer(void);
-
-
 
 #endif /* SFUSAT_SFU_SERIAL_H_ */
