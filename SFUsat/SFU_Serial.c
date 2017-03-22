@@ -46,7 +46,7 @@ void serialSendln(char* stringToSend){
 void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt handler callback
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
-	//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
     // check and accept both CR and CRLF EOL
     // exclude both from extracted command

@@ -108,9 +108,7 @@ BaseType_t serialSendQ(char * toSend) {
 BaseType_t serialSendQFromISR(char * toSend) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	BaseType_t xStatus = xQueueSendToBackFromISR(xSerialTXQueue, &toSend, &xHigherPriorityTaskWoken);
-	if(xHigherPriorityTaskWoken == pdTRUE) {
-		taskYIELD();
-	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	return xStatus;
 }
 
