@@ -48,6 +48,7 @@
 #include "rtos_queue.h"
 #include "gio.h"
 #include "SFU_Serial.h"
+#include "SFU_SPI.h"
 #include "SFUTasks.h"
 /* USER CODE END */
 
@@ -93,7 +94,8 @@ int main(void)
 	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-    serialInit(); // SFU Serial
+    serialInit();
+    spi_init();
 
     gioInit();
     serialSendln("Hello!");

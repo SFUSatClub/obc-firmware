@@ -18,6 +18,20 @@ void serialInit(){
     sciReceive(scilinREG, 1, &currChar); // place into receive mode
 }
 
+BaseType_t serialSendQ(char * toSend) {
+	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
+		return pdPASS;
+	} else {
+		return pdFAIL;
+	}
+}
+BaseType_t serialSendQFromISR(char * toSend) {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	BaseType_t xStatus = xQueueSendToBackFromISR(xSerialTXQueue, &toSend, &xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	return xStatus;
+}
+
 void serialSendCh(char charToSend) {
 	sciSend(scilinREG, 1, (unsigned char *)&charToSend);
 	sciReceive(scilinREG, 1, &currChar);

@@ -7,11 +7,14 @@
 
 #ifndef SFUSAT_SFUTASKS_H_
 #define SFUSAT_SFUTASKS_H_
+
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
+
 #include "gio.h"
 #include "sys_common.h"
+
 #include "SFU_Serial.h"
 
 extern QueueHandle_t xQueue;
@@ -29,8 +32,5 @@ extern QueueHandle_t xSerialTXQueue;
 extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
 void vSerialSenderTask(void *pvParameters);
-BaseType_t serialSendQ(char * toSend);
-BaseType_t serialSendQFromISR(char * toSend);
-
 
 #endif /* SFUSAT_SFUTASKS_H_ */

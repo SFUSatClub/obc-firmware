@@ -20,15 +20,11 @@
 
 #include "SFUTasks.h"
 
-// TODO: put into struct?
-extern unsigned char currChar;
-extern unsigned char prevChar;
-extern char inputBuffer[10];
-extern int bufferIndex;
-
 void serialInit();
 void serialSendCh(char charToSend);
 void serialSend(char*);
 void serialSendln(char*);
+BaseType_t serialSendQ(char * toSend);
+BaseType_t serialSendQFromISR(char * toSend);
 
 #endif /* SFUSAT_SFU_SERIAL_H_ */

@@ -18,7 +18,16 @@ void vTask2(void *pvParameters) {
 	}
 }
 
-
+/**
+ * This task is responsible for the handling of all UART related functions.
+ *
+ * This task does not know if dequeued strings are dynamically allocated; the freeing of strings remains the
+ * responsibility of the queuer. Thus, this task should be created with a priority higher than those
+ * of tasks that wish to tx over serial. This makes possible the immediate freeing of malloc'd strings once queued due to
+ * preemption.
+ *
+ * @param pvParameters
+ */
 #define MAX_COMMANDS 10
 #define MAX_RX_BUFFER 64
 void vSerialTask(void *pvParameters) {
@@ -35,18 +44,25 @@ void vSerialTask(void *pvParameters) {
 	char currRcvdCharFromRx;
 	char prevRcvdCharFromRx;
 	while (1) {
-		if (xQueueReceive(xSerialTXQueue, &queuedStrToTx, xTicksToWait) == pdPASS) {
+		/*
+		 * Dequeue next string to send over UART.
+		 */
+		const int numTxMsgs = uxQueueMessagesWaiting(xSerialTXQueue);
+		if (numTxMsgs > 5) {
+			serialSend("WARNING: ");
+			char buffer[10];
+			snprintf(buffer, 10, "%d", numTxMsgs);
+			serialSend(buffer);
+			serialSendln(" msgs in tx queue");
+		}
+		while (xQueueReceive(xSerialTXQueue, &queuedStrToTx, xTicksToWait) == pdPASS) {
 			serialSendln(queuedStrToTx);
-			//free(queuedStr);
-//            char nm[30];
-//            UBaseType_t waiting = uxQueueMessagesWaiting(xSerialQueue);
-//            snprintf(nm, 30, "serialQlen=%Lu", waiting);
-//            serialSendln(nm);
-			if (uxQueueMessagesWaiting(xSerialTXQueue) > 5) {
-				serialSendln("WARNING: lots of uart tx");
-			}
 		}
 
+		/*
+		 * Dequeue next char received from UART.
+		 * Buffer parsed commands for later processing.
+		 */
 		if (xQueueReceive(xSerialRXQueue, &currRcvdCharFromRx, xTicksToWait) == pdPASS) {
 			rxBuffer[rxBufferIdx] = currRcvdCharFromRx;
 		    // check for and accept both CR and CRLF as EOL terminators
@@ -97,19 +113,6 @@ void vSerialSenderTask(void *pvParameters) {
 	while (1) {
 
 	}
-}
-BaseType_t serialSendQ(char * toSend) {
-	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
-		return pdPASS;
-	} else {
-		return pdFAIL;
-	}
-}
-BaseType_t serialSendQFromISR(char * toSend) {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	BaseType_t xStatus = xQueueSendToBackFromISR(xSerialTXQueue, &toSend, &xHigherPriorityTaskWoken);
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-	return xStatus;
 }
 
 void periodicSenderTask(void *pvParameters) { // uses the task parameter to delay itself at a different frequency. Creates UART sender tasks to send whether it was a frequent or infrequent call.
