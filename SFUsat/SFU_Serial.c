@@ -101,6 +101,7 @@ int (*CMD_FUNCS[])(int args, char **argv) = {
 	CMD_DATA(CMD_FUNC_SELECTOR)
 };
 
+#define MAX_CMD_ARGS 10
 BaseType_t checkAndRunCommand(char *cmd) {
 	const char delim[] = " ";
 	char *intendedCmd = strtok(cmd, delim);
@@ -120,10 +121,10 @@ BaseType_t checkAndRunCommand(char *cmd) {
 	if (intendedCmdIdx == -1) return 0;
 
 	int argsIdx = 0;
-	char *args[10] = {NULL};
+	char *args[MAX_CMD_ARGS] = {NULL};
 	while (intendedCmd != NULL) {
 		intendedCmd = strtok(NULL, delim);
-		if (intendedCmd == NULL) break;
+		if (intendedCmd == NULL || argsIdx > MAX_CMD_ARGS - 1) break;
 		args[argsIdx] = intendedCmd;
 		argsIdx++;
 	}
