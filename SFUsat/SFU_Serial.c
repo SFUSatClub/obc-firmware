@@ -101,7 +101,7 @@ int cmdTest(int args, char **argv) {
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
 };
-const int (*CMD_FUNCS[])(int args, char **argv) = {
+int (*const CMD_FUNCS[])(int args, char **argv) = {
 	CMD_TABLE(CMD_FUNC_SELECTOR)
 };
 
@@ -134,7 +134,7 @@ BaseType_t checkAndRunCommand(char *cmd) {
 	int intendedCmdIdx = -1;
 	size_t i;
 	for (i = 0; i < sizeof(CMD_NAMES) / sizeof(char*); i++) {
-		char *currCmd = CMD_NAMES[i];
+		const char *currCmd = CMD_NAMES[i];
 		if(strcmp(intendedCmd, currCmd) == 0) {
 			intendedCmdIdx = i;
 			break;

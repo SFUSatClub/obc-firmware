@@ -27,8 +27,8 @@ void serialSendln(char*);
 BaseType_t serialSendQ(char * toSend);
 BaseType_t serialSendQFromISR(char * toSend);
 
-extern char *CMD_NAMES[];
-extern int (*CMD_FUNCS[])(int args, char **argv);
+extern const char *CMD_NAMES[];
+extern int (*const CMD_FUNCS[])(int args, char **argv);
 BaseType_t checkAndRunCommand(char *cmd);
 
 #endif /* SFUSAT_SFU_SERIAL_H_ */
