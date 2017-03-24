@@ -124,9 +124,6 @@ int main(void)
      priority 2, so above the priority of the sender tasks. */
     BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 200, NULL, 2, NULL);
     serialSendQ("created rcvr");
-    if(ret == -1) {
-        serialSendQ("failed");
-    }
 
     vTaskStartScheduler();
 

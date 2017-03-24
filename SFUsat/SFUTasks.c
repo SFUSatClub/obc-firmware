@@ -32,17 +32,16 @@ void vTask2(void *pvParameters) {
 #define MAX_RX_BUFFER 64
 void vSerialTask(void *pvParameters) {
 	const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
-	char *queuedStrToTx;
 
-	//char **commands = (char**) malloc((MAX_COMMANDS)*sizeof(char*));
-	char *commands[MAX_COMMANDS];
+	char *commands[MAX_COMMANDS] = {NULL};
 	int commandsIdx = 0;
 
-	char rxBuffer[MAX_RX_BUFFER];
-	int rxBufferIdx = 0;
+	char *txCurrQueuedStr = NULL;
 
-	char currRcvdCharFromRx;
-	char prevRcvdCharFromRx;
+	char rxBuffer[MAX_RX_BUFFER] = "";
+	int rxBufferIdx = 0;
+	char rxCurrRcvdChar = '\0';
+	char rxPrevRcvdChar = '\0';
 	while (1) {
 		/*
 		 * Dequeue next string to send over UART.
@@ -55,19 +54,19 @@ void vSerialTask(void *pvParameters) {
 			serialSend(buffer);
 			serialSendln(" msgs in tx queue");
 		}
-		while (xQueueReceive(xSerialTXQueue, &queuedStrToTx, xTicksToWait) == pdPASS) {
-			serialSendln(queuedStrToTx);
+		while (xQueueReceive(xSerialTXQueue, &txCurrQueuedStr, xTicksToWait) == pdPASS) {
+			serialSendln(txCurrQueuedStr);
 		}
 
 		/*
 		 * Dequeue next char received from UART.
 		 * Buffer parsed commands for later processing.
 		 */
-		if (xQueueReceive(xSerialRXQueue, &currRcvdCharFromRx, xTicksToWait) == pdPASS) {
-			rxBuffer[rxBufferIdx] = currRcvdCharFromRx;
+		if (xQueueReceive(xSerialRXQueue, &rxCurrRcvdChar, xTicksToWait) == pdPASS) {
+			rxBuffer[rxBufferIdx] = rxCurrRcvdChar;
 		    // check for and accept both CR and CRLF as EOL terminators
 		    // exclude both from extracted command
-			if (currRcvdCharFromRx == '\n') {
+			if (rxCurrRcvdChar == '\n') {
 				// reset and free the commands buffer if it is currently full and a new command is being added
 				if (commandsIdx >= MAX_COMMANDS) {
 					serialSendln("Freeing commands: ");
@@ -78,7 +77,7 @@ void vSerialTask(void *pvParameters) {
 					commandsIdx = 0;
 				}
 				size_t toAllocate;
-				if (prevRcvdCharFromRx == '\r') {
+				if (rxPrevRcvdChar == '\r') {
 					rxBuffer[rxBufferIdx - 1] = '\0'; // strlen = rxBufferIdx
 					toAllocate = rxBufferIdx;
 				} else {
@@ -91,6 +90,7 @@ void vSerialTask(void *pvParameters) {
 				commands[commandsIdx] = commandPtr;
 				commandsIdx++;
 
+				checkAndRunCommand(rxBuffer);
 				rxBufferIdx = 0;
 			} else {
 				rxBufferIdx++;
@@ -100,8 +100,8 @@ void vSerialTask(void *pvParameters) {
 				}
 			}
 
-			prevRcvdCharFromRx = currRcvdCharFromRx;
-			serialSendCh(currRcvdCharFromRx);
+			rxPrevRcvdChar = rxCurrRcvdChar;
+			//serialSendCh(rxCurrRcvdChar);
 			if (uxQueueMessagesWaiting(xSerialRXQueue) > 5) {
 				serialSendln("WARNING: lots of uart rx");
 			}
@@ -120,10 +120,8 @@ void periodicSenderTask(void *pvParameters) { // uses the task parameter to dela
 	while (1) {
 		uint32_t delayInput = (uint32_t) pvParameters;
 		if (delayInput > 4000) {
-			serialSendQ("periodic: 4");
 			xTaskCreate(vSenderTask, "SenderInfreq", 300, (void *) "SenderInfreq", 1, NULL);
 		} else {
-			serialSendQ("periodic: 1 ");
 			xTaskCreate(vSenderTask, "SenderFreq", 300, (void *) "SenderFreq", 1, NULL);
 		}
 		vTaskDelay(pdMS_TO_TICKS(delayInput)); // delay a certain time. Use the macro
@@ -131,11 +129,8 @@ void periodicSenderTask(void *pvParameters) { // uses the task parameter to dela
 }
 
 const size_t MAX_STR_SIZE = 20;
-void vSenderTask(void *pvParameters) // sends stuff to the UART
-{
-	serialSendQ("sender: started");
-	char *toSend = (char *) malloc(MAX_STR_SIZE);
-	snprintf(toSend, MAX_STR_SIZE, (char *) pvParameters);
+void vSenderTask(void *pvParameters) {
+	char *toSend = (char *) pvParameters;
 
 	BaseType_t xStatus;
 	for (;;) {
@@ -157,7 +152,6 @@ void vSenderTask(void *pvParameters) // sends stuff to the UART
 			 one item! */
 			serialSendQ("Could not send to the queue.");
 		} else {
-			serialSendQ("sender: sent");
 		}
 		vTaskDelete( NULL); // once complete, delete the current instance of the task.
 	}
@@ -191,7 +185,6 @@ void vReceiverTask(void *pvParameters) {
 		if (xStatus == pdPASS) {
 			/* Data was successfully received from the queue, print out the received value. */
 			serialSendQ(receivedVal);
-			free(receivedVal);
 		}
 	}
 }

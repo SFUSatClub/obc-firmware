@@ -61,27 +61,77 @@ void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt h
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-
-    // check and accept both CR and CRLF EOL
-    // exclude both from extracted command
-//    if(currChar == '\n') {
-//    	if(prevChar == '\r') {
-//    		inputBuffer[bufferIndex - 1] = '\0';
-//    	} else {
-//    		inputBuffer[bufferIndex] = '\0';
-//    	}
-//    	bufferIndex = 0;
-//
-//
-//    }
-//    bufferIndex++;
-//
-//    if (bufferIndex > 9){ // reset the buffer
-//        echoInputBuffer();
-//        bufferIndex = 0; // reset our index
-//        serialSendln("\r\nBuffer full");
-//    }
-//
-//    prevChar = currChar;
     sciReceive(scilinREG, 1, &currChar); // go back into receive mode
 }
+
+
+int cmdHelp(int args, char **argv) {
+	serialSendQ("Help");
+	int i;
+	for(i = 0; i < args; i++) {
+		serialSendQ(argv[i]);
+	}
+	return 0;
+}
+
+int cmdTest(int args, char **argv) {
+	serialSendQ("Test");
+	int i;
+	for(i = 0; i < args; i++) {
+		serialSendQ(argv[i]);
+	}
+	return 0;
+}
+
+#define CMD_NAME_SELECTOR(a, b) \
+	a,
+
+#define CMD_FUNC_SELECTOR(a, b) \
+	b,
+
+#define CMD_DATA(_) \
+	_("help", cmdHelp) \
+	_("test", cmdTest)
+
+char *CMD_NAMES[] = {
+	CMD_DATA(CMD_NAME_SELECTOR)
+};
+
+int (*CMD_FUNCS[])(int args, char **argv) = {
+	CMD_DATA(CMD_FUNC_SELECTOR)
+};
+
+BaseType_t checkAndRunCommand(char *cmd) {
+	const char delim[] = " ";
+	char *intendedCmd = strtok(cmd, delim);
+	// if we could not get the first token
+	if (intendedCmd == NULL) return 0;
+
+	int intendedCmdIdx = -1;
+	size_t i;
+	for (i = 0; i < sizeof(CMD_NAMES) / sizeof(char*); i++) {
+		char *currCmd = CMD_NAMES[i];
+		if(strcmp(intendedCmd, currCmd) == 0) {
+			intendedCmdIdx = i;
+			break;
+		}
+	}
+	// if the command does not exist
+	if (intendedCmdIdx == -1) return 0;
+
+	int argsIdx = 0;
+	char *args[10] = {NULL};
+	while (intendedCmd != NULL) {
+		intendedCmd = strtok(NULL, delim);
+		if (intendedCmd == NULL) break;
+		args[argsIdx] = intendedCmd;
+		argsIdx++;
+	}
+
+	(*CMD_FUNCS[intendedCmdIdx])(argsIdx, args);
+
+	return 1;
+}
+
+
+
