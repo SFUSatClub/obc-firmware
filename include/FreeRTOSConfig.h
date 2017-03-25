@@ -93,7 +93,6 @@
 #define configUSE_FPU							1
 #define configUSE_IDLE_HOOK			  0
 #define configUSE_TICK_HOOK			  0
-#define configUSE_TRACE_FACILITY	  0
 #define configUSE_16_BIT_TICKS		  0
 #define configCPU_CLOCK_HZ			  ( ( unsigned portLONG ) 80000000 ) /* Timer clock. */
 #define configTICK_RATE_HZ			  ( ( TickType_t ) 1000 )
@@ -136,11 +135,11 @@
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
 
 
-/* debug ASSERT */
+/* Debug */
 #define configASSERT( x ) if( ( x ) == pdFALSE ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
-
-// RICHARD ADDED FOR V9
-#define configCHECK_FOR_STACK_OVERFLOW          0
+#define configUSE_TRACE_FACILITY	  			1
+#define configUSE_STATS_FORMATTING_FUNCTIONS 	1
+#define configCHECK_FOR_STACK_OVERFLOW          1
 
 
 #endif /* FREERTOS_CONFIG_H */

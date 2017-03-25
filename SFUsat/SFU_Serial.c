@@ -9,9 +9,6 @@
 #include "SFU_Serial.h"
 
 unsigned char currChar = '\0';
-unsigned char prevChar = '\0';
-char inputBuffer[10] = "";
-int bufferIndex = 0;
 
 void serialInit(){
     sciInit(); //initialize the SCI driver
@@ -74,11 +71,21 @@ int cmdHelp(int args, char **argv) {
 	return 0;
 }
 
-int cmdTest(int args, char **argv) {
-	serialSendQ("Test");
-	int i;
-	for(i = 0; i < args; i++) {
-		serialSendQ(argv[i]);
+char buffer[250];
+int cmdGet(int args, char **argv) {
+	if (args < 1) return -1;
+	if (strcmp(argv[0], "tasks") == 0) {
+	    serialSend("Task\t\tState\tPrio\tStack\tNum\n");
+		vTaskList(buffer);
+		serialSend(buffer);
+	} else if (strcmp(argv[0], "freeheap") == 0) {
+		size_t heapSize = xPortGetFreeHeapSize();
+		sprintf(buffer, "%lu bytes\n", heapSize);
+		serialSend(buffer);
+	} else if (strcmp(argv[0], "minheap") == 0) {
+		size_t heapSize = xPortGetMinimumEverFreeHeapSize();
+		sprintf(buffer, "%lu bytes\n", heapSize);
+		serialSend(buffer);
 	}
 	return 0;
 }
@@ -92,7 +99,7 @@ int cmdTest(int args, char **argv) {
  */
 #define CMD_TABLE(_) \
 	_("help", cmdHelp) \
-	_("test", cmdTest)
+	_("get", cmdGet)
 
 #define CMD_NAME_SELECTOR(a, b) \
 	a,
