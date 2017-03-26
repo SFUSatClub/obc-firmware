@@ -5,7 +5,7 @@
  *      Author: steven
  */
 
-#include "SFU_State.h"
+#include <sfu_state.h>
 
 State_t do_state_initial(InstanceData_t *data) {
 	return STATE_INITIAL;

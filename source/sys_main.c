@@ -43,13 +43,13 @@
 
 
 /* USER CODE BEGIN (0) */
+#include <sfu_spi.h>
+#include <sfu_tasks.h>
+#include <sfu_uart.h>
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "gio.h"
-#include "SFU_Serial.h"
-#include "SFU_SPI.h"
-#include "SFUTasks.h"
 /* USER CODE END */
 
 /* Include Files */

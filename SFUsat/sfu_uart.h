@@ -9,8 +9,8 @@
  *      This requires interrupt channel 13 to be set (SCI/LIN) RX interrupt
  */
 
-#ifndef SFUSAT_SFU_SERIAL_H_
-#define SFUSAT_SFU_SERIAL_H_
+#ifndef SFUSAT_SFU_UART_H_
+#define SFUSAT_SFU_UART_H_
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 
 #include "sci.h" // by HALcoGen
 
-#include "SFUTasks.h"
+#include "sfu_tasks.h"
 
 void serialInit();
 void serialSendCh(char charToSend);
@@ -31,4 +31,4 @@ extern const char *CMD_NAMES[];
 extern int (*const CMD_FUNCS[])(int args, char **argv);
 BaseType_t checkAndRunCommand(char *cmd);
 
-#endif /* SFUSAT_SFU_SERIAL_H_ */
+#endif /* SFUSAT_SFU_UART_H_ */
