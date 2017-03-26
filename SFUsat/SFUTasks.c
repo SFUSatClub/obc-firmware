@@ -132,7 +132,6 @@ const size_t MAX_STR_SIZE = 20;
 void vSenderTask(void *pvParameters) {
 	char *toSend = (char *) pvParameters;
 
-	BaseType_t xStatus;
 	for (;;) {
 		/* Send the value to the queue.
 		 The first parameter is the queue to which data is being sent. The
