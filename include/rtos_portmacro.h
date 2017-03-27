@@ -300,6 +300,12 @@ extern void vPortTaskUsesFPU(void);
    asm( " CPS #0x10"); \
 }
 
+#if (configGENERATE_RUN_TIME_STATS == 1)
+	BaseType_t getRunTimeCounterValue();
+	void configureTimerForRunTimeStats();
+	#define portGET_RUN_TIME_COUNTER_VALUE() (getRunTimeCounterValue())
+	#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() (configureTimerForRunTimeStats())
+#endif
 
 typedef struct MPU_REGION_REGISTERS
 {

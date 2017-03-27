@@ -101,7 +101,6 @@
 #define configTOTAL_HEAP_SIZE		  ( ( size_t ) 8192 )
 #define configMAX_TASK_NAME_LEN		  ( 16 )
 #define configIDLE_SHOULD_YIELD		  1
-#define configGENERATE_RUN_TIME_STATS 0
 #define configUSE_MALLOC_FAILED_HOOK  0
 
 
@@ -137,9 +136,9 @@
 
 /* Debug */
 #define configASSERT( x ) if( ( x ) == pdFALSE ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
+#define configCHECK_FOR_STACK_OVERFLOW          1
 #define configUSE_TRACE_FACILITY	  			1
 #define configUSE_STATS_FORMATTING_FUNCTIONS 	1
-#define configCHECK_FOR_STACK_OVERFLOW          1
-
+#define configGENERATE_RUN_TIME_STATS 			1
 
 #endif /* FREERTOS_CONFIG_H */

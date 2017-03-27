@@ -79,8 +79,9 @@ int cmdGet(int args, char **argv) {
 		vTaskList(buffer);
 		serialSend(buffer);
 	} else if (strcmp(argv[0], "runtime") == 0) {
-		//vTaskGetRunTimeStats(buffer);
-		//serialSend(buffer);
+		serialSend("Task\t\tAbs\t\tPerc\n");
+		vTaskGetRunTimeStats(buffer);
+		serialSend(buffer);
 	} else if (strcmp(argv[0], "heap") == 0) {
 		size_t heapSize = xPortGetFreeHeapSize();
 		sprintf(buffer, "%lu bytes\n", heapSize);

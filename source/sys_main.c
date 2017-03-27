@@ -50,6 +50,9 @@
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "gio.h"
+#if (configGENERATE_RUN_TIME_STATS == 1)
+	#include "sys_pmu.h"
+#endif
 /* USER CODE END */
 
 /* Include Files */
@@ -136,7 +139,15 @@ int main(void)
 
 
 /* USER CODE BEGIN (4) */
-
-
-
+#if (configGENERATE_RUN_TIME_STATS == 1)
+BaseType_t getRunTimeCounterValue() {
+	return _pmuGetEventCount_(pmuCOUNTER0);
+}
+void configureTimerForRunTimeStats() {
+	_pmuInit_();
+	_pmuEnableCountersGlobal_();
+	_pmuSetCountEvent_(pmuCOUNTER0, PMU_CYCLE_COUNT);
+	_pmuStartCounters_(pmuCOUNTER0|pmuCOUNTER1|pmuCOUNTER2);
+}
+#endif
 /* USER CODE END */

@@ -21,8 +21,10 @@ typedef struct Instance_Data {
 	int x;
 } InstanceData_t;
 
-typedef State_t State_Func_t(InstanceData_t *data);
+typedef State_t StateFunc_t(InstanceData_t *data);
 typedef void TransitionFunc_t(InstanceData_t *data);
 
+extern StateFunc_t* const STATE_TABLE[NUM_STATES];
+extern TransitionFunc_t * const TRANSITION_TABLE[NUM_STATES][NUM_STATES];
 
 #endif /* SFUSAT_SFU_STATE_H_ */

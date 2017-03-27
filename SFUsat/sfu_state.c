@@ -19,7 +19,7 @@ State_t do_state_bar(InstanceData_t *data) {
 	return STATE_BAR;
 }
 
-State_Func_t* const STATE_TABLE[NUM_STATES] = {
+StateFunc_t* const STATE_TABLE[NUM_STATES] = {
 	do_state_initial,
 	do_state_foo,
 	do_state_bar
