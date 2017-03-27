@@ -110,8 +110,8 @@ typedef struct sci_config_reg
     uint32 CONFIG_PIO0;
     uint32 CONFIG_PIO1;
     uint32 CONFIG_PIO6;
-    uint32 CONFIG_PIO7;
-    uint32 CONFIG_PIO8;
+    uint32 CONFIG_PIO7;	
+	uint32 CONFIG_PIO8;
 } sci_config_reg_t;
 
 
@@ -124,7 +124,7 @@ typedef struct sci_config_reg
                                       |(uint32)((uint32)1U << 1U) \
                                       |(uint32)((uint32)0U << 2U) \
                                       |(uint32)(0x03000080U))
-
+									  
 #define SCILIN_SETINTLVL_CONFIGVALUE  ((uint32)((uint32)0U << 26U) \
                                       |(uint32)((uint32)0U << 25U) \
                                       |(uint32)((uint32)0U << 24U) \
@@ -155,7 +155,7 @@ typedef struct sci_config_reg
  *  The SCI module is a universal asynchronous receiver-transmitter that implements the standard nonreturn
  *  to zero format. The SCI can be used to communicate, for example, through an RS-232 port or over a K-line.
  *
- *  Related Files
+ *	Related Files
  *   - reg_sci.h
  *   - sci.h
  *   - sci.c

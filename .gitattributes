@@ -1,0 +1,6 @@
+# Force consistent LF EOL due to HALCoGen using CRLF
+* text=auto
+*.h text eol=lf
+*.c text eol=lf
+#include/* text eol=lf
+#source/* text eol=lf
