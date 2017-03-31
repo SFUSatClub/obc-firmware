@@ -49,6 +49,7 @@
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
+#include "adc.h"
 #include "gio.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 	#include "sys_pmu.h"
@@ -91,7 +92,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 
 int main(void)
 {
-	/* USER CODE BEGIN (3) */
+/* USER CODE BEGIN (3) */
 	_enable_IRQ(); // global interrupt enable
 
 	// TODO: encapsulate these
@@ -101,17 +102,18 @@ int main(void)
 
     serialInit();
     spi_init();
+    adcInit();
 
     gioInit();
     serialSendln("Hello!");
 
     xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
-                 "100 Hz Blinky",/* Text name for the task. This is to facilitate debugging only. */
+                 "Blinky",/* Text name for the task. This is to facilitate debugging only. */
                  configMINIMAL_STACK_SIZE, /* Stack depth - small microcontrollers will use much less stack than this. */
                  NULL, /* This example does not use the task parameter. */
                  1, /* This task will run at priority 1. */
                  NULL ); /* This example does not use the task handle. */
-    serialSendln("created hundred blnky");
+    serialSendln("created blnky");
 
     xTaskCreate( vSerialTask, "UART", 300, NULL, 2, NULL);
 
@@ -135,6 +137,8 @@ int main(void)
     for(;;); // keep running the scheduler
 
     /* USER CODE END */
+
+    //return 0;
 }
 
 

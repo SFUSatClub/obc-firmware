@@ -11,9 +11,9 @@
 #include <stdio.h>
 
 typedef enum {
-	STATE_INITIAL,
-	STATE_FOO,
-	STATE_BAR,
+	STATE_PRIMED,
+	STATE_READY,
+	STATE_LOW_POWER,
 	NUM_STATES
 } State_t;
 

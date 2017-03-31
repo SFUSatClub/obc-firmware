@@ -1,14 +1,26 @@
 #include <sfu_tasks.h>
+#include "adc.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
 void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
+	adcData_t adc_data; //ADC Data Structure
+	unsigned int value; //Declare variables
 	while (1) {
 		gioSetBit(gioPORTA, 2, gioGetBit(gioPORTA, 2) ^ 1);   // Toggles the A2 bit
-		//serialSendQ("blinked");
-		vTaskDelay(pdMS_TO_TICKS(100)); // delay 100ms. Use the macro
+		adcStartConversion(adcREG1, 1U); //Start ADC conversion
+		while (!adcIsConversionComplete(adcREG1, 1U)); //Wait for ADC conversion
+		adcGetData(adcREG1, 1U, &adc_data); //Store conversion into ADC pointer
+		value = (unsigned int) adc_data.value;
+		char buffer[10];
+		ltoa(adc_data.id,(char *)buffer);
+		buffer[1]=':';
+		ltoa(value,(char *)buffer + 2);
+		serialSendQ(buffer);
+
+		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
 	}
 }
 

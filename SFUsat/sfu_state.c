@@ -7,34 +7,39 @@
 
 #include <sfu_state.h>
 
-State_t do_state_initial(InstanceData_t *data) {
-	return STATE_INITIAL;
+State_t doStatePrimed(InstanceData_t *data) {
+	return STATE_PRIMED;
 }
 
-State_t do_state_foo(InstanceData_t *data) {
-	return STATE_FOO;
+State_t doStateReady(InstanceData_t *data) {
+	return STATE_READY;
 }
 
-State_t do_state_bar(InstanceData_t *data) {
-	return STATE_BAR;
+State_t doStateLowPower(InstanceData_t *data) {
+	return STATE_LOW_POWER;
 }
 
 StateFunc_t* const STATE_TABLE[NUM_STATES] = {
-	do_state_initial,
-	do_state_foo,
-	do_state_bar
+	doStatePrimed,
+	doStateReady,
+	doStateLowPower
 };
 
-void do_initial_to_foo(InstanceData_t *data);
-void do_foo_to_bar(InstanceData_t *data);
-void do_bar_to_initial(InstanceData_t *data);
-void do_bar_to_foo(InstanceData_t *data);
-void do_bar_to_bar(InstanceData_t *data);
+void do_PRIMED_to_READY(InstanceData_t *data);
+void do_READY_to_LOWPOWER(InstanceData_t *data);
+void do_LOWPOWER_to_PRIMED(InstanceData_t *data);
+void do_LOWPOWER_to_READY(InstanceData_t *data);
+void do_LOWPOWER_to_LOWPOWER(InstanceData_t *data);
 
+/**
+ * do_X_to_Y
+ * rows: X
+ * cols: Y
+ */
 TransitionFunc_t * const TRANSITION_TABLE[NUM_STATES][NUM_STATES] = {
-    { NULL,              do_initial_to_foo, NULL },
-    { NULL,              NULL,              do_foo_to_bar },
-    { do_bar_to_initial, do_bar_to_foo,     do_bar_to_bar }
+    { NULL,              		do_PRIMED_to_READY, 	NULL },
+    { NULL,              		NULL,              		do_READY_to_LOWPOWER },
+    { do_LOWPOWER_to_PRIMED, 	do_LOWPOWER_to_READY,	do_LOWPOWER_to_LOWPOWER }
 };
 
 State_t runState(State_t currstate, InstanceData_t *data) {
