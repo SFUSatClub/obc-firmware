@@ -39,17 +39,8 @@ void serialSend(char* stringToSend) {
 }
 
 void serialSendln(char* stringToSend){
-    const char append[3] = "\r\n";
-
-    // TODO: benchmark sciSend extended string w/ malloc VS sciSend stringToSend followed by sciSend \r\n
-    char* extended;
-    extended = malloc(strlen(stringToSend)+1+2); // enough to hold everything. 1 captures the null string terminator
-    strcpy(extended, stringToSend);
-    strcat(extended, append);
-    int stringLength = strlen(extended);
-    sciSend(scilinREG, stringLength, (unsigned char *) extended); // does not like strlen + 1 to be inlined, but works fine when broken out to another var
-
-    free(extended);
+    sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
+    sciSend(scilinREG, 2, "\r\n");
 
     sciReceive(scilinREG, 1, &currChar);
 }

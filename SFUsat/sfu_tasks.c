@@ -1,5 +1,6 @@
 #include <sfu_tasks.h>
 #include "adc.h"
+#include "sys_pmu.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -7,17 +8,18 @@ QueueHandle_t xSerialRXQueue;
 
 void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
 	adcData_t adc_data; //ADC Data Structure
-	unsigned int value; //Declare variables
+	char buffer[10];
+	unsigned int numChars, value; //Declare variables
 	while (1) {
 		gioSetBit(gioPORTA, 2, gioGetBit(gioPORTA, 2) ^ 1);   // Toggles the A2 bit
 		adcStartConversion(adcREG1, 1U); //Start ADC conversion
 		while (!adcIsConversionComplete(adcREG1, 1U)); //Wait for ADC conversion
 		adcGetData(adcREG1, 1U, &adc_data); //Store conversion into ADC pointer
 		value = (unsigned int) adc_data.value;
-		char buffer[10];
-		ltoa(adc_data.id,(char *)buffer);
-		buffer[1]=':';
-		ltoa(value,(char *)buffer + 2);
+		numChars = ltoa(adc_data.id,(char *)buffer);
+		buffer[numChars]=':';
+		// 12 bit adc; value takes 4 bytes max
+		ltoa(value,(char *)buffer + numChars + 1);
 		serialSendQ(buffer);
 
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
@@ -29,7 +31,8 @@ void vTask2(void *pvParameters) {
 
 	}
 }
-
+#pragma SWI_ALIAS(prvRaisePrivilege, 1);
+extern BaseType_t prvRaisePrivilege( void );
 /**
  * This task is responsible for the handling of all UART related functions.
  *
@@ -43,6 +46,7 @@ void vTask2(void *pvParameters) {
 #define MAX_COMMANDS 10
 #define MAX_RX_BUFFER 64
 void vSerialTask(void *pvParameters) {
+	prvRaisePrivilege();
 	const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
 
 	char *commands[MAX_COMMANDS] = {NULL};
@@ -67,7 +71,18 @@ void vSerialTask(void *pvParameters) {
 			serialSendln(" msgs in tx queue");
 		}
 		while (xQueueReceive(xSerialTXQueue, &txCurrQueuedStr, xTicksToWait) == pdPASS) {
+//			BaseType_t xRunningPrivileged = prvRaisePrivilege();
+//			_pmuStopCounters_(pmuCOUNTER1);
+//			_pmuStartCounters_(pmuCOUNTER1);
+			long t1 = _pmuGetEventCount_(pmuCOUNTER1);
 			serialSendln(txCurrQueuedStr);
+//			_pmuStopCounters_(pmuCOUNTER1);
+		    long t2 = _pmuGetEventCount_(pmuCOUNTER1);
+//		    if( xRunningPrivileged == 0 ) portSWITCH_TO_USER_MODE()
+		    long diff = (t2-t1) < 0 ? -(t2-t1) : t2-t1;
+		    char buffer[34] = {0};
+		    int numChars = ltoa(diff, buffer);
+		    sciSend(scilinREG, numChars, (unsigned char*) buffer);
 		}
 
 		/*

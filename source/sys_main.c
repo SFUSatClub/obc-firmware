@@ -151,6 +151,7 @@ void configureTimerForRunTimeStats() {
 	_pmuInit_();
 	_pmuEnableCountersGlobal_();
 	_pmuSetCountEvent_(pmuCOUNTER0, PMU_CYCLE_COUNT);
+	_pmuSetCountEvent_(pmuCOUNTER1, PMU_CYCLE_COUNT);
 	_pmuStartCounters_(pmuCOUNTER0|pmuCOUNTER1|pmuCOUNTER2);
 }
 #endif
