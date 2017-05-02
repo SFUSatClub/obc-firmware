@@ -31,8 +31,7 @@ void vTask2(void *pvParameters) {
 
 	}
 }
-#pragma SWI_ALIAS(prvRaisePrivilege, 1);
-extern BaseType_t prvRaisePrivilege( void );
+
 /**
  * This task is responsible for the handling of all UART related functions.
  *
@@ -46,7 +45,6 @@ extern BaseType_t prvRaisePrivilege( void );
 #define MAX_COMMANDS 10
 #define MAX_RX_BUFFER 64
 void vSerialTask(void *pvParameters) {
-	prvRaisePrivilege();
 	const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
 
 	char *commands[MAX_COMMANDS] = {NULL};
@@ -71,18 +69,7 @@ void vSerialTask(void *pvParameters) {
 			serialSendln(" msgs in tx queue");
 		}
 		while (xQueueReceive(xSerialTXQueue, &txCurrQueuedStr, xTicksToWait) == pdPASS) {
-//			BaseType_t xRunningPrivileged = prvRaisePrivilege();
-//			_pmuStopCounters_(pmuCOUNTER1);
-//			_pmuStartCounters_(pmuCOUNTER1);
-			long t1 = _pmuGetEventCount_(pmuCOUNTER1);
 			serialSendln(txCurrQueuedStr);
-//			_pmuStopCounters_(pmuCOUNTER1);
-		    long t2 = _pmuGetEventCount_(pmuCOUNTER1);
-//		    if( xRunningPrivileged == 0 ) portSWITCH_TO_USER_MODE()
-		    long diff = (t2-t1) < 0 ? -(t2-t1) : t2-t1;
-		    char buffer[34] = {0};
-		    int numChars = ltoa(diff, buffer);
-		    sciSend(scilinREG, numChars, (unsigned char*) buffer);
 		}
 
 		/*
@@ -147,9 +134,9 @@ void periodicSenderTask(void *pvParameters) { // uses the task parameter to dela
 	while (1) {
 		uint32_t delayInput = (uint32_t) pvParameters;
 		if (delayInput > 4000) {
-			xTaskCreate(vSenderTask, "SenderInfreq", 300, (void *) "SenderInfreq", 1, NULL);
+			xTaskCreate(vSenderTask, "SenderInfreq", 100, (void *) "SenderInfreq", 1, NULL);
 		} else {
-			xTaskCreate(vSenderTask, "SenderFreq", 300, (void *) "SenderFreq", 1, NULL);
+			xTaskCreate(vSenderTask, "SenderFreq", 100, (void *) "SenderFreq", 1, NULL);
 		}
 		vTaskDelay(pdMS_TO_TICKS(delayInput)); // delay a certain time. Use the macro
 	}

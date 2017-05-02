@@ -6,7 +6,7 @@
  *      This is a set of functions to test out the UART. They are interrupt driven but still fairly simple.
  */
 
-#include <sfu_uart.h>
+#include "sfu_uart.h"
 
 unsigned char currChar = '\0';
 

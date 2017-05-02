@@ -43,9 +43,6 @@
 
 
 /* USER CODE BEGIN (0) */
-#include <sfu_spi.h>
-#include <sfu_tasks.h>
-#include <sfu_uart.h>
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
@@ -54,6 +51,10 @@
 #if (configGENERATE_RUN_TIME_STATS == 1)
 	#include "sys_pmu.h"
 #endif
+
+#include "sfu_spi.h"
+#include "sfu_tasks.h"
+#include "sfu_uart.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -115,7 +116,7 @@ int main(void)
                  NULL ); /* This example does not use the task handle. */
     serialSendln("created blnky");
 
-    xTaskCreate( vSerialTask, "UART", 300, NULL, 2, NULL);
+    xTaskCreate( vSerialTask, "UART", 300, NULL, 3, NULL);
 
     serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task
@@ -123,14 +124,16 @@ int main(void)
      In this case, a string (character pointer) will be passed to th<e queue.
      */
 
-    xTaskCreate(periodicSenderTask, "FreqPST", 200, (void *) 1000, 1, NULL);
-    xTaskCreate(periodicSenderTask, "InfreqPST", 200, (void *) 5000, 1, NULL);
+    xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
+    xTaskCreate(periodicSenderTask, "InfreqPST", 100, (void *) 5000, 1, NULL);
     serialSendQ("created pst");
 
     /* Create the task that will read from the queue. The task is created with
      priority 2, so above the priority of the sender tasks. */
-    BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 200, NULL, 2, NULL);
+    BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
     serialSendQ("created rcvr");
+
+    xTaskCreate(vRadioTask, "Radio", 200, NULL, 1, NULL);
 
     vTaskStartScheduler();
 

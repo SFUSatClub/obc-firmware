@@ -5,8 +5,8 @@
  *      Author: steven
  */
 
-#include <sfu_spi.h>
-#include <sfu_uart.h>
+#include "sfu_spi.h"
+#include "sfu_uart.h"
 
 spiDAT1_t spiDataConfig;
 

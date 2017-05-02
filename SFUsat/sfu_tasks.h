@@ -16,6 +16,7 @@
 #include "sfu_uart.h"
 #include "sys_common.h"
 
+#include "sfu_task_radio.h"
 
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
