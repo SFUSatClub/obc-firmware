@@ -13,7 +13,7 @@ spiDAT1_t spiDataConfig;
 void spi_init() {
     spiInit();
     // enable loopback for testing
-    spiEnableLoopback(spiREG3, Digital_Lbk);
+    //spiEnableLoopback(spiREG3, Digital_Lbk);
     serialSendQ("SFU spi init!");
     spiDataConfig.CS_HOLD = FALSE;
     spiDataConfig.WDEL = TRUE;

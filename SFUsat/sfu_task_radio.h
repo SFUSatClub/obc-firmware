@@ -16,7 +16,7 @@
 #include "sfu_smartrf_cc1125.h"
 
 void vRadioTask( void *pvParameters );
-BaseType_t radioInit();
+BaseType_t initRadio();
 
 extern QueueHandle_t xRadioTXQueue;
 extern QueueHandle_t xRadioRXQueue;

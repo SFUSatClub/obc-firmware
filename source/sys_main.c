@@ -133,7 +133,7 @@ int main(void)
     BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
     serialSendQ("created rcvr");
 
-    xTaskCreate(vRadioTask, "Radio", 200, NULL, 1, NULL);
+    xTaskCreate(vRadioTask, "Radio", 300, NULL, 4, NULL);
 
     vTaskStartScheduler();
 
@@ -141,7 +141,7 @@ int main(void)
 
     /* USER CODE END */
 
-    //return 0;
+    return 0;
 }
 
 

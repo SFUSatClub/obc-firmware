@@ -7,6 +7,7 @@
  */
 
 #include "sfu_uart.h"
+#include "sfu_task_radio.h"
 
 unsigned char currChar = '\0';
 
@@ -85,6 +86,14 @@ int cmdGet(int args, char **argv) {
 	return 0;
 }
 
+int cmdExec(int args, char **argv) {
+	if (args < 1) return -1;
+	if (strcmp(argv[0], "radio") == 0) {
+	    initRadio();
+	}
+	return 0;
+}
+
 /**
  * The following macros allow us to construct the arrays CMD_NAMES and CMD_FUNCS by only modifying
  * the macro CMD_TABLE. This allows us to reliably use the same index to reference a command's name and
@@ -94,7 +103,8 @@ int cmdGet(int args, char **argv) {
  */
 #define CMD_TABLE(_) \
 	_("help", cmdHelp) \
-	_("get", cmdGet)
+	_("get", cmdGet) \
+	_("exec", cmdExec)
 
 #define CMD_NAME_SELECTOR(a, b) \
 	a,
