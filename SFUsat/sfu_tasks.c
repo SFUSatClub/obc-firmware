@@ -1,4 +1,5 @@
 #include <sfu_tasks.h>
+#include "sfu_cmds.h"
 #include "adc.h"
 #include "sys_pmu.h"
 
