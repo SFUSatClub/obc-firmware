@@ -1,4 +1,5 @@
 #include <sfu_tasks.h>
+#include "sfu_cmds.h"
 #include "adc.h"
 #include "sys_pmu.h"
 
@@ -19,8 +20,8 @@ void hundredBlinky(void *pvParameters) { // this is the sanity checker task, bli
 		numChars = ltoa(adc_data.id,(char *)buffer);
 		buffer[numChars]=':';
 		// 12 bit adc; value takes 4 bytes max
-		//ltoa(value,(char *)buffer + numChars + 1);
-		//serialSendQ(buffer);
+		ltoa(value,(char *)buffer + numChars + 1);
+		serialSendQ(buffer);
 
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
 	}

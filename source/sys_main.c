@@ -104,24 +104,14 @@ int main(void)
     serialInit();
     spi_init();
     adcInit();
-
     gioInit();
-    serialSendln("Hello!");
 
-    xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
-                 "Blinky",/* Text name for the task. This is to facilitate debugging only. */
-                 configMINIMAL_STACK_SIZE, /* Stack depth - small microcontrollers will use much less stack than this. */
-                 NULL, /* This example does not use the task parameter. */
-                 1, /* This task will run at priority 1. */
-                 NULL ); /* This example does not use the task handle. */
-    serialSendln("created blnky");
-
-    xTaskCreate( vSerialTask, "UART", 300, NULL, 3, NULL);
+    xTaskCreate(vMainTask, "Main", 128, NULL, 2, NULL);
 
     serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task
      parameter is used to pass the value that the task will write to the queue,
-     In this case, a string (character pointer) will be passed to th<e queue.
+     In this case, a string (character pointer) will be passed to the queue.
      */
 
     xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
@@ -132,8 +122,6 @@ int main(void)
      priority 2, so above the priority of the sender tasks. */
     BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
     serialSendQ("created rcvr");
-
-    xTaskCreate(vRadioTask, "Radio", 300, NULL, 4, NULL);
 
     vTaskStartScheduler();
 
