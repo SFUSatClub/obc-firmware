@@ -1,7 +1,7 @@
 /** @file sys_selftest.h
 *   @brief System Memory Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 08-Feb-2017
+*   @version 04.06.01
 *   
 *   This file contains:
 *   - Efuse Self Test Functions
