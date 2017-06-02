@@ -1,7 +1,7 @@
 /** @file hal_stdtypes.h
 *   @brief HALCoGen standard types header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 08-Feb-2017
+*   @version 04.06.01
 *   
 *   This file contains:
 *   - Type and Global definitions which are relevant for all drivers.
