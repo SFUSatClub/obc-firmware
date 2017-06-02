@@ -65,7 +65,7 @@ int cmdHelp(int args, char **argv) {
 
 char buffer[250];
 int cmdGet(int args, char **argv) {
-	if (args < 1) return -1;
+	if (args == 0) return -1;
 	if (strcmp(argv[0], "tasks") == 0) {
 	    serialSend("Task\t\tState\tPrio\tStack\tNum\n");
 		vTaskList(buffer);
@@ -87,9 +87,88 @@ int cmdGet(int args, char **argv) {
 }
 
 int cmdExec(int args, char **argv) {
-	if (args < 1) return -1;
+	if (args == 0) return -1;
 	if (strcmp(argv[0], "radio") == 0) {
 	    initRadio();
+	}
+	return 0;
+}
+
+/**
+ * Handle all task related commands.
+ * @param args
+ * @param argv
+ * @return
+ */
+int cmdTask(int args, char **argv) {
+	/**
+	 * Show status of all tasks if no arguments are supplied.
+	 */
+	if (args == 0) {
+		return 0;
+	}
+	/**
+	 * Return with error if 1 argument is supplied, as there are no valid 1 argument commands yet.
+	 */
+	if (args == 1) {
+		return -1;
+	}
+	if (strcmp(argv[0], "create") == 0) {
+		/**
+		 * Create one or more tasks.
+		 */
+
+	} else if (strcmp(argv[0], "delete") == 0) {
+		/**
+		 * Delete one or more tasks.
+		 */
+		int i;
+		for (i = 1; i < args; i++) {
+			if (strcmp(argv[i], "serial")) {
+				vTaskDelete(xSerialTaskHandle);
+			} else if (strcmp(argv[i], "radio")) {
+				vTaskDelete(xRadioTaskHandle);
+			} else if (strcmp(argv[i], "blinky")) {
+				vTaskDelete(xBlinkyTaskHandle);
+			}
+		}
+	} else if (strcmp(argv[0], "resume") == 0) {
+		/**
+		 * Resume one or more tasks.
+		 */
+		int i;
+		for (i = 1; i < args; i++) {
+			if (strcmp(argv[i], "serial")) {
+				vTaskResume(xSerialTaskHandle);
+			} else if (strcmp(argv[i], "radio")) {
+				vTaskResume(xRadioTaskHandle);
+			} else if (strcmp(argv[i], "blinky")) {
+				vTaskResume(xBlinkyTaskHandle);
+			}
+		}
+	} else if (strcmp(argv[0], "suspend") == 0) {
+		/**
+		 * Suspend one or more tasks.
+		 */
+		int i;
+		for (i = 1; i < args; i++) {
+			if (strcmp(argv[i], "serial")) {
+				vTaskSuspend(xSerialTaskHandle);
+			} else if (strcmp(argv[i], "radio")) {
+				vTaskSuspend(xRadioTaskHandle);
+			} else if (strcmp(argv[i], "blinky")) {
+				vTaskSuspend(xBlinkyTaskHandle);
+			}
+		}
+	} else if (strcmp(argv[0], "status") == 0) {
+		/**
+		 * Show runtime status of one or more tasks.
+		 */
+
+	} else if (strcmp(argv[0], "show") == 0) {
+		/**
+		 * Show properties of one or more tasks.
+		 */
 	}
 	return 0;
 }
@@ -104,7 +183,8 @@ int cmdExec(int args, char **argv) {
 #define CMD_TABLE(_) \
 	_("help", cmdHelp) \
 	_("get", cmdGet) \
-	_("exec", cmdExec)
+	_("exec", cmdExec) \
+	_("task", cmdTask)
 
 #define CMD_NAME_SELECTOR(a, b) \
 	a,
@@ -124,7 +204,7 @@ int (*const CMD_FUNCS[])(int args, char **argv) = {
  * A command is valid if the first word exists in CMD_NAMES.
  * A command can be invoked with 0 to a maximum of 10 arguments.
  * Each command determines the requirements of their own parameters.
- * Commands are space delimited.
+ * Command arguments are space delimited.
  *
  * @param cmd A line of characters received from UART
  * @return pdPASS if the command is found and invoked, pdFAIL if the command does
