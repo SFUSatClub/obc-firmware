@@ -35,4 +35,7 @@ extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
 void vSerialSenderTask(void *pvParameters);
 
+void vTickleTask(void *pvParameters);
+void vMonitorTask(void *pvParameters);
+
 #endif /* SFUSAT_SFU_TASKS_H_ */

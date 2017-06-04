@@ -88,7 +88,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
                    | (uint32)((uint32)0U << 5U)  /* Bit 5 */
                    | (uint32)((uint32)0U << 6U)  /* Bit 6 */
-                   | (uint32)((uint32)0U << 7U); /* Bit 7 */
+                   | (uint32)((uint32)1U << 7U); /* Bit 7 */
 
     /** - Port A open drain enable */
     gioPORTA->PDR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
