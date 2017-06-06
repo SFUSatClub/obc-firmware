@@ -63,12 +63,12 @@
 
 /* USER CODE BEGIN (1) */
 
-
-void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName )
 {
     ( void ) pcTaskName;
     ( void ) pxTask;
-    serialSendln("Stack overflowwww");
+    serialSend((char *)pcTaskName);
+    serialSendln(" has overflowed");
 
     /* Run time stack overflow checking is performed if
     configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook

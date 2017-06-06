@@ -136,7 +136,12 @@
 
 /* Debug */
 #define configASSERT( x ) if( ( x ) == pdFALSE ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
-#define configCHECK_FOR_STACK_OVERFLOW          1
+/**
+ * Stack Overflow Detection - Method 2
+ *   - More reliable but less efficient overflow detection vs Method 1
+ * http://www.freertos.org/Stacks-and-stack-overflow-checking.html
+ */
+#define configCHECK_FOR_STACK_OVERFLOW          2
 #define configUSE_TRACE_FACILITY	  			1
 #define configUSE_STATS_FORMATTING_FUNCTIONS 	1
 #define configGENERATE_RUN_TIME_STATS 			1
