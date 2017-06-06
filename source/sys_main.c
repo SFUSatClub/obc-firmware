@@ -106,7 +106,7 @@ int main(void)
     adcInit();
     gioInit();
 
-    xTaskCreate(vMainTask, "Main", 128, NULL, 2, NULL);
+    xTaskCreate(vMainTask, "main", 128, NULL, 2, NULL);
 
     serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task
