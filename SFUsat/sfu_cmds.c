@@ -36,6 +36,17 @@ int cmdGet(int args, char **argv) {
 		size_t heapSize = xPortGetMinimumEverFreeHeapSize();
 		sprintf(buffer, "%lu bytes\n", heapSize);
 		serialSend(buffer);
+	} else if (strcmp(argv[0], "types") == 0) {
+		size_t intSize = sizeof(int);
+		size_t intPtrSize = sizeof(int *);
+		size_t longSize = sizeof(long);
+		size_t longLongSize = sizeof(long long);
+		sprintf(buffer, "sizeof(int): %lu bytes\n"
+				"sizeof(int *): %lu bytes\n"
+				"sizeof(long): %lu bytes\n"
+				"sizeof(long long): %lu bytes\n"
+				, intSize, intPtrSize, longSize, longLongSize);
+		serialSend(buffer);
 	}
 	return 0;
 }

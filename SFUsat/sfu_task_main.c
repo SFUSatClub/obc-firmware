@@ -8,6 +8,7 @@
 #include "sfu_tasks.h"
 #include "sfu_task_main.h"
 #include "sfu_task_radio.h"
+#include "sfu_scheduler.h"
 
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
@@ -24,9 +25,21 @@ void vMainTask(void *pvParameters) {
 
 	xTaskCreate(vSerialTask, "serial", 300, NULL, 3, &xSerialTaskHandle);
     xTaskCreate(vRadioTask, "radio", 300, NULL, 4, &xRadioTaskHandle);
-
+    Event_t test_event = {.creation_time = 10, .target_time = 30};
+    addEvent(test_event);
+    addEvent(test_event);
+    char buffer[32] = {0};
+    int i;
+    for(i = 0; i < MAX_EVENTS; i++) {
+    	const Event_t e = schedule.events[i];
+    	if (e._status.active) {
+        	snprintf(buffer, 32, "#%d\ne.creation_time: %d", i, e.creation_time);
+        	serialSendln(buffer);
+        	snprintf(buffer, 32, "e.target_time: %d", e.target_time);
+        	serialSendln(buffer);
+    	}
+    }
     serialSendln("main tasks created");
-
 	while (1) {
 		serialSendQ("main");
 
