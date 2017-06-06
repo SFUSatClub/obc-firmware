@@ -1,7 +1,7 @@
 /** @file sys_pmu.h
 *   @brief System Pmu Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 08-Feb-2017
+*   @version 04.06.01
 *   
 *   This file contains:
 *   - Pmu Interface Functions

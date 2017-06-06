@@ -79,6 +79,10 @@
  * 01.19.01       12Augu2016   Vishwanath Reddy     SDOCM00122543    Update patch version TI_FEE_MINOR_VERSION.
  *                                                                   Synchronous write API modified to avoid copy of 
  *                                                                   already copied block.
+ * 01.19.02       25Janu2017   Vishwanath Reddy     SDOCM00122832    Update patch version TI_FEE_MINOR_VERSION.
+ *                                                                   Format API modified to erase all configured VS. 
+ *                                                  SDOCM00122833    In API TI_Fee_ErrorRecovery, added polling for
+ *                                                                   flash status before calling TI_Fee_Init. 
  *********************************************************************************************************************/
 
 /*
@@ -134,7 +138,7 @@
 #define TI_FEE_PATCH_VERSION    2U
 #define TI_FEE_SW_MAJOR_VERSION 1U
 #define TI_FEE_SW_MINOR_VERSION 19U
-#define TI_FEE_SW_PATCH_VERSION 1U
+#define TI_FEE_SW_PATCH_VERSION 2U
 
 #define TI_FEE_VIRTUAL_SECTOR_VERSION 1U
 
