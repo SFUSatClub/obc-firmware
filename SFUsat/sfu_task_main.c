@@ -12,7 +12,7 @@
 
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
-
+TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 
 void vMainTask(void *pvParameters) {
@@ -25,6 +25,7 @@ void vMainTask(void *pvParameters) {
 
 	xTaskCreate(vSerialTask, "serial", 300, NULL, 3, &xSerialTaskHandle);
     xTaskCreate(vRadioTask, "radio", 300, NULL, 4, &xRadioTaskHandle);
+    xTaskCreate(vTickleTask, "tickle", 128, NULL, 5, &xTickleTaskHandle);
     Event_t test_event = {.creation_time = 10, .target_time = 30};
     addEvent(test_event);
     addEvent(test_event);
