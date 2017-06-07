@@ -36,6 +36,17 @@ int cmdGet(int args, char **argv) {
 		size_t heapSize = xPortGetMinimumEverFreeHeapSize();
 		sprintf(buffer, "%lu bytes\n", heapSize);
 		serialSend(buffer);
+	} else if (strcmp(argv[0], "types") == 0) {
+		size_t intSize = sizeof(int);
+		size_t intPtrSize = sizeof(int *);
+		size_t longSize = sizeof(long);
+		size_t longLongSize = sizeof(long long);
+		sprintf(buffer, "sizeof(int): %lu bytes\n"
+				"sizeof(int *): %lu bytes\n"
+				"sizeof(long): %lu bytes\n"
+				"sizeof(long long): %lu bytes\n"
+				, intSize, intPtrSize, longSize, longLongSize);
+		serialSend(buffer);
 	}
 	return 0;
 }
@@ -78,11 +89,11 @@ int cmdTask(int args, char **argv) {
 		 */
 		int i;
 		for (i = 1; i < args; i++) {
-			if (strcmp(argv[i], "serial")) {
+			if (strcmp(argv[i], "serial") == 0) {
 				vTaskDelete(xSerialTaskHandle);
-			} else if (strcmp(argv[i], "radio")) {
+			} else if (strcmp(argv[i], "radio") == 0) {
 				vTaskDelete(xRadioTaskHandle);
-			} else if (strcmp(argv[i], "blinky")) {
+			} else if (strcmp(argv[i], "blinky") == 0) {
 				vTaskDelete(xBlinkyTaskHandle);
 			}
 		}
@@ -92,11 +103,11 @@ int cmdTask(int args, char **argv) {
 		 */
 		int i;
 		for (i = 1; i < args; i++) {
-			if (strcmp(argv[i], "serial")) {
+			if (strcmp(argv[i], "serial") == 0) {
 				vTaskResume(xSerialTaskHandle);
-			} else if (strcmp(argv[i], "radio")) {
+			} else if (strcmp(argv[i], "radio") == 0) {
 				vTaskResume(xRadioTaskHandle);
-			} else if (strcmp(argv[i], "blinky")) {
+			} else if (strcmp(argv[i], "blinky") == 0) {
 				vTaskResume(xBlinkyTaskHandle);
 			}
 		}
@@ -106,11 +117,11 @@ int cmdTask(int args, char **argv) {
 		 */
 		int i;
 		for (i = 1; i < args; i++) {
-			if (strcmp(argv[i], "serial")) {
+			if (strcmp(argv[i], "serial") == 0) {
 				vTaskSuspend(xSerialTaskHandle);
-			} else if (strcmp(argv[i], "radio")) {
+			} else if (strcmp(argv[i], "radio") == 0) {
 				vTaskSuspend(xRadioTaskHandle);
-			} else if (strcmp(argv[i], "blinky")) {
+			} else if (strcmp(argv[i], "blinky") == 0) {
 				vTaskSuspend(xBlinkyTaskHandle);
 			}
 		}
@@ -118,7 +129,16 @@ int cmdTask(int args, char **argv) {
 		/**
 		 * Show runtime status of one or more tasks.
 		 */
-
+		int i;
+		for (i = 1; i < args; i++) {
+			if (strcmp(argv[i], "serial") == 0) {
+				//vTaskGetInfo(xSerialTaskHandle);
+			} else if (strcmp(argv[i], "radio") == 0) {
+				//vTaskGetInfo(xRadioTaskHandle);
+			} else if (strcmp(argv[i], "blinky") == 0) {
+				//vTaskGetInfo(xBlinkyTaskHandle);
+			}
+		}
 	} else if (strcmp(argv[0], "show") == 0) {
 		/**
 		 * Show properties of one or more tasks.
@@ -159,7 +179,7 @@ int (*const CMD_FUNCS[])(int args, char **argv) = {
 * Each command determines the requirements of their own parameters.
 * Commands are space delimited.
 *
-* @param cmd A line of characters received from UART
+* @param cmd A command string
 * @return pdPASS if the command is found and invoked, pdFAIL if the command does
 * not exist.
 */
@@ -197,7 +217,7 @@ BaseType_t checkAndRunCommand(char *cmd) {
 	int argsIdx = 0;
 	while (intendedCmd != NULL) {
 		intendedCmd = strtok(NULL, delim);
-		if (intendedCmd == NULL || argsIdx > MAX_CMD_ARGS - 1) break;
+		if (intendedCmd == NULL || argsIdx >= MAX_CMD_ARGS) break;
 		args[argsIdx] = intendedCmd;
 		argsIdx++;
 	}

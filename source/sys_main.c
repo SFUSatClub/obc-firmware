@@ -63,12 +63,12 @@
 
 /* USER CODE BEGIN (1) */
 
-
-void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName )
 {
     ( void ) pcTaskName;
     ( void ) pxTask;
-    serialSendln("Stack overflowwww");
+    serialSend((char *)pcTaskName);
+    serialSendln(" has overflowed");
 
     /* Run time stack overflow checking is performed if
     configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
@@ -106,7 +106,7 @@ int main(void)
     adcInit();
     gioInit();
 
-    xTaskCreate(vMainTask, "Main", 128, NULL, 2, NULL);
+    xTaskCreate(vMainTask, "main", 256, NULL, 2, NULL);
 
     serialSendQ("created queue");
     /* Create two instances of the task that will send to the queue. The task
