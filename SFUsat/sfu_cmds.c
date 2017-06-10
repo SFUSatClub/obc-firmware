@@ -147,23 +147,6 @@ int cmdTask(int args, char **argv) {
 	return 0;
 }
 
-/**
-* The following macros allow us to construct the arrays CMD_NAMES and CMD_FUNCS by only modifying
-* the macro CMD_TABLE. This allows us to reliably use the same index to reference a command's name and
-* function without the maintenance problems of constructing the arrays manually.
-*
-* The CMD_TABLE below should be the only place you'd need to edit to add/remove/change commands.
-*/
-#define CMD_TABLE(_) \
-	_("help", cmdHelp) \
-	_("get", cmdGet) \
-	_("exec", cmdExec) \
-	_("task", cmdTask)
-
-#define CMD_NAME_SELECTOR(a, b) \
-	a,
-#define CMD_FUNC_SELECTOR(a, b) \
-	b,
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
 };
