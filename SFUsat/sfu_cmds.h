@@ -35,7 +35,20 @@ typedef enum CMD_IDS {
 
 extern const char *CMD_NAMES[];
 extern int (*const CMD_FUNCS[])(int args, char **argv);
-BaseType_t checkAndRunCommand(char *cmd);
+
+/**
+* Checks if a string is a valid command, and if so, invokes it.
+*
+* A command is valid if the first word exists in CMD_NAMES.
+* A command can be invoked with 0 to a maximum of 10 arguments.
+* Each command determines the requirements of their own parameters.
+* Commands are space delimited.
+*
+* @param cmd A command string
+* @return 1 if the command is found and invoked, 0 if the command does
+* not exist.
+*/
+int checkAndRunCommand(char *cmd);
 
 typedef struct CMD {
 	CMD_ID cmd_id : 4;

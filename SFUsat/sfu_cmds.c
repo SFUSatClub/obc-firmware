@@ -154,26 +154,14 @@ int (*const CMD_FUNCS[])(int args, char **argv) = {
 	CMD_TABLE(CMD_FUNC_SELECTOR)
 };
 
-/**
-* Checks if a string is a valid command, and if so, invokes it.
-*
-* A command is valid if the first word exists in CMD_NAMES.
-* A command can be invoked with 0 to a maximum of 10 arguments.
-* Each command determines the requirements of their own parameters.
-* Commands are space delimited.
-*
-* @param cmd A command string
-* @return pdPASS if the command is found and invoked, pdFAIL if the command does
-* not exist.
-*/
 #define MAX_CMD_ARGS 10
-BaseType_t checkAndRunCommand(char *cmd) {
+int checkAndRunCommand(char *cmd) {
 	const char delim[] = " ";
 	char *intendedCmd = strtok(cmd, delim);
 	/**
 	 * Exit if we could not get the first token.
 	 */
-	if (intendedCmd == NULL) return pdFAIL;
+	if (intendedCmd == NULL) return 0;
 
 	/**
 	 * Compare the first word (which is the user's intended command) with all known
@@ -191,7 +179,7 @@ BaseType_t checkAndRunCommand(char *cmd) {
 	/**
 	 * Exit if the command does not exist.
 	 */
-	if (intendedCmdIdx == -1) return pdFAIL;
+	if (intendedCmdIdx == -1) return 0;
 
 	/**
 	 * Parse for and store every argument so commands can process them easily.
@@ -211,5 +199,5 @@ BaseType_t checkAndRunCommand(char *cmd) {
 	 */
 	(*CMD_FUNCS[intendedCmdIdx])(argsIdx, args);
 
-	return pdPASS;
+	return 1;
 }

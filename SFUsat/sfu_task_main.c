@@ -28,17 +28,7 @@ void vMainTask(void *pvParameters) {
     Event_t test_event = {.creation_time = 10, .target_time = 30};
     addEvent(test_event);
     addEvent(test_event);
-    char buffer[32] = {0};
-    int i;
-    for(i = 0; i < MAX_EVENTS; i++) {
-    	const Event_t e = schedule.events[i];
-    	if (e._status.active) {
-        	snprintf(buffer, 32, "#%d\ne.creation_time: %d", i, e.creation_time);
-        	serialSendln(buffer);
-        	snprintf(buffer, 32, "e.target_time: %d", e.target_time);
-        	serialSendln(buffer);
-    	}
-    }
+    showActiveEvents();
     serialSendln("main tasks created");
 	while (1) {
 		serialSendQ("main");
