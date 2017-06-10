@@ -202,3 +202,18 @@ void vReceiverTask(void *pvParameters) {
 		}
 	}
 }
+
+void vTickleTask(void *pvParameters){
+	for (;;){
+		serialSendQ("tickle");
+		gioSetBit(gioPORTA, 7, 1);	// Set A2 pin to 1
+		vTaskDelay(1); // delay 1ms
+		gioSetBit(gioPORTA, 7, 0); // Set A2 pin to 0
+		vTaskDelay(500);
+	}
+}
+
+void vMonitorTask(void *pvParameters){
+    serialSendQ("Chip is being reset.");
+}
+
