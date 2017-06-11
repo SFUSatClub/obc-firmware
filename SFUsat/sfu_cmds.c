@@ -154,8 +154,15 @@ int (*const CMD_FUNCS[])(int args, char **argv) = {
 	CMD_TABLE(CMD_FUNC_SELECTOR)
 };
 
+int checkAndRunCommand(const CMD_t *cmd) {
+	const CMD_ID id = cmd->cmd_id;
+	const unsigned int subid = cmd->subcmd_id;
+	//(*CMD_FUNCS[id])(argsIdx, args);
+	return 1;
+}
+
 #define MAX_CMD_ARGS 10
-int checkAndRunCommand(char *cmd) {
+int checkAndRunCommandStr(char *cmd) {
 	const char delim[] = " ";
 	char *intendedCmd = strtok(cmd, delim);
 	/**

@@ -105,7 +105,7 @@ void vSerialTask(void *pvParameters) {
 				commands[commandsIdx] = commandPtr;
 				commandsIdx++;
 
-				checkAndRunCommand(rxBuffer);
+				checkAndRunCommandStr(rxBuffer);
 				rxBufferIdx = 0;
 			} else {
 				rxBufferIdx++;
