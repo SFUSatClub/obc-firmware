@@ -25,7 +25,7 @@ int addEvent(Event_t event) {
 }
 
 int removeEvent(int eventIdx) {
-	if (schedule.numActiveEvents == 0 || eventIdx < 0 || eventIdx >= MAX_EVENTS) {
+	if (eventIdx < 0 || eventIdx >= MAX_EVENTS || !schedule.events[eventIdx]._status.active) {
 		return 0;
 	}
 	schedule.numActiveEvents--;
