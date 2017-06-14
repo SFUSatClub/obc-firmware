@@ -24,9 +24,11 @@ void vMainTask(void *pvParameters) {
                  &xBlinkyTaskHandle );
 
 	xTaskCreate(vSerialTask, "serial", 300, NULL, 3, &xSerialTaskHandle);
-    xTaskCreate(vRadioTask, "radio", 300, NULL, 4, &xRadioTaskHandle);
-    xTaskCreate(vTickleTask, "tickle", 128, NULL, 5, &xTickleTaskHandle);
-    Event_t test_event = {.creation_time = 10, .target_time = 30};
+    xTaskCreate(vRadioTask, "radio", 300, NULL, 5, &xRadioTaskHandle);
+    xTaskCreate(vTickleTask, "tickle", 128, NULL, 4, &xTickleTaskHandle);
+
+    CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
+    Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};
     addEvent(test_event);
     addEvent(test_event);
     showActiveEvents();
