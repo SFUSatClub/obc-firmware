@@ -14,7 +14,7 @@ unsigned int getTime() {
 	/*
 	 * Get current HET time.
 	 */
-	het_time = 0;
+	//het_time = 0;
 
 	/*
 	 * Return "approximation" to actual RTC time.
@@ -26,7 +26,7 @@ unsigned int getRTCTime() {
 	/*
 	 * Reset HET time.
 	 */
-	het_time = 0;
+	//het_time = 0;
 
 	/*
 	 * Initiate RTC SPI transfer.
@@ -36,3 +36,6 @@ unsigned int getRTCTime() {
 	return rtc_time;
 }
 
+void tempAddSecondToHET() {
+	het_time++;
+}

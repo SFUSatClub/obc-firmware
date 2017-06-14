@@ -23,4 +23,6 @@ unsigned int getTime();
  */
 unsigned int getRTCTime();
 
+void tempAddSecondToHET();
+
 #endif /* SFUSAT_SFU_RTC_H_ */

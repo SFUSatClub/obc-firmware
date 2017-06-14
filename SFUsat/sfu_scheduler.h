@@ -91,17 +91,11 @@ extern Schedule_t schedule;
 /**
  * Adds an event to the schedule.
  * Copies the event to the first free (inactive) index by scanning from 0 to MAX_EVENTS - 1.
+ * Returns the index of the added event on success, -1 otherwise.
  * @param event the event to add
- * @return 1 if event is added to the schedule, 0 if failed to add event.
+ * @return the index of the event if event is added to the schedule, -1 if failed to add event.
  */
 int addEvent(Event_t event);
-
-/**
- * Removes an event from the schedule.
- * @param event event to remove
- * @return 1 if event is removed from the schedule, 0 if failed to remove event.
- */
-//int removeEvent(Event_t event);
 
 /**
  * Removes an event from the schedule.
@@ -109,6 +103,15 @@ int addEvent(Event_t event);
  * @return 1 if event is removed from the schedule, 0 if failed to remove event.
  */
 int removeEventIdx(int eventIdx);
+
+/**
+ * An event is fired when its target time >= current time.
+ * When this happens, set action to the fired event's action.
+ * Otherwise, action is not modified.
+ * @param action
+ * @return 1 if target_time reached and action has been populated, 0 otherwise.
+ */
+int getAction(CMD_t *action);
 
 void showActiveEvents();
 

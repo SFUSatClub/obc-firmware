@@ -14,9 +14,10 @@ void shift(int idx, int dir);
 
 int addEvent(Event_t event) {
 	if (schedule.numActiveEvents >= MAX_EVENTS) {
-		return 0;
+		return -1;
 	}
-	event.target_time = getTime() + event.seconds_from_now;
+	event.creation_time = getTime();
+	event.target_time = event.creation_time + event.seconds_from_now;
 	event._status.active = 1;
 	int i;
 	for (i = 0; i < MAX_EVENTS; i++) {
@@ -32,7 +33,7 @@ int addEvent(Event_t event) {
 		}
 	}
 	schedule.numActiveEvents++;
-	return 1;
+	return i;
 }
 
 int removeEventIdx(int eventIdx) {
@@ -41,6 +42,17 @@ int removeEventIdx(int eventIdx) {
 	}
 	schedule.events[eventIdx]._status.active = 0;
 	shift(eventIdx + 1, -1);
+	schedule.numActiveEvents--;
+	return 1;
+}
+
+int getAction(CMD_t *action) {
+	if (!schedule.events[0]._status.active || schedule.events[0].target_time > getTime()) {
+		return 0;
+	}
+	(*action) = schedule.events[0].action;
+	schedule.events[0]._status.active = 0;
+	shift(1, -1);
 	schedule.numActiveEvents--;
 	return 1;
 }
@@ -82,7 +94,7 @@ void shift(int idx, int dir) {
 	 */
 	int i;
 	// TODO: make this prettier...
-	for (i = dir < 0 ? idx : boundary; i <= dir < 0 ? boundary : idx; i = dir < 0 ? i + 1 : i - 1) {
+	for (i = dir < 0 ? idx : boundary; dir < 0 ? (i <= boundary) : (i >= idx); i = dir < 0 ? i + 1 : i - 1) {
 		const int dest = i + dir;
 		if (dest >= 0 && dest < MAX_EVENTS) {
 			schedule.events[dest] = schedule.events[i];

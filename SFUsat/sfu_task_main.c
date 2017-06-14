@@ -9,6 +9,7 @@
 #include "sfu_task_main.h"
 #include "sfu_task_radio.h"
 #include "sfu_scheduler.h"
+#include "sfu_rtc.h"
 
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
@@ -30,13 +31,25 @@ void vMainTask(void *pvParameters) {
     CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
     Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};
     addEvent(test_event);
+
+    test_event.seconds_from_now = 6;
+    test_event.action.subcmd_id = CMD_GET_TASKS;
     addEvent(test_event);
+
     showActiveEvents();
+
     serialSendln("main tasks created");
+
 	while (1) {
 		serialSendQ("main");
-
-		vTaskDelay(pdMS_TO_TICKS(6100));
+		CMD_t g;
+		if (getAction(&g)) {
+			char buffer[16] = {0};
+			snprintf(buffer, 16, "%d:%d:%s", g.cmd_id, g.subcmd_id, g.args);
+			serialSendQ(buffer);
+		}
+		tempAddSecondToHET();
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 
 }
