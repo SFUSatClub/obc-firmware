@@ -1,7 +1,7 @@
 /** @file pinmux.c 
 *   @brief PINMUX Driver Implementation File
-*   @date 08-Feb-2017
-*   @version 04.06.01
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 
@@ -92,9 +92,9 @@ void muxInit(void){
 
         pinMuxReg->PINMMR0 = PINMUX_PIN_1_SPI3nCS_3;
     
-    pinMuxReg->PINMMR1 = PINMUX_PIN_2_SPI3nCS_2 | PINMUX_PIN_5_GIOA_2 | PINMUX_PIN_8_GIOA_3 | PINMUX_PIN_9_GIOA_4;
+    pinMuxReg->PINMMR1 = PINMUX_PIN_2_GIOA_1 | PINMUX_PIN_5_GIOA_2 | PINMUX_PIN_8_SPI2nCS_3 | PINMUX_PIN_9_SPI2nCS_2;
     
-    pinMuxReg->PINMMR2 = PINMUX_PIN_10_GIOA_5 | PINMUX_PIN_12_GIOA_6 | PINMUX_PIN_18_GIOA_7;
+    pinMuxReg->PINMMR2 = PINMUX_PIN_10_GIOA_5 | PINMUX_PIN_12_SPI2nCS_1 | PINMUX_PIN_18_GIOA_7;
     
     pinMuxReg->PINMMR3 = PINMUX_PIN_27_MIBSPI1nCS_2 | PINMUX_PIN_36_SPI3CLK | PINMUX_PIN_37_SPI3nENA;
     
