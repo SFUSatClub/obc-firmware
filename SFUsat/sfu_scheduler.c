@@ -16,7 +16,7 @@ int addEvent(Event_t event) {
 	if (schedule.numActiveEvents >= MAX_EVENTS) {
 		return -1;
 	}
-	event.creation_time = getTime();
+	event.creation_time = getCurrentTime();
 	event.target_time = event.creation_time + event.seconds_from_now;
 	event._status.active = 1;
 	int i;
@@ -47,7 +47,7 @@ int removeEventIdx(int eventIdx) {
 }
 
 int getAction(CMD_t *action) {
-	if (!schedule.events[0]._status.active || schedule.events[0].target_time > getTime()) {
+	if (!schedule.events[0]._status.active || schedule.events[0].target_time >= getCurrentTime()) {
 		return 0;
 	}
 	(*action) = schedule.events[0].action;
