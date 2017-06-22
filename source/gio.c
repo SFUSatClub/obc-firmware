@@ -1,7 +1,7 @@
 /** @file gio.c
 *   @brief GIO Driver Implementation File
-*   @date 08-Feb-2017
-*   @version 04.06.01
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 
@@ -82,7 +82,7 @@ void gioInit(void)
 
     /** - Port A direction */
     gioPORTA->DIR  = (uint32)((uint32)1U << 0U)  /* Bit 0 */
-                   | (uint32)((uint32)0U << 1U)  /* Bit 1 */
+                   | (uint32)((uint32)1U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)1U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
