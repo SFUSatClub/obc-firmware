@@ -45,7 +45,8 @@ void vMainTask(void *pvParameters) {
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};
-			snprintf(buffer, 16, "%d:%d:%s", g.cmd_id, g.subcmd_id, g.args);
+			snprintf(buffer, 16, "%d:%d:%s", g.cmd_id, g.subcmd_id, g.cmd_data);
+			checkAndRunCommand(&g);
 			serialSendQ(buffer);
 		}
 		tempAddSecondToHET();

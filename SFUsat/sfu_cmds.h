@@ -60,8 +60,53 @@ typedef enum CMD_IDS {
 	NUM_CMDS
 } CMD_ID;
 CMD_TABLE(CMD_SUBCMD_ENUM_SELECTOR)
+
+
+typedef enum TASK_IDS {
+	TASK_MAIN,
+	TASK_RADIO,
+	TASK_TICKLE,
+	/**
+	 * The following tasks are used only in development and not in release.
+	 * They may be #ifdef'd out or removed in the future.
+	 */
+	TASK_SERIAL,
+	TASK_BLINKY,
+	TASK_NUM_IDS,
+} TASK_ID;
+
+typedef struct CMD_TASK_DATA {
+	TASK_ID task_id : 4;
+	char data[10];
+} CMD_TASK_DATA_t;
+
+/**
+ * Compact representation of a command and its arguments.
+ *
+ * Be wary of padding. CMD_t is byte/word/struct-aligned to
+ * save memory since a static array of MAX_EVENTS of them is
+ * defined in sfu_scheduler.
+ *
+ * Each CMD_t currently takes up: 12 bytes.
+ */
+typedef struct CMD {
+	union {
+		char cmd_data[11];
+		CMD_TASK_DATA_t cmd_task_data;
+	};
+	CMD_ID cmd_id : 4;
+	union {
+		unsigned int subcmd_id : 4;
+		CMD_HELP_SUBCMD subcmd_help_id : 4;
+		CMD_GET_SUBCMD subcmd_get_id : 4;
+		CMD_EXEC_SUBCMD subcmd_exec_id : 4;
+		CMD_TASK_SUBCMD subcmd_task_id : 4;
+	};
+} CMD_t;
+
 extern const char *CMD_NAMES[];
-extern int (*const CMD_FUNCS[])(int args, char **argv);
+extern int (*const CMD_FUNCS[])(const CMD_t *cmd);
+
 
 /**
 * Checks if a string is a valid command, and if so, invokes it.
@@ -76,11 +121,6 @@ extern int (*const CMD_FUNCS[])(int args, char **argv);
 * not exist.
 */
 int checkAndRunCommandStr(char *cmd);
-
-typedef struct CMD {
-	CMD_ID cmd_id : 4;
-	unsigned int subcmd_id : 4;
-	char args[10];
-} CMD_t;
+int checkAndRunCommand(const CMD_t *cmd);
 
 #endif /*SFUSAT_SFU_CMD_LINE_H_*/
