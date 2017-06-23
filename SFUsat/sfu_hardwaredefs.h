@@ -16,8 +16,8 @@
 #define RTC_CS_PIN 1
 #define RTC_SPI_REG spiREG2
 // RTC SPI Config (set in rtcInit())
-#define RTC_CONFIG_CS_HOLD 0; //CS false = high during data transfer
-#define RTC_CONFIG_WDEL 1; // wdelay
-#define RTC_CONFIG_DFSEL SPI_FMT_0; // data format
-#define RTC_CONFIG_CSNR 0x00; // chip select to use
+#define RTC_CONFIG_CS_HOLD 0 //CS false = high during data transfer
+#define RTC_CONFIG_WDEL 1 // wdelay
+#define RTC_CONFIG_DFSEL SPI_FMT_0 // data format
+#define RTC_CONFIG_CSNR 0x00 // chip select to use
 #endif
