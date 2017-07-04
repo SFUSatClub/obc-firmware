@@ -235,7 +235,7 @@ int checkAndRunCommandStr(char *cmd) {
 	 */
 	intendedCmd = strtok(NULL, delim);
 	unsigned int intendedSubCmdIdx = 0;
-	for (i = 1; i < LEN(CMD_DBG_STRINGS[intendedCmdIdx]); i++) {
+	for (i = 1; i < LEN(CMD_DBG_STRINGS[intendedCmdIdx]) && intendedCmd != NULL; i++) {
 		if (strcmp(CMD_DBG_STRINGS[intendedCmdIdx][i], intendedCmd) == 0) {
 			intendedSubCmdIdx = i;
 			break;
