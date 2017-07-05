@@ -235,17 +235,41 @@ int checkAndRunCommandStr(char *cmd) {
 	 */
 	intendedCmd = strtok(NULL, delim);
 	unsigned int intendedSubCmdIdx = 0;
-	for (i = 1; i < LEN(CMD_DBG_STRINGS[intendedCmdIdx]) && intendedCmd != NULL; i++) {
+	for (i = 1; CMD_DBG_STRINGS[intendedCmdIdx][i] != NULL && intendedCmd != NULL; i++) {
 		if (strcmp(CMD_DBG_STRINGS[intendedCmdIdx][i], intendedCmd) == 0) {
 			intendedSubCmdIdx = i;
 			break;
 		}
 	}
 
-	/*
-	 * TODO: set .cmd_data appropriately from serial--use hex?
-	 */
+
 	CMD_t cmd_t = {.cmd_id = (CMD_ID)intendedCmdIdx, .subcmd_id = intendedSubCmdIdx};
+	/**
+	 * The third token will be interpreted as a hex string if it exists.
+	 * No preceding 0x required.
+	 * The command's argument field, cmd_data, will be set to this hex data.
+	 *
+	 * Data is parsed in pairs of hex characters.
+	 *
+	 * Example:
+	 * 		> task suspend 40
+	 *
+	 * 		Data will be == "40\0"
+	 * 		This will be parsed into the corresponding byte, and then
+	 * 		cmd_t.cmd_task_data.task_id will be == TASK_BLINKY (4)
+	 */
+	char *data = strtok(NULL, delim);
+	if (data != NULL) {
+		int data_len = strlen(data);
+		for (i = 0; i < 11 * 2 && i < data_len; i += 2) {
+			char c[3] = {NULL};
+			c[0] = *(data + i);
+			char n = *(data + i + 1);
+			c[1] = n == NULL ? '0' : n;
+			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
+		}
+	}
+	serialSend(cmd_t.cmd_data);
 
 	/**
 	 * Invoke the intended command with the command struct created above.
