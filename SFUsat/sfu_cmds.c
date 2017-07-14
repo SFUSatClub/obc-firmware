@@ -7,6 +7,7 @@
 
 #include "sfu_uart.h"
 #include "sfu_cmds.h"
+#include "sfu_scheduler.h"
 
 int cmdHelp(const CMD_t *cmd) {
 	switch (cmd->subcmd_help_id) {
@@ -174,12 +175,48 @@ int cmdTask(const CMD_t *cmd) {
 	return 0;
 }
 
+/**
+ * Handle all command scheduling related commands.
+ * @param cmd
+ * @return
+ */
+int cmdSched(const CMD_t *cmd) {
+	switch (cmd->subcmd_task_id) {
+		case CMD_SCHED_NONE: {
+			return 1;
+		}
+		case CMD_SCHED_ADD: {
+			CMD_t event_cmd = {
+				.cmd_id = cmd->cmd_sched_data.cmd_id,
+				.subcmd_id = cmd->cmd_sched_data.subcmd_id,
+			};
+			memcpy(event_cmd.cmd_data, cmd->cmd_sched_data.cmd_data, CMD_DATA_MAX_SIZE);
+			Event_t event = {
+				.seconds_from_now = cmd->cmd_sched_data.time,
+				.action = event_cmd,
+			};
+			addEvent(event);
+			return 1;
+		}
+		case CMD_SCHED_REMOVE: {
+			const int idx = cmd->cmd_sched_data.cmd_sched_misc_data.event_idx_to_remove;
+			return removeEventIdx(idx);
+		}
+		case CMD_SCHED_SHOW: {
+			showActiveEvents();
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 #define LEN(array) (sizeof((array))/sizeof((array)[0]))
 /**
  * CMD_DBG_STRINGS[i][j]
- * 		Index of commands i (row) must match order defined in CMD_NAMES.
- *  	Index of sub-commands j (col) must match their enum representation.
- *  	Index 0 is reserved by NONE, so it's used as row delimiter.
+ * 		- Index of commands i (row) must match order defined in CMD_NAMES.
+ *  	- Index of sub-commands j (col) must match enum representation defined in CMD_TABLE.
+ *  	- Index 0 is reserved by NONE, so it's used as row descriptor.
  */
 #define MAX_SUB_CMDS 10
 const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
@@ -187,7 +224,7 @@ const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
 		{"get", "tasks", "runtime", "heap", "minheap", "types"},
 		{"exec", "radio"},
 		{"task", "create", "delete", "resume", "suspend", "status", "show"},
-
+		{"sched" "add", "remove", "show"},
 };
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
@@ -195,6 +232,21 @@ const char *CMD_NAMES[] = {
 int (*const CMD_FUNCS[])(const CMD_t *cmd) = {
 	CMD_TABLE(CMD_FUNC_SELECTOR)
 };
+
+/**
+ * Quickly get size of arbitrary structures using map file and grep.
+ *
+ * For example...
+ * 		- `$ grep .data:test Debug/OBC.map`
+ */
+#ifdef _DEBUG
+CMD_t testCMD = {0};
+CMD_SCHED_DATA_t testSCHED = {0};
+void __unused() {
+	testCMD.cmd_id = CMD_GET;
+	testSCHED.cmd_id = CMD_GET;
+}
+#endif
 
 int checkAndRunCommand(const CMD_t *cmd) {
 	const CMD_ID id = cmd->cmd_id;
@@ -260,7 +312,7 @@ int checkAndRunCommandStr(char *cmd) {
 	const char *data = strtok(NULL, delim);
 	if (data != NULL) {
 		const int data_len = strlen(data);
-		for (i = 0; i < 11 * 2 && i < data_len; i += 2) {
+		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
 			char c[3] = {NULL};
 			c[0] = *(data + i);
 			const char n = *(data + i + 1);

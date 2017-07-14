@@ -39,7 +39,8 @@
 	_(CMD_HELP	, "help", 	cmdHelp,	NONE) \
 	_(CMD_GET	, "get", 	cmdGet, 	NONE, TASKS, RUNTIME, HEAP, MINHEAP, TYPES) \
 	_(CMD_EXEC	, "exec", 	cmdExec, 	NONE, RADIO) \
-	_(CMD_TASK	, "task", 	cmdTask, 	NONE, CREATE, DELETE, RESUME, SUSPEND, STATUS, SHOW)
+	_(CMD_TASK	, "task", 	cmdTask, 	NONE, CREATE, DELETE, RESUME, SUSPEND, STATUS, SHOW) \
+	_(CMD_SCHED	, "sched", 	cmdSched, 	NONE, ADD, REMOVE, SHOW)
 
 #define CMD_ENUM_SELECTOR(a, b, c, d...) \
 	a,
@@ -62,6 +63,15 @@ typedef enum CMD_IDS {
 CMD_TABLE(CMD_SUBCMD_ENUM_SELECTOR)
 
 
+/**
+ * Maximum command argument size.
+ * The number of bytes in particular is determined by being...
+ * 		- sufficiently large enough to accommodate most demanding command.
+ * 		- maximized to next word alignment to reduce slop in CMD_t/CMD_SCHED_DATA_t
+ * 		and increase effective argument size at no additional memory cost.
+ */
+#define CMD_DATA_MAX_SIZE (14)
+
 typedef enum TASK_IDS {
 	TASK_MAIN,
 	TASK_RADIO,
@@ -77,32 +87,78 @@ typedef enum TASK_IDS {
 
 typedef struct CMD_TASK_DATA {
 	TASK_ID task_id : 4;
-	char data[10];
+	char unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_TASK_DATA_t;
 
 /**
+ * When the sub-command of CMD_SCHED is ADD, the cmd_data field will be reserved for the
+ * arguments of the scheduled command. This struct is therefore inapplicable in this case.
+ *
+ * When the sub-command of CMD_SCHED is not ADD (e.g., REMOVE, etc), this struct will be used to
+ * type-pun cmd_data into the following fields.
+ */
+typedef struct CMD_SCHED_MISC_DATA {
+	char event_idx_to_remove : 4;
+	char unused[CMD_DATA_MAX_SIZE - 1];
+} CMD_SCHED_MISC_DATA_t;
+
+/**
+ * Must match structure shape of CMD_t, with the following exceptions...
+ * 		- CMD_SCHED_DATA_t must not be self-referential. That is to say, there must
+ * 		not be scheduling-related fields in the cmd_data and subcmd_id unions.
+ * 		Consequently, commands that itself schedule other commands are not supported.
+ * 		- cmd_data union size is CMD_SIZE_DATA.
+ * 		- there is a time field.
+ *
+ * Current size: 20 bytes
+ * Current slop: 0 bytes
+ */
+typedef struct CMD_SCHED_DATA {
+	union {
+		char cmd_data[CMD_DATA_MAX_SIZE];
+		CMD_TASK_DATA_t cmd_task_data;
+
+		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
+	};
+	CMD_ID cmd_id;
+	union {
+		char subcmd_id;
+		CMD_HELP_SUBCMD subcmd_help_id;
+		CMD_GET_SUBCMD subcmd_get_id;
+		CMD_EXEC_SUBCMD subcmd_exec_id;
+		CMD_TASK_SUBCMD subcmd_task_id;
+	};
+	unsigned int time;
+} CMD_SCHED_DATA_t;
+
+/**
  * Compact representation of a command and its arguments.
+ * Be wary of padding from alignment.
+ * Make sure additional command fields are also added to CMD_SCHED_DATA_t.
  *
- * Be wary of padding. CMD_t is byte/word/struct-aligned to
- * save memory since a static array of MAX_EVENTS of them is
- * defined in sfu_scheduler.
- *
- * Each CMD_t currently takes up: 12 bytes.
+ * Current size: 24 bytes
+ * Current slop: 2 bytes (trailing padding; struct alignment)
  */
 typedef struct CMD {
 	union {
-		char cmd_data[11];
+		char cmd_data[sizeof(CMD_SCHED_DATA_t)];
 		CMD_TASK_DATA_t cmd_task_data;
+
+		CMD_SCHED_DATA_t cmd_sched_data;
 	};
-	CMD_ID cmd_id : 4;
+	CMD_ID cmd_id;
 	union {
-		unsigned int subcmd_id : 4;
-		CMD_HELP_SUBCMD subcmd_help_id : 4;
-		CMD_GET_SUBCMD subcmd_get_id : 4;
-		CMD_EXEC_SUBCMD subcmd_exec_id : 4;
-		CMD_TASK_SUBCMD subcmd_task_id : 4;
+		char subcmd_id;
+		CMD_HELP_SUBCMD subcmd_help_id;
+		CMD_GET_SUBCMD subcmd_get_id;
+		CMD_EXEC_SUBCMD subcmd_exec_id;
+		CMD_TASK_SUBCMD subcmd_task_id;
+
+		CMD_SCHED_SUBCMD subcmd_sched_id;
 	};
+	/* 2 bytes slop here */
 } CMD_t;
+
 
 extern const char *CMD_NAMES[];
 extern int (*const CMD_FUNCS[])(const CMD_t *cmd);
@@ -117,8 +173,7 @@ extern int (*const CMD_FUNCS[])(const CMD_t *cmd);
 * Commands are space delimited.
 *
 * @param cmd A command string
-* @return 1 if the command is found and invoked, 0 if the command does
-* not exist.
+* @return 1 if the command is valid and invoked, 0 if the command is invalid
 */
 int checkAndRunCommandStr(char *cmd);
 int checkAndRunCommand(const CMD_t *cmd);
