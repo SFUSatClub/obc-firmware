@@ -5,7 +5,9 @@
  *      Author: steven
  */
 
-#include <sfu_state.h>
+#include <stdio.h>
+
+#include "sfu_state.h"
 
 State_t doStatePrimed(InstanceData_t *data) {
 	return STATE_PRIMED;

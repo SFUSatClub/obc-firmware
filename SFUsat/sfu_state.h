@@ -8,8 +8,6 @@
 #ifndef SFUSAT_SFU_STATE_H_
 #define SFUSAT_SFU_STATE_H_
 
-#include <stdio.h>
-
 typedef enum {
 	STATE_PRIMED,
 	STATE_READY,

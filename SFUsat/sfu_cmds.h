@@ -8,6 +8,7 @@
 #ifndef SFUSAT_SFU_CMD_LINE_H_
 #define SFUSAT_SFU_CMD_LINE_H_
 
+#include <stdint.h>
 #include "map.h"
 
 /**
@@ -87,7 +88,7 @@ typedef enum TASK_IDS {
 
 typedef struct CMD_TASK_DATA {
 	TASK_ID task_id : 4;
-	char unused[CMD_DATA_MAX_SIZE - 1];
+	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_TASK_DATA_t;
 
 /**
@@ -98,8 +99,8 @@ typedef struct CMD_TASK_DATA {
  * type-pun cmd_data into the following fields.
  */
 typedef struct CMD_SCHED_MISC_DATA {
-	char event_idx_to_remove : 4;
-	char unused[CMD_DATA_MAX_SIZE - 1];
+	uint8_t event_idx_to_remove : 4;
+	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_SCHED_MISC_DATA_t;
 
 /**
@@ -115,14 +116,14 @@ typedef struct CMD_SCHED_MISC_DATA {
  */
 typedef struct CMD_SCHED_DATA {
 	union {
-		char scheduled_cmd_data[CMD_DATA_MAX_SIZE];
+		uint8_t scheduled_cmd_data[CMD_DATA_MAX_SIZE];
 		CMD_TASK_DATA_t scheduled_cmd_task_data;
 
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
 	};
 	CMD_ID scheduled_cmd_id;
 	union {
-		char scheduled_subcmd_id;
+		uint8_t scheduled_subcmd_id;
 		CMD_HELP_SUBCMD scheduled_subcmd_help_id;
 		CMD_GET_SUBCMD scheduled_subcmd_get_id;
 		CMD_EXEC_SUBCMD scheduled_subcmd_exec_id;
@@ -141,14 +142,14 @@ typedef struct CMD_SCHED_DATA {
  */
 typedef struct CMD {
 	union {
-		char cmd_data[sizeof(CMD_SCHED_DATA_t)];
+		uint8_t cmd_data[sizeof(CMD_SCHED_DATA_t)];
 		CMD_TASK_DATA_t cmd_task_data;
 
 		CMD_SCHED_DATA_t cmd_sched_data;
 	};
 	CMD_ID cmd_id;
 	union {
-		char subcmd_id;
+		uint8_t subcmd_id;
 		CMD_HELP_SUBCMD subcmd_help_id;
 		CMD_GET_SUBCMD subcmd_get_id;
 		CMD_EXEC_SUBCMD subcmd_exec_id;
@@ -161,7 +162,7 @@ typedef struct CMD {
 
 
 extern const char *CMD_NAMES[];
-extern int (*const CMD_FUNCS[])(const CMD_t *cmd);
+extern int8_t (*const CMD_FUNCS[])(const CMD_t *cmd);
 
 
 /**
@@ -175,7 +176,7 @@ extern int (*const CMD_FUNCS[])(const CMD_t *cmd);
 * @param cmd A command string
 * @return 1 if the command is valid and invoked, 0 if the command is invalid
 */
-int checkAndRunCommandStr(char *cmd);
-int checkAndRunCommand(const CMD_t *cmd);
+int8_t checkAndRunCommandStr(char *cmd);
+int8_t checkAndRunCommand(const CMD_t *cmd);
 
 #endif /*SFUSAT_SFU_CMD_LINE_H_*/

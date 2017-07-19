@@ -9,7 +9,7 @@
 #include "sfu_cmds.h"
 #include "sfu_scheduler.h"
 
-int cmdHelp(const CMD_t *cmd) {
+int8_t cmdHelp(const CMD_t *cmd) {
 	switch (cmd->subcmd_help_id) {
 		case CMD_HELP_NONE: {
 			serialSendQ("help cmd 0 args");
@@ -20,7 +20,7 @@ int cmdHelp(const CMD_t *cmd) {
 }
 
 char buffer[250];
-int cmdGet(const CMD_t *cmd) {
+int8_t cmdGet(const CMD_t *cmd) {
 	switch (cmd->subcmd_get_id) {
 		case CMD_GET_TASKS: {
 		    serialSend("Task\t\tState\tPrio\tStack\tNum\n");
@@ -63,7 +63,7 @@ int cmdGet(const CMD_t *cmd) {
 	return 0;
 }
 
-int cmdExec(const CMD_t *cmd) {
+int8_t cmdExec(const CMD_t *cmd) {
 	switch (cmd->subcmd_exec_id) {
 		case CMD_EXEC_RADIO: {
 			initRadio();
@@ -78,7 +78,7 @@ int cmdExec(const CMD_t *cmd) {
  * @param cmd
  * @return
  */
-int cmdTask(const CMD_t *cmd) {
+int8_t cmdTask(const CMD_t *cmd) {
 	switch (cmd->subcmd_task_id) {
 		/**
 		 * Show status of all tasks if no arguments are supplied.
@@ -180,7 +180,7 @@ int cmdTask(const CMD_t *cmd) {
  * @param cmd
  * @return
  */
-int cmdSched(const CMD_t *cmd) {
+int8_t cmdSched(const CMD_t *cmd) {
 	switch (cmd->subcmd_sched_id) {
 		case CMD_SCHED_NONE: {
 			return 1;
@@ -230,7 +230,7 @@ const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
 };
-int (*const CMD_FUNCS[])(const CMD_t *cmd) = {
+int8_t (*const CMD_FUNCS[])(const CMD_t *cmd) = {
 	CMD_TABLE(CMD_FUNC_SELECTOR)
 };
 
@@ -251,14 +251,14 @@ void __unused() {
 }
 #endif
 
-int checkAndRunCommand(const CMD_t *cmd) {
+int8_t checkAndRunCommand(const CMD_t *cmd) {
 	const CMD_ID id = cmd->cmd_id;
 	if (id >= NUM_CMDS) return 0;
 	(*CMD_FUNCS[id])(cmd);
 	return 1;
 }
 
-int checkAndRunCommandStr(char *cmd) {
+int8_t checkAndRunCommandStr(char *cmd) {
 	const char delim[] = " ";
 	char *intendedCmd = strtok(cmd, delim);
 	/**
@@ -270,8 +270,8 @@ int checkAndRunCommandStr(char *cmd) {
 	 * Compare the first word (which is the user's intended command) with all known
 	 * commands. Save the index if a match is found.
 	 */
-	int intendedCmdIdx = -1;
-	size_t i;
+	int8_t intendedCmdIdx = -1;
+	uint8_t i;
 	for (i = 0; i < sizeof(CMD_NAMES) / sizeof(char*); i++) {
 		const char *currCmd = CMD_NAMES[i];
 		if(strcmp(intendedCmd, currCmd) == 0) {
@@ -289,7 +289,7 @@ int checkAndRunCommandStr(char *cmd) {
 	 * with all known sub-commands for that command. Save the index if a match is found.
 	 */
 	intendedCmd = strtok(NULL, delim);
-	unsigned int intendedSubCmdIdx = 0;
+	uint8_t intendedSubCmdIdx = 0;
 	for (i = 1; i < MAX_SUB_CMDS && CMD_DBG_STRINGS[intendedCmdIdx][i] != NULL && intendedCmd != NULL; i++) {
 		if (strcmp(CMD_DBG_STRINGS[intendedCmdIdx][i], intendedCmd) == 0) {
 			intendedSubCmdIdx = i;
@@ -323,7 +323,7 @@ int checkAndRunCommandStr(char *cmd) {
 			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
 		}
 	}
-	serialSend(cmd_t.cmd_data);
+	serialSend((char *)cmd_t.cmd_data);
 
 	/**
 	 * Invoke the intended command with the command struct created above.
