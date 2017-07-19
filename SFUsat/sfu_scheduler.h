@@ -98,6 +98,15 @@ extern Schedule_t schedule;
 int addEvent(Event_t event);
 
 /**
+ * Adds an event to the schedule.
+ * Same function as addEvent, but accepts a CMD_SCHED command to facilitate direct assignment into
+ * the destination event within the scheduler (constructs less objects, so uses less stack).
+ * @param cmd the command that did the scheduling (that itself contains the command to be scheduled)
+ * @return the index of the event if event is added to the schedule, -1 if failed to add event.
+ */
+int addEventFromScheduledCommand(const CMD_t *cmd);
+
+/**
  * Removes an event from the schedule.
  * @param eventIdx index of event to remove
  * @return 1 if event is removed from the schedule, 0 if failed to remove event.

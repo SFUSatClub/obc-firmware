@@ -12,6 +12,39 @@
 
 void shift(int idx, int dir);
 
+int addEventFromScheduledCommand(const CMD_t *cmd) {
+	if (schedule.numActiveEvents >= MAX_EVENTS || cmd->cmd_id != CMD_SCHED || cmd->subcmd_id != CMD_SCHED_ADD) {
+		return -1;
+	}
+	int creation_time = getCurrentTime();
+	int curr_target_time = creation_time + cmd->cmd_sched_data.seconds_from_now;
+	int i;
+	for (i = 0; i < MAX_EVENTS; i++) {
+		if (schedule.events[i]._status.active) {
+			if (curr_target_time < schedule.events[i].target_time) {
+				shift(i, 1);
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	/**
+	 * Instead of creating many temporary structs (Event_t, CMD_t, etc), we do
+	 * all assignments at the very end to reduce amount of stack usage.
+	 */
+	schedule.events[i].creation_time = creation_time;
+	schedule.events[i].target_time = curr_target_time;
+	schedule.events[i]._status.active = 1;
+	schedule.events[i].action = (CMD_t){
+		.cmd_id = cmd->cmd_sched_data.scheduled_cmd_id,
+		.subcmd_id = cmd->cmd_sched_data.scheduled_subcmd_id,
+	};
+	memcpy(schedule.events[i].action.cmd_data, cmd->cmd_sched_data.scheduled_cmd_data, CMD_DATA_MAX_SIZE);
+	schedule.numActiveEvents++;
+	return i;
+}
+
 int addEvent(Event_t event) {
 	if (schedule.numActiveEvents >= MAX_EVENTS) {
 		return -1;

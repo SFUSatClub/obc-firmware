@@ -181,18 +181,18 @@ int cmdTask(const CMD_t *cmd) {
  * @return
  */
 int cmdSched(const CMD_t *cmd) {
-	switch (cmd->subcmd_task_id) {
+	switch (cmd->subcmd_sched_id) {
 		case CMD_SCHED_NONE: {
 			return 1;
 		}
 		case CMD_SCHED_ADD: {
 			CMD_t event_cmd = {
-				.cmd_id = cmd->cmd_sched_data.cmd_id,
-				.subcmd_id = cmd->cmd_sched_data.subcmd_id,
+				.cmd_id = cmd->cmd_sched_data.scheduled_cmd_id,
+				.subcmd_id = cmd->cmd_sched_data.scheduled_subcmd_id,
 			};
-			memcpy(event_cmd.cmd_data, cmd->cmd_sched_data.cmd_data, CMD_DATA_MAX_SIZE);
+			memcpy(event_cmd.cmd_data, cmd->cmd_sched_data.scheduled_cmd_data, CMD_DATA_MAX_SIZE);
 			Event_t event = {
-				.seconds_from_now = cmd->cmd_sched_data.time,
+				.seconds_from_now = cmd->cmd_sched_data.seconds_from_now,
 				.action = event_cmd,
 			};
 			addEvent(event);
@@ -203,6 +203,7 @@ int cmdSched(const CMD_t *cmd) {
 			return removeEventIdx(idx);
 		}
 		case CMD_SCHED_SHOW: {
+			serialSendQ("schedule:\n");
 			showActiveEvents();
 			return 1;
 		}
@@ -224,7 +225,7 @@ const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
 		{"get", "tasks", "runtime", "heap", "minheap", "types"},
 		{"exec", "radio"},
 		{"task", "create", "delete", "resume", "suspend", "status", "show"},
-		{"sched" "add", "remove", "show"},
+		{"sched", "add", "remove", "show"},
 };
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
@@ -238,13 +239,15 @@ int (*const CMD_FUNCS[])(const CMD_t *cmd) = {
  *
  * For example...
  * 		- `$ grep .data:test Debug/OBC.map`
+ * 		   > 080056c8    00000018     sfu_cmds.obj (.data:testCMD)
+ * 		   > 080056f4    00000014     sfu_cmds.obj (.data:testSCHED)
  */
 #ifdef _DEBUG
 CMD_t testCMD = {0};
 CMD_SCHED_DATA_t testSCHED = {0};
 void __unused() {
 	testCMD.cmd_id = CMD_GET;
-	testSCHED.cmd_id = CMD_GET;
+	testSCHED.scheduled_cmd_id = CMD_GET;
 }
 #endif
 

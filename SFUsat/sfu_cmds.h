@@ -115,20 +115,20 @@ typedef struct CMD_SCHED_MISC_DATA {
  */
 typedef struct CMD_SCHED_DATA {
 	union {
-		char cmd_data[CMD_DATA_MAX_SIZE];
-		CMD_TASK_DATA_t cmd_task_data;
+		char scheduled_cmd_data[CMD_DATA_MAX_SIZE];
+		CMD_TASK_DATA_t scheduled_cmd_task_data;
 
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
 	};
-	CMD_ID cmd_id;
+	CMD_ID scheduled_cmd_id;
 	union {
-		char subcmd_id;
-		CMD_HELP_SUBCMD subcmd_help_id;
-		CMD_GET_SUBCMD subcmd_get_id;
-		CMD_EXEC_SUBCMD subcmd_exec_id;
-		CMD_TASK_SUBCMD subcmd_task_id;
+		char scheduled_subcmd_id;
+		CMD_HELP_SUBCMD scheduled_subcmd_help_id;
+		CMD_GET_SUBCMD scheduled_subcmd_get_id;
+		CMD_EXEC_SUBCMD scheduled_subcmd_exec_id;
+		CMD_TASK_SUBCMD scheduled_subcmd_task_id;
 	};
-	unsigned int time;
+	unsigned int seconds_from_now;
 } CMD_SCHED_DATA_t;
 
 /**
