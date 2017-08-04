@@ -5,6 +5,7 @@
  *      Author: steven
  */
 
+#include "sfu_hardwaredefs.h"
 #include "sfu_task_radio.h"
 #include "sfu_uart.h"
 
@@ -35,7 +36,7 @@ void vRadioTask(void *pvParameters) {
 void readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(spiREG3, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
 	char buffer[30];
 	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", src[0], dest[0], dest[1]);
 	serialSendln(buffer);
@@ -44,7 +45,7 @@ void readRegister(uint8 addr) {
 void readExtendedRegister(uint16 addr) {
 	uint16 src[] = {0x2F | READ_BIT, addr, 0x00};
 	uint16 dest[] = {0x00, 0x00, 0x00};
-	spiTransmitAndReceiveData(spiREG3, &spiDataConfig, 3, src, dest);
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 3, src, dest);
 	char buffer[30];
 	snprintf(buffer, 30, "RE 0x%02x\r\n < 0x%02x 0x%02x 0x%02x", src[1], dest[0], dest[1], dest[2]);
 	serialSendln(buffer);
@@ -53,7 +54,7 @@ void readExtendedRegister(uint16 addr) {
 void strobe(uint8 addr) {
 	uint16 src[] = {addr};
 	uint16 dest[] = {0x00};
-	spiTransmitAndReceiveData(spiREG3, &spiDataConfig, 1, src, dest);
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 1, src, dest);
 	char buffer[30];
 	snprintf(buffer, 30, "S 0x%02x\r\n < 0x%02x", src[0], dest[0]);
 	serialSendln(buffer);
@@ -62,7 +63,7 @@ void strobe(uint8 addr) {
 void writeRegister(uint8 addr, uint8 val) {
 	uint16 src[] = {addr, val};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(spiREG3, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
 	char buffer[30];
 	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], dest[0], dest[1]);
 	serialSendln(buffer);
@@ -72,7 +73,7 @@ void writeRegister(uint8 addr, uint8 val) {
 void writeExtendedRegister(uint16 addr, uint8 val) {
 	uint16 src[] = {0x2F, addr, val};
 	uint16 dest[] = {0x00, 0x00, 0x00};
-	spiTransmitAndReceiveData(spiREG3, &spiDataConfig, 3, src, dest);
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 3, src, dest);
 	char buffer[30];
 	snprintf(buffer, 30, "WE 0x%02x 0x%02x\r\n < 0x%02x 0x%02x 0x%02x", src[1], src[2], dest[0], dest[1], dest[2]);
 	serialSendln(buffer);
