@@ -20,4 +20,10 @@
 #define RTC_CONFIG_WDEL 1 // wdelay
 #define RTC_CONFIG_DFSEL SPI_FMT_0 // data format
 #define RTC_CONFIG_CSNR 0x00 // chip select to use
+
+
+
+#define TASK_RADIO_REG spiREG3
+
 #endif
+
