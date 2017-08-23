@@ -3,6 +3,7 @@
 
 #include "sfu_tasks.h"
 #include "sfu_cmds.h"
+#include "sfu_hardwaredefs.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -13,7 +14,8 @@ void hundredBlinky(void *pvParameters) { // this is the sanity checker task, bli
 	char buffer[10];
 	unsigned int numChars, value; //Declare variables
 	while (1) {
-		gioSetBit(gioPORTA, 2, gioGetBit(gioPORTA, 2) ^ 1);   // Toggles the A2 bit
+		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the A2 bit
+
 		adcStartConversion(adcREG1, 1U); //Start ADC conversion
 		while (!adcIsConversionComplete(adcREG1, 1U)); //Wait for ADC conversion
 		adcGetData(adcREG1, 1U, &adc_data); //Store conversion into ADC pointer
@@ -207,10 +209,10 @@ void vReceiverTask(void *pvParameters) {
 void vTickleTask(void *pvParameters){
 	for (;;){
 		//serialSendQ("tickle");
-		gioSetBit(gioPORTA, 7, 1);	// Set A2 pin to 1
+		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 1);
 		vTaskDelay(1); // delay 1ms
-		gioSetBit(gioPORTA, 7, 0); // Set A2 pin to 0
-		vTaskDelay(500);
+		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 0);
+		vTaskDelay(500); // repeat this cycle every 500ms
 	}
 }
 
