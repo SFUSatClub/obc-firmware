@@ -18,12 +18,14 @@
 
 #include "sfu_task_main.h"
 #include "sfu_task_radio.h"
+#include "sfu_hardwaredefs.h"
 
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 
 void hundredBlinky(void *pvParameters);
-void vTask2(void *pvParameters);
+void vDemoADCTask(void *pvParameters); // example task that could be repurposed to monitor current with appropriate logging
+
 
 // RTOS queue example
 void vSenderTask( void *pvParameters );
