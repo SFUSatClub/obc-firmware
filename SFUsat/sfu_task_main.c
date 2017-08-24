@@ -15,6 +15,7 @@ TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
+TaskHandle_t xADCTaskHandle = NULL;
 
 void vMainTask(void *pvParameters) {
     xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
@@ -24,6 +25,7 @@ void vMainTask(void *pvParameters) {
                  1, /* This task will run at priority 1. */
                  &xBlinkyTaskHandle );
 
+//    xTaskCreate(vDemoADCTask, "ADC_demo", 300, NULL, 3, &xADCTaskHandle);
 	xTaskCreate(vSerialTask, "serial", 300, NULL, 3, &xSerialTaskHandle);
     xTaskCreate(vRadioTask, "radio", 300, NULL, 5, &xRadioTaskHandle);
     xTaskCreate(vTickleTask, "tickle", 128, NULL, 4, &xTickleTaskHandle);

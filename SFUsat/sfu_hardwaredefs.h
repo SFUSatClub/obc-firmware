@@ -29,6 +29,9 @@
 #define WATCHDOG_TICKLE_PORT gioPORTA
 #define WATCHDOG_TICKLE_PIN 7
 
+#define DEMO_ADC_REG adcREG1
+#define DEMO_ADC_PIN 1
+
 // ----------------- Radio -------------------------
 
 #define TASK_RADIO_REG spiREG3
