@@ -2,6 +2,7 @@
  *
  * Created: May 30 2017
  * Refactored code from sfu_uart.* by Seleena
+ * State command added by Richard
  *
  * */
 
@@ -10,6 +11,7 @@
 
 #include <stdint.h>
 #include "map.h"
+#include "sfu_state.h" // so we can have the state enum
 
 /**
 * The following macros allow us to construct the enums CMD_IDS, CMD_X_SUBCMDS and
@@ -41,7 +43,8 @@
 	_(CMD_GET	, "get", 	cmdGet, 	NONE, TASKS, RUNTIME, HEAP, MINHEAP, TYPES) \
 	_(CMD_EXEC	, "exec", 	cmdExec, 	NONE, RADIO) \
 	_(CMD_TASK	, "task", 	cmdTask, 	NONE, CREATE, DELETE, RESUME, SUSPEND, STATUS, SHOW) \
-	_(CMD_SCHED	, "sched", 	cmdSched, 	NONE, ADD, REMOVE, SHOW)
+	_(CMD_SCHED	, "sched", 	cmdSched, 	NONE, ADD, REMOVE, SHOW) \
+	_(CMD_STATE	, "state", 	cmdState, 	NONE, GET, PREV, SET)
 
 #define CMD_ENUM_SELECTOR(a, b, c, d...) \
 	a,
@@ -91,6 +94,12 @@ typedef struct CMD_TASK_DATA {
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_TASK_DATA_t;
 
+
+typedef struct CMD_STATE_DATA {					// RICHARD
+	State_t state_id : 4;	// number of bits
+	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
+} CMD_STATE_DATA_t;
+
 /**
  * When the sub-command of CMD_SCHED is ADD, the cmd_data field will be reserved for the
  * arguments of the scheduled command. This struct is therefore inapplicable in this case.
@@ -118,6 +127,7 @@ typedef struct CMD_SCHED_DATA {
 	union {
 		uint8_t scheduled_cmd_data[CMD_DATA_MAX_SIZE];
 		CMD_TASK_DATA_t scheduled_cmd_task_data;
+		CMD_STATE_DATA_t scheduled_cmd_state_data; 				// ra
 
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
 	};
@@ -128,6 +138,7 @@ typedef struct CMD_SCHED_DATA {
 		CMD_GET_SUBCMD scheduled_subcmd_get_id;
 		CMD_EXEC_SUBCMD scheduled_subcmd_exec_id;
 		CMD_TASK_SUBCMD scheduled_subcmd_task_id;
+		CMD_STATE_SUBCMD scheduled_subcmd_state_id;
 	};
 	unsigned int seconds_from_now;
 } CMD_SCHED_DATA_t;
@@ -144,6 +155,7 @@ typedef struct CMD {
 	union {
 		uint8_t cmd_data[sizeof(CMD_SCHED_DATA_t)];
 		CMD_TASK_DATA_t cmd_task_data;
+		CMD_STATE_DATA_t cmd_state_data;				// ra
 
 		CMD_SCHED_DATA_t cmd_sched_data;
 	};
@@ -154,7 +166,7 @@ typedef struct CMD {
 		CMD_GET_SUBCMD subcmd_get_id;
 		CMD_EXEC_SUBCMD subcmd_exec_id;
 		CMD_TASK_SUBCMD subcmd_task_id;
-
+		CMD_STATE_SUBCMD subcmd_state_id;
 		CMD_SCHED_SUBCMD subcmd_sched_id;
 	};
 	/* 2 bytes slop here */

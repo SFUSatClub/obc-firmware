@@ -81,7 +81,7 @@
 							<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.DEFINE.639997793" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.DEFINE" valueType="definedSymbols">
 								<listOptionValue builtIn="false" value="_DEBUG"/>
 							</option>
-							<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.UNDEFINE.1347343276" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.UNDEFINE" valueType="stringList"/>
+							<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.UNDEFINE.1347343276" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.UNDEFINE"/>
 							<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__C_SRCS.559138625" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__C_SRCS"/>
 							<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__CPP_SRCS.1405468240" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__CPP_SRCS"/>
 							<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__ASM_SRCS.1866012441" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compiler.inputType__ASM_SRCS"/>

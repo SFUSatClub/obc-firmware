@@ -212,6 +212,57 @@ int8_t cmdSched(const CMD_t *cmd) {
 	return 0;
 }
 
+/**
+ * Handle all task related commands.
+ * @param cmd
+ * @return
+ */
+int8_t cmdState(const CMD_t *cmd) {
+	switch (cmd->subcmd_state_id) {
+		/**
+		 * nothing
+		 */
+		case CMD_STATE_NONE: {
+			return 1;
+		}
+		/**
+		 * Get current state
+		 */
+		case CMD_STATE_GET: {
+			serialSendQ("GETTING STATE");
+			return 1;
+		}
+		/**
+		 * Set system state (can be scheduled in the future too)
+		 */
+		case CMD_STATE_SET: {
+			switch (cmd->cmd_state_data.state_id) {
+				case STATE_SAFE: {
+					serialSendQ("SET STATE SAFE");
+					return 1;
+				} case STATE_READY: {
+					serialSendQ("SET STATE READY");
+					return 1;
+				} case STATE_LOW_POWER: {
+					serialSendQ("SET STATE LOW_POWER");
+					return 1;
+				}
+			}
+			return 0;
+		}
+		/**
+		 * get previous state
+		 */
+		case CMD_STATE_PREV: {
+			serialSendQ("GET PREVIOUS STATE");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+
 #define LEN(array) (sizeof((array))/sizeof((array)[0]))
 /**
  * CMD_DBG_STRINGS[i][j]
@@ -226,6 +277,7 @@ const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
 		{"exec", "radio"},
 		{"task", "create", "delete", "resume", "suspend", "status", "show"},
 		{"sched", "add", "remove", "show"},
+		{"state", "get", "prev", "set"},
 };
 const char *CMD_NAMES[] = {
 	CMD_TABLE(CMD_NAME_SELECTOR)
