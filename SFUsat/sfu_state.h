@@ -24,6 +24,7 @@ uint32_t state_tick; // for testing
 
 typedef struct Instance_Data {
 	State_t previous_state; // keep this so we can correctly go to the last state
+	uint32_t enter_time; // time we enter current state. Use with current time to determine how long we've been in a state
 	int x;
 } InstanceData_t;
 

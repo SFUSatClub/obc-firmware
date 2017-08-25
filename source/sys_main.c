@@ -111,7 +111,7 @@ int main(void)
     adcInit();
     gioInit();
 
-    stateMachineInit();
+    stateMachineInit(); // we start in SAFE mode
 
     while(1){
     		cur_state = runState( cur_state, &state_persistent_data );

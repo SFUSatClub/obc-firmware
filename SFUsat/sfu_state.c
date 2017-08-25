@@ -94,6 +94,7 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 	if (transition) {
 		transition(data);
 		data->previous_state = currstate;
+		data->enter_time = 0x32; // dummy value, will actually want to read RTC
 	}
 	state_tick ++;
     return newState;
@@ -103,6 +104,7 @@ void stateMachineInit(){
 	serialSendln("STARTING STATE MACHINE");
 	cur_state = STATE_SAFE;
 	state_persistent_data.previous_state = STATE_SAFE;
+	state_persistent_data.enter_time = 0x55; // dummy value, will actually want to read RTC.
 	state_tick = 0;
 }
 
