@@ -55,6 +55,9 @@
 #include "sfu_spi.h"
 #include "sfu_tasks.h"
 #include "sfu_uart.h"
+
+#include "sfu_state.h"
+#include "sfu_utils.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -89,6 +92,8 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 */
 
 /* USER CODE BEGIN (2) */
+
+
 /* USER CODE END */
 
 int main(void)
@@ -106,24 +111,31 @@ int main(void)
     adcInit();
     gioInit();
 
-    xTaskCreate(vMainTask, "main", 300, NULL, 2, NULL);
+    stateMachineInit();
 
-    serialSendQ("created queue");
-    /* Create two instances of the task that will send to the queue. The task
-     parameter is used to pass the value that the task will write to the queue,
-     In this case, a string (character pointer) will be passed to the queue.
-     */
+    while(1){
+    		cur_state = runState( cur_state, &state_persistent_data );
+    		busyWait(second);
+    }
 
-    xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
-    xTaskCreate(periodicSenderTask, "InfreqPST", 100, (void *) 5000, 1, NULL);
-    serialSendQ("created pst");
-
-    /* Create the task that will read from the queue. The task is created with
-     priority 2, so above the priority of the sender tasks. */
-    BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
-    serialSendQ("created rcvr");
-
-    vTaskStartScheduler();
+//    xTaskCreate(vMainTask, "main", 300, NULL, 2, NULL);
+//
+//    serialSendQ("created queue");
+//    /* Create two instances of the task that will send to the queue. The task
+//     parameter is used to pass the value that the task will write to the queue,
+//     In this case, a string (character pointer) will be passed to the queue.
+//     */
+//
+//    xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
+//    xTaskCreate(periodicSenderTask, "InfreqPST", 100, (void *) 5000, 1, NULL);
+//    serialSendQ("created pst");
+//
+//    /* Create the task that will read from the queue. The task is created with
+//     priority 2, so above the priority of the sender tasks. */
+//    BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
+//    serialSendQ("created rcvr");
+//
+//    vTaskStartScheduler();
 
     for(;;); // keep running the scheduler
 
@@ -134,6 +146,8 @@ int main(void)
 
 
 /* USER CODE BEGIN (4) */
+
+
 #if (configGENERATE_RUN_TIME_STATS == 1)
 BaseType_t getRunTimeCounterValue() {
 	return _pmuGetEventCount_(pmuCOUNTER0);
