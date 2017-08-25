@@ -83,10 +83,7 @@ TransitionFunc_t * const TRANSITION_TABLE[NUM_STATES][NUM_STATES] = {
 
 
 State_t runState(State_t currstate, InstanceData_t *data) {
-	serialSend("Current state: ");
-	serialSendln(strdup(stateNameString[currstate])); // state name
-	serialSend("Previous state: ");
-	serialSendln(strdup(stateNameString[data->previous_state])); // prev state name
+	printStateInfo(currstate,data);
 
 	State_t newState = STATE_TABLE[currstate](data);
 
@@ -105,9 +102,29 @@ void stateMachineInit(){
 	cur_state = STATE_SAFE;
 	state_persistent_data.previous_state = STATE_SAFE;
 	state_persistent_data.enter_time = 0x55; // dummy value, will actually want to read RTC.
+	state_persistent_data.in_RTOS = 0;
 	state_tick = 0;
+
 }
 
+void setStateRTOS_mode(InstanceData_t *data){
+	data->in_RTOS = 1;
+}
+
+void printStateInfo(State_t currstate, InstanceData_t *data){
+	if (data->in_RTOS){
+		serialSend("Current state: ");
+		serialSendln(strdup(stateNameString[currstate])); // state name
+		serialSend("Previous state: ");
+		serialSendln(strdup(stateNameString[data->previous_state])); // prev state name
+	}
+	else{
+		// use the queue if we're under RTOS control
+		char buffer[60] = {0};
+		snprintf(buffer, 60, "Current state: %s \r\nPrevious state: %s", strdup(stateNameString[currstate]), strdup(stateNameString[data->previous_state]));
+		serialSendQ(buffer);
+	}
+}
 /* -------------- State Checks -----------------------
 These functions query whatever data is required to determine the particular conditions we switch on.
 Transition Logic is handled by the doStateX functions above. */

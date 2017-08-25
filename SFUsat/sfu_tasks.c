@@ -36,6 +36,16 @@ void vDemoADCTask(void *pvParameters) {
 	}
 }
 
+void vStateTask(void *pvParameters) {
+
+	while (1){
+		cur_state = runState( cur_state, &state_persistent_data );
+		vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	}
+
+}
+
+
 /**
  * This task is responsible for the handling of all UART related functions.
  *

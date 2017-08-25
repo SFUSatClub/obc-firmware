@@ -19,18 +19,14 @@
 #include "sfu_task_main.h"
 #include "sfu_task_radio.h"
 #include "sfu_hardwaredefs.h"
+#include "sfu_state.h"
 
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 
 void hundredBlinky(void *pvParameters);
 void vDemoADCTask(void *pvParameters); // example task that could be repurposed to monitor current with appropriate logging
-
-
-// RTOS queue example
-void vSenderTask( void *pvParameters );
-void vReceiverTask( void *pvParameters );
-void periodicSenderTask( void *pvParameters );
+void vStateTask(void *pvParameters); // state checker
 
 extern QueueHandle_t xSerialTXQueue;
 extern QueueHandle_t xSerialRXQueue;
@@ -39,5 +35,10 @@ void vSerialSenderTask(void *pvParameters);
 
 void vTickleTask(void *pvParameters);
 void vMonitorTask(void *pvParameters);
+
+// RTOS queue example
+void vSenderTask( void *pvParameters );
+void vReceiverTask( void *pvParameters );
+void periodicSenderTask( void *pvParameters );
 
 #endif /* SFUSAT_SFU_TASKS_H_ */
