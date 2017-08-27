@@ -46,6 +46,7 @@ void do_LOWPOWER_to_READY(InstanceData_t *data);
 void stateMachineInit(void);
 void printStateInfo(State_t currstate, InstanceData_t *data);
 void setStateRTOS_mode(InstanceData_t *data);
+void printPrevState(State_t currstate, InstanceData_t *data);
 
 State_t cur_state;
 InstanceData_t state_persistent_data; // contains things such as the previous state. REVIEW: IS THIS THE BEST PLACE TO CREATE THIS? WE WANT IT TO STICK AROUND.

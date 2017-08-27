@@ -109,20 +109,33 @@ void stateMachineInit(){
 
 void setStateRTOS_mode(InstanceData_t *data){
 	data->in_RTOS = 1;
+	serialSendQ("RTOS ON");
+
 }
 
 void printStateInfo(State_t currstate, InstanceData_t *data){
-	if (data->in_RTOS){
+	if (!data->in_RTOS){
 		serialSend("Current state: ");
 		serialSendln(strdup(stateNameString[currstate])); // state name
+		serialSend("Previous state: ");
+		serialSendln(strdup(stateNameString[data->previous_state])); // prev state name
+		serialSendln("RTOS OFF");
+	}
+	else{
+		// use the queue if we're under RTOS control
+		// just print current state
+		serialSendQ(strdup(stateNameString[currstate]));
+	}
+}
+void printPrevState(State_t currstate, InstanceData_t *data){
+	if (!data->in_RTOS){
 		serialSend("Previous state: ");
 		serialSendln(strdup(stateNameString[data->previous_state])); // prev state name
 	}
 	else{
 		// use the queue if we're under RTOS control
-		char buffer[60] = {0};
-		snprintf(buffer, 60, "Current state: %s \r\nPrevious state: %s", strdup(stateNameString[currstate]), strdup(stateNameString[data->previous_state]));
-		serialSendQ(buffer);
+		// just print current state
+		serialSendQ(strdup(stateNameString[data->previous_state]));
 	}
 }
 /* -------------- State Checks -----------------------

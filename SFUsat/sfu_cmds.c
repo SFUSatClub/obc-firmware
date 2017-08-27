@@ -229,7 +229,7 @@ int8_t cmdState(const CMD_t *cmd) {
 		 * Get current state
 		 */
 		case CMD_STATE_GET: {
-			serialSendQ("GETTING STATE");
+			printStateInfo(cur_state,&state_persistent_data);
 			return 1;
 		}
 		/**
@@ -254,7 +254,7 @@ int8_t cmdState(const CMD_t *cmd) {
 		 * get previous state
 		 */
 		case CMD_STATE_PREV: {
-			serialSendQ("GET PREVIOUS STATE");
+			printPrevState(cur_state,&state_persistent_data);
 			return 1;
 		}
 	}
