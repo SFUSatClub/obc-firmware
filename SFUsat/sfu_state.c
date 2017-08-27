@@ -153,7 +153,7 @@ uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
 		else{
 			serialSendQ("Invalid switch state command.");
 		}
-		return -1;
+		return NUM_STATES;
 	}
 }
 /* -------------- State Checks -----------------------

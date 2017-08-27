@@ -21,6 +21,16 @@
 #include "sfu_hardwaredefs.h"
 #include "sfu_state.h"
 
+// ------------ Task default priorities -------------------
+// since we may create tasks all over the place, put default priorities here so it's easy to determine relative priority
+#define BLINKY_TASK_DEFAULT_PRIORITY 1
+#define SERIAL_TASK_DEFAULT_PRIORITY 3
+#define RADIO_TASK_DEFAULT_PRIORITY 5
+#define WATCHDOG_TASK_DEFAULT_PRIORITY 4
+#define STATE_TASK_DEFAULT_PRIORITY 3
+#define ADC_TASK_DEFAULT_PRIORITY 5
+
+
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 

@@ -26,14 +26,14 @@ void vMainTask(void *pvParameters) {
                  "blinky",/* Text name for the task. This is to facilitate debugging only. */
                  configMINIMAL_STACK_SIZE, /* Stack depth - small microcontrollers will use much less stack than this. */
                  NULL, /* This example does not use the task parameter. */
-                 1, /* This task will run at priority 1. */
+                 BLINKY_TASK_DEFAULT_PRIORITY, /* This task will run at priority 1. */
                  &xBlinkyTaskHandle );
 
-//    xTaskCreate(vDemoADCTask, "ADC_demo", 300, NULL, 3, &xADCTaskHandle);
-	xTaskCreate(vSerialTask, "serial", 300, NULL, 3, &xSerialTaskHandle);
-  //  xTaskCreate(vRadioTask, "radio", 300, NULL, 5, &xRadioTaskHandle);
-    xTaskCreate(vTickleTask, "tickle", 128, NULL, 4, &xTickleTaskHandle);
-    xTaskCreate(vStateTask, "state", 300, NULL, 3, &xStateTaskHandle);
+//    xTaskCreate(vDemoADCTask, "ADC_demo", 300, NULL, ADC_TASK_DEFAULT_PRIORITY, &xADCTaskHandle);
+	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
+  //  xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+    xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+    xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 
     CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
     Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};

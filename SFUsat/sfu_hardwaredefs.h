@@ -26,6 +26,7 @@
 // ---------------- General Functionality ------------------
 #define DEBUG_LED_PORT gioPORTA
 #define DEBUG_LED_PIN 2
+
 #define WATCHDOG_TICKLE_PORT gioPORTA
 #define WATCHDOG_TICKLE_PIN 7
 
