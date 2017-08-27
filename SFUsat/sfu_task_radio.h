@@ -13,7 +13,6 @@
 #include "rtos_queue.h"
 
 #include "sfu_spi.h"
-#include "sfu_smartrf_cc1125.h"
 
 void vRadioTask( void *pvParameters );
 BaseType_t initRadio();
