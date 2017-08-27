@@ -23,6 +23,7 @@
 
 // ------------ Task default priorities -------------------
 // since we may create tasks all over the place, put default priorities here so it's easy to determine relative priority
+#define MAIN_TASK_PRIORITY 2
 #define BLINKY_TASK_DEFAULT_PRIORITY 1
 #define SERIAL_TASK_DEFAULT_PRIORITY 3
 #define RADIO_TASK_DEFAULT_PRIORITY 5

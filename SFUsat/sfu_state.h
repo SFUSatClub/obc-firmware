@@ -57,7 +57,6 @@ InstanceData_t state_persistent_data; // contains things such as the previous st
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command
-uint8_t stateCheckLeaveSafe(InstanceData_t *data); // leave safe from ground command
 
 
 
