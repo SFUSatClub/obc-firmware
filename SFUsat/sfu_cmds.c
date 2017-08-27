@@ -238,14 +238,21 @@ int8_t cmdState(const CMD_t *cmd) {
 		case CMD_STATE_SET: {
 			switch (cmd->cmd_state_data.state_id) {
 				case STATE_SAFE: {
-					serialSendQ("SET STATE SAFE");
-					return 1;
+					if(STATE_SAFE == setStateManual(&state_persistent_data, STATE_SAFE)){
+						serialSendQ("SET STATE SAFE");
+						return 1;
+					}
+
 				} case STATE_READY: {
-					serialSendQ("SET STATE READY");
-					return 1;
+					if(STATE_READY == setStateManual(&state_persistent_data, STATE_READY)){
+						serialSendQ("SET STATE READY");
+						return 1;
+					}
 				} case STATE_LOW_POWER: {
-					serialSendQ("SET STATE LOW_POWER");
-					return 1;
+					if(STATE_LOW_POWER == setStateManual(&state_persistent_data, STATE_LOW_POWER)){
+						serialSendQ("SET STATE LOW POWER");
+						return 1;
+					}
 				}
 			}
 			return 0;
