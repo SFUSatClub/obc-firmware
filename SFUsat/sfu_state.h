@@ -10,18 +10,22 @@
 #define SFUSAT_SFU_STATE_H_
 
 #include "sys_common.h"
+#include "sfu_utils.h"
 
+// create the list of state enums, and strings so we can print out the state. https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
+#define FOREACH_STATE(state) \
+        state(STATE_SAFE)   \
+        state(STATE_READY)  \
+        state(STATE_LOW_POWER)   \
+        state(NUM_STATES)  \
 
-typedef enum {
-	STATE_SAFE,
-	STATE_READY,
-	STATE_LOW_POWER,
-	NUM_STATES
-} State_t;
+typedef enum{
+    FOREACH_STATE(GENERATE_ENUM)
+}State_t;
 
-extern char const* stateNameString[NUM_STATES]; // this should match above, excluding NUM_STATES
-
-uint32_t state_tick; // for testing
+static const char *stateNameString[] = {
+    FOREACH_STATE(GENERATE_STRING)
+};
 
 typedef struct Instance_Data {
 	State_t previous_state; // keep this so we can correctly go to the last state
@@ -50,15 +54,11 @@ void setStateRTOS_mode(InstanceData_t *data);
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 
-
-
-State_t cur_state;
-InstanceData_t state_persistent_data; // contains things such as the previous state. REVIEW: IS THIS THE BEST PLACE TO CREATE THIS? WE WANT IT TO STICK AROUND.
+extern State_t cur_state;
+extern InstanceData_t state_persistent_data;
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command
-uint8_t stateCheckLeaveSafe(InstanceData_t *data); // leave safe from ground command
-
 
 
 #endif /* SFUSAT_SFU_STATE_H_ */

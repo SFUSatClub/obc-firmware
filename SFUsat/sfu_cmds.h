@@ -95,7 +95,7 @@ typedef struct CMD_TASK_DATA {
 } CMD_TASK_DATA_t;
 
 
-typedef struct CMD_STATE_DATA {					// RICHARD
+typedef struct CMD_STATE_DATA {
 	State_t state_id : 4;	// number of bits
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_STATE_DATA_t;
@@ -127,8 +127,7 @@ typedef struct CMD_SCHED_DATA {
 	union {
 		uint8_t scheduled_cmd_data[CMD_DATA_MAX_SIZE];
 		CMD_TASK_DATA_t scheduled_cmd_task_data;
-		CMD_STATE_DATA_t scheduled_cmd_state_data; 				// ra
-
+		CMD_STATE_DATA_t scheduled_cmd_state_data;
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
 	};
 	CMD_ID scheduled_cmd_id;
@@ -155,8 +154,7 @@ typedef struct CMD {
 	union {
 		uint8_t cmd_data[sizeof(CMD_SCHED_DATA_t)];
 		CMD_TASK_DATA_t cmd_task_data;
-		CMD_STATE_DATA_t cmd_state_data;				// ra
-
+		CMD_STATE_DATA_t cmd_state_data;
 		CMD_SCHED_DATA_t cmd_sched_data;
 	};
 	CMD_ID cmd_id;

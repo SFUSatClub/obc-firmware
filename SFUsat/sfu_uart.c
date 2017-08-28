@@ -16,13 +16,14 @@ void serialInit(){
     sciReceive(scilinREG, 1, &currChar); // place into receive mode
 }
 
-BaseType_t serialSendQ(char * toSend) {
+BaseType_t serialSendQ(const char * toSend) {
 	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
 		return pdPASS;
 	} else {
 		return pdFAIL;
 	}
 }
+
 BaseType_t serialSendQFromISR(char * toSend) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	BaseType_t xStatus = xQueueSendToBackFromISR(xSerialTXQueue, &toSend, &xHigherPriorityTaskWoken);
@@ -39,12 +40,13 @@ void serialSend(char* stringToSend) {
 	sciReceive(scilinREG, 1, &currChar);
 }
 
-void serialSendln(char* stringToSend){
+void serialSendln(const char* stringToSend){
     sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
     sciSend(scilinREG, 2, "\r\n");
 
     sciReceive(scilinREG, 1, &currChar);
 }
+
 
 void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt handler callback
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
