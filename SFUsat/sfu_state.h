@@ -10,6 +10,7 @@
 #define SFUSAT_SFU_STATE_H_
 
 #include "sys_common.h"
+#include "sfu_utils.h"
 
 // create the list of state enums, and strings so we can print out the state. https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
 #define FOREACH_STATE(state) \
@@ -17,9 +18,6 @@
         state(STATE_READY)  \
         state(STATE_LOW_POWER)   \
         state(NUM_STATES)  \
-
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
 
 typedef enum{
     FOREACH_STATE(GENERATE_ENUM)

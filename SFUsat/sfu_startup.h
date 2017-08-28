@@ -14,6 +14,7 @@
 #include "sys_common.h"
 #include "system.h"
 #include "sys_selftest.h"
+#include "sfu_utils.h"
 
 
 #define SFUSAT_STARTUP_METHOD 1 // if 1, we do our method.
@@ -30,9 +31,6 @@
         startType(OSCFAIL_START)  \
         startType(WATCHDOG_START)  \
         startType(CPU_RESET_START)  \
-
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
 
 typedef enum {
 	FOREACH_STARTUP(GENERATE_ENUM)

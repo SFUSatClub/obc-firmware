@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include "sys_common.h"
 
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
 
 #define second 6600000 // this is about a second for busy waiting at 80 MHz
 void busyWait(uint32_t ticksToWait); // DON'T USE THIS IN REAL CODE! - For quick n' dirty testing ONLY :)
