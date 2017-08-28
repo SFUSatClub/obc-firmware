@@ -27,8 +27,6 @@ static const char *stateNameString[] = {
     FOREACH_STATE(GENERATE_STRING)
 };
 
-uint32_t state_tick; // for testing
-
 typedef struct Instance_Data {
 	State_t previous_state; // keep this so we can correctly go to the last state
 	uint32_t enter_time; // time we enter current state. Use with current time to determine how long we've been in a state
@@ -56,8 +54,8 @@ void setStateRTOS_mode(InstanceData_t *data);
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 
-State_t cur_state;
-InstanceData_t state_persistent_data; // contains things such as the previous state. REVIEW: IS THIS THE BEST PLACE TO CREATE THIS? WE WANT IT TO STICK AROUND.
+extern State_t cur_state;
+extern InstanceData_t state_persistent_data;
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command

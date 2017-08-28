@@ -11,12 +11,8 @@
 #include "sfu_state.h"
 #include "sfu_uart.h"
 
-// State strings defined in the same order as State_t enum allowing us to print the state easily
-//char const* stateNameString[NUM_STATES]= {
-//	"STATE_SAFE",
-//	"STATE_READY",
-//	"STATE_LOW_POWER"
-//};
+State_t cur_state;
+InstanceData_t state_persistent_data;
 
 /* -------------- doStateX Functions ------------------------
 These handle the checks required to transition from one state to the next.
@@ -103,7 +99,7 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 		data->enter_time = 0x32; // dummy value, will actually want to read RTC
 		// TODO: confirm state switch out over radio
 	}
-	state_tick ++;
+
 	data->manual_state_switch = NUM_STATES; // don't change states manually (default)
     return newState;
 };
@@ -114,14 +110,12 @@ void stateMachineInit(){
 	state_persistent_data.previous_state = STATE_SAFE; // will always start in safe. Then automatically go to low power if necessary.
 	state_persistent_data.enter_time = 0x55; // dummy value, will actually want to read RTC.
 	state_persistent_data.in_RTOS = 0;
-	state_tick = 0;
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
 
 void setStateRTOS_mode(InstanceData_t *data){
 	data->in_RTOS = 1;
 	serialSendQ("RTOS ON");
-
 }
 
 void printStateInfo(State_t currstate, InstanceData_t *data){
