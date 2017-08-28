@@ -50,8 +50,6 @@ void setStateRTOS_mode(InstanceData_t *data);
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 
-
-
 State_t cur_state;
 InstanceData_t state_persistent_data; // contains things such as the previous state. REVIEW: IS THIS THE BEST PLACE TO CREATE THIS? WE WANT IT TO STICK AROUND.
 

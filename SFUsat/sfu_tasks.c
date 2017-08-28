@@ -40,10 +40,8 @@ void vStateTask(void *pvParameters) {
 
 	while (1){
 		cur_state = runState( cur_state, &state_persistent_data ); // update state machine
-
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
 	}
-
 }
 
 
@@ -93,8 +91,8 @@ void vSerialTask(void *pvParameters) {
 		 */
 		if (xQueueReceive(xSerialRXQueue, &rxCurrRcvdChar, xTicksToWait) == pdPASS) {
 			rxBuffer[rxBufferIdx] = rxCurrRcvdChar;
-		    // check for and accept both CR and CRLF as EOL terminators
-		    // exclude both from extracted command
+			// check for and accept both CR and CRLF as EOL terminators
+			// exclude both from extracted command
 			if (rxCurrRcvdChar == '\n') {
 				// reset and free the commands buffer if it is currently full and a new command is being added
 				if (commandsIdx >= MAX_COMMANDS) {
@@ -228,6 +226,6 @@ void vTickleTask(void *pvParameters){
 }
 
 void vMonitorTask(void *pvParameters){
-    serialSendQ("Chip is being reset.");
+	serialSendQ("Chip is being reset.");
 }
 

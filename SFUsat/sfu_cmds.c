@@ -23,7 +23,7 @@ char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
 	switch (cmd->subcmd_get_id) {
 		case CMD_GET_TASKS: {
-		    serialSend("Task\t\tState\tPrio\tStack\tNum\n");
+			serialSend("Task\t\tState\tPrio\tStack\tNum\n");
 			vTaskList(buffer);
 			serialSend(buffer);
 			return 1;
@@ -187,13 +187,13 @@ int8_t cmdSched(const CMD_t *cmd) {
 		}
 		case CMD_SCHED_ADD: {
 			CMD_t event_cmd = {
-				.cmd_id = cmd->cmd_sched_data.scheduled_cmd_id,
-				.subcmd_id = cmd->cmd_sched_data.scheduled_subcmd_id,
+					.cmd_id = cmd->cmd_sched_data.scheduled_cmd_id,
+					.subcmd_id = cmd->cmd_sched_data.scheduled_subcmd_id,
 			};
 			memcpy(event_cmd.cmd_data, cmd->cmd_sched_data.scheduled_cmd_data, CMD_DATA_MAX_SIZE);
 			Event_t event = {
-				.seconds_from_now = cmd->cmd_sched_data.seconds_from_now,
-				.action = event_cmd,
+					.seconds_from_now = cmd->cmd_sched_data.seconds_from_now,
+					.action = event_cmd,
 			};
 			addEvent(event);
 			return 1;
@@ -287,10 +287,10 @@ const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
 		{"state", "get", "prev", "set"},
 };
 const char *CMD_NAMES[] = {
-	CMD_TABLE(CMD_NAME_SELECTOR)
+		CMD_TABLE(CMD_NAME_SELECTOR)
 };
 int8_t (*const CMD_FUNCS[])(const CMD_t *cmd) = {
-	CMD_TABLE(CMD_FUNC_SELECTOR)
+		CMD_TABLE(CMD_FUNC_SELECTOR)
 };
 
 /**
