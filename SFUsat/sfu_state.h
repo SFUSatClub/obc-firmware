@@ -11,15 +11,23 @@
 
 #include "sys_common.h"
 
+// create the list of state enums, and strings so we can print out the state. https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
+#define FOREACH_STATE(state) \
+        state(STATE_SAFE)   \
+        state(STATE_READY)  \
+        state(STATE_LOW_POWER)   \
+        state(NUM_STATES)  \
 
-typedef enum {
-	STATE_SAFE,
-	STATE_READY,
-	STATE_LOW_POWER,
-	NUM_STATES
-} State_t;
+#define GENERATE_ENUM(ENUM) ENUM,
+#define GENERATE_STRING(STRING) #STRING,
 
-extern char const* stateNameString[NUM_STATES]; // this should match above, excluding NUM_STATES
+typedef enum{
+    FOREACH_STATE(GENERATE_ENUM)
+}State_t;
+
+static const char *stateNameString[] = {
+    FOREACH_STATE(GENERATE_STRING)
+};
 
 uint32_t state_tick; // for testing
 
@@ -55,7 +63,6 @@ InstanceData_t state_persistent_data; // contains things such as the previous st
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command
-
 
 
 #endif /* SFUSAT_SFU_STATE_H_ */

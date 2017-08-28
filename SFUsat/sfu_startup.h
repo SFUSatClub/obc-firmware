@@ -20,6 +20,7 @@
 
 // Macro setup to generate enum and array of strings for the following startup types:
 // these are all reset triggers, allowing us to determine why the OBC was reset.
+// https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
 #define FOREACH_STARTUP(startType) \
         startType(DEFAULT_START)   \
         startType(PORRST_START)  \

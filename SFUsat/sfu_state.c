@@ -12,11 +12,11 @@
 #include "sfu_uart.h"
 
 // State strings defined in the same order as State_t enum allowing us to print the state easily
-char const* stateNameString[NUM_STATES]= {
-	"STATE_SAFE",
-	"STATE_READY",
-	"STATE_LOW_POWER"
-};
+//char const* stateNameString[NUM_STATES]= {
+//	"STATE_SAFE",
+//	"STATE_READY",
+//	"STATE_LOW_POWER"
+//};
 
 /* -------------- doStateX Functions ------------------------
 These handle the checks required to transition from one state to the next.
