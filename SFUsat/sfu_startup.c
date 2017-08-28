@@ -20,7 +20,7 @@ void startupInit(){
 }
 
 void printStartupType(void){
-	serialSendln(strdup(STARTUP_STRING[startData.resetSrc])); // print the type of reset that was triggered.
+	serialSendln(STARTUP_STRING[startData.resetSrc]); // print the type of reset that was triggered.
 }
 
 void startupCheck(void){

@@ -23,8 +23,10 @@
 void serialInit();
 void serialSendCh(char charToSend);
 void serialSend(char*);
-void serialSendln(char*);
-BaseType_t serialSendQ(char * toSend);
+void serialSendln(const char*);
+
+BaseType_t serialSendQ(const char * toSend);
+
 BaseType_t serialSendQFromISR(char * toSend);
 
 #endif /* SFUSAT_SFU_UART_H_ */
