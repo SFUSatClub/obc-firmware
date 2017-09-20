@@ -30,6 +30,7 @@
 #define WATCHDOG_TASK_DEFAULT_PRIORITY 4
 #define STATE_TASK_DEFAULT_PRIORITY 3
 #define ADC_TASK_DEFAULT_PRIORITY 5
+#define FLASH_TASK_DEFAULT_PRIORITY 5
 
 
 extern QueueHandle_t xQueue;
@@ -38,6 +39,8 @@ extern QueueHandle_t xQueue;
 void hundredBlinky(void *pvParameters);
 void vDemoADCTask(void *pvParameters); // example task that could be repurposed to monitor current with appropriate logging
 void vStateTask(void *pvParameters); // state checker
+void vFlashRead(void *pvParameters); // state checker
+
 
 extern QueueHandle_t xSerialTXQueue;
 extern QueueHandle_t xSerialRXQueue;

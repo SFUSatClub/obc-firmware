@@ -10,6 +10,8 @@
 
 #include "sfu_hardwaredefs.h"
 #include "mibspi.h"
+#include "FreeRTOS.h"
+#include "rtos_semphr.h"
 
 // flags for complete transfers
 uint32_t TG0_IS_Complete; // in freertos, replace this with a mutex
@@ -21,6 +23,9 @@ uint32_t TG3_IS_Complete;
 uint16_t TG3_RX[20];
 uint16 TG1_RX[2];
 uint16_t dummyBytes_16[16];
+
+SemaphoreHandle_t xMutex;
+
 
 
 // Flash Specific

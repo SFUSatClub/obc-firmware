@@ -18,6 +18,8 @@ TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
+TaskHandle_t xFlashTaskHandle = NULL;
+
 
 void vMainTask(void *pvParameters) {
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS so it can print correctly
@@ -35,6 +37,8 @@ void vMainTask(void *pvParameters) {
 	//  xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
+	xTaskCreate(vFlashRead, "state", 600, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFlashTaskHandle);
+
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};

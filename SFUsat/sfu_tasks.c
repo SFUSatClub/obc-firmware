@@ -4,6 +4,7 @@
 #include "sfu_tasks.h"
 #include "sfu_cmds.h"
 #include "sfu_hardwaredefs.h"
+#include "flash_mibspi.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -14,6 +15,30 @@ void hundredBlinky(void *pvParameters) { // this is the sanity checker task, bli
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
+	}
+}
+
+
+void vFlashRead(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
+	char printBuffer[16];
+	uint16_t memBuffer[16];
+	uint32_t i;
+
+	while (1) {
+		flash_read_16(25, memBuffer);
+
+		for(i = 0; i < 16 ; i++){
+			if(memBuffer[i] < 80){
+				printBuffer[i] = (char)(memBuffer[i] + 48);
+			}
+			else{
+				printBuffer[i] = 0;
+			}
+		}
+
+		serialSendQ(printBuffer);
+
+		vTaskDelay(pdMS_TO_TICKS(2000)); // delay 100ms. Use the macro
 	}
 }
 

@@ -130,6 +130,8 @@ int main(void)
 	stateMachineInit(); // we start in SAFE mode
 
 	xTaskCreate(vMainTask, "main", 300, NULL, MAIN_TASK_PRIORITY, NULL);
+    xMutex = xSemaphoreCreateMutex(); // this can't go inside
+
 
 //	serialSendQ("created queue");
 //	/* Create two instances of the task that will send to the queue. The task

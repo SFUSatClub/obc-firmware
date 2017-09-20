@@ -178,6 +178,7 @@ void flash_mibspi_init(){
     // Init by write enable and global unlock
     flash_write_enable();
     mibspi_write_byte(ULBPR);
+
 }
 
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){
