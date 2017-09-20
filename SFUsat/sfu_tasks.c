@@ -23,25 +23,27 @@ void vFlashRead(void *pvParameters) {
 	char printBuffer[16];
 	uint16_t memBuffer[16];
 	uint32_t i;
+	uint32_t j;
 
 	while (1) {
-		flash_read_16_rtos(address, memBuffer);
+		if((addressWritten > 16) && ((addressWritten-16) % 256 == 0)){ // need to be over 16 since 16 - 16 % 256 = 0
+			for(j = (addressWritten - 16 - 256); j < addressWritten - 16; j += 16){
+				flash_read_16_rtos(j, memBuffer);
+				for(i = 0; i < 16 ; i++){
+					printBuffer[i] = (char)(memBuffer[i]);
 
-		for(i = 0; i < 16 ; i++){
-			printBuffer[i] = (char)(memBuffer[i]);
-
-			// convert to ASCII
-//			if(memBuffer[i] < 80){
-//				printBuffer[i] = (char)(memBuffer[i] + 48);
-//			}
-//			else{
-//				printBuffer[i] = 0;
-//			}
+					// convert to ASCII
+					//			if(memBuffer[i] < 80){
+					//				printBuffer[i] = (char)(memBuffer[i] + 48);
+					//			}
+					//			else{
+					//				printBuffer[i] = 0;
+					//			}
+				}
+				serialSendQ(printBuffer);
+			}
 		}
-
-		serialSendQ(printBuffer);
-
-		vTaskDelay(pdMS_TO_TICKS(1500));
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -49,9 +51,10 @@ void vFlashWrite(void *pvParameters) {
 	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
 	while (1) {
-		flash_write_16_rtos(address, writeBuffer);
-//		address = address + 256;
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		flash_write_16_rtos(addressWritten, writeBuffer);
+		addressWritten += 16;
+		//		address = address + 256;
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 

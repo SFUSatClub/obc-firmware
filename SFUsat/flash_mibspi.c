@@ -204,6 +204,7 @@ void flash_mibspi_init(){
     flash_write_enable();
     mibspi_write_byte(ULBPR);
 
+    addressWritten = 0;
 }
 
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){

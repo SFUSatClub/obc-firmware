@@ -23,6 +23,7 @@ uint32_t TG3_IS_Complete;
 uint16_t TG3_RX[20];
 uint16 TG1_RX[2];
 uint16_t dummyBytes_16[16];
+uint32_t addressWritten;
 
 SemaphoreHandle_t xFlashMutex;
 
