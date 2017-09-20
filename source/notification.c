@@ -1,7 +1,7 @@
 /** @file notification.c 
 *   @brief User Notification Definition File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 *   This file  defines  empty  notification  routines to avoid
 *   linker errors, Driver expects user to define the notification. 
@@ -52,6 +52,7 @@
 #include "sys_selftest.h"
 #include "adc.h"
 #include "gio.h"
+#include "mibspi.h"
 #include "sci.h"
 #include "spi.h"
 
@@ -116,6 +117,25 @@ void gioNotification(gioPORT_t *port, uint32 bit)
 }
 
 /* USER CODE BEGIN (20) */
+/* USER CODE END */
+#pragma WEAK(mibspiNotification)
+void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
+{
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (25) */
+/* USER CODE END */
+}
+
+/* USER CODE BEGIN (26) */
+/* USER CODE END */
+#pragma WEAK(mibspiGroupNotification)
+void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
+{
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (27) */
+/* USER CODE END */
+}
+/* USER CODE BEGIN (28) */
 /* USER CODE END */
 
 #pragma WEAK(sciNotification)

@@ -18,7 +18,7 @@
  * 00.01.00       31Aug2012    Vishwanath Reddy     0000000000000    Initial Version
  * 00.01.02       30Nov2012    Vishwanath Reddy     SDOCM00097786    Misra Fixes, Memory segmentation changes.
  * 01.12.00		  13Dec2013    Vishwanath Reddy     SDOCM00105412    MISRA C fixes.
- * 01.15.00		  06Jun2014    Vishwanath Reddy 	                 Support for Conqueror.
+ * 01.15.00		  06Jun2014    Vishwanath Reddy 	                 Support for LC Varients.
  * 01.16.00		  15Jul2014    Vishwanath Reddy 	SDOCM00112141    Remove  MISRA warnings.
  * 01.18.00		  12Oct2015    Vishwanath Reddy     SDOCM00119455    Update version history.
  * 01.18.01		  17Nov2015    Vishwanath Reddy     SDOCM00120161    Update version history.
@@ -26,7 +26,8 @@
  * 01.18.03       30June2016   Vishwanath Reddy     SDOCM00122388    Update version history.
  *                                                  SDOCM00122429    Added error when endianess is not defined.
  * 01.19.00       08Augu2016   Vishwanath Reddy     SDOCM00122592    Update version history.
- * 01.19.01       12Augu2016   Vishwanath Reddy     SDOCM00122543    Update version history. 
+ * 01.19.01       12Augu2016   Vishwanath Reddy     SDOCM00122543    Update version history.
+ * 01.19.03       15May2017    Prathap Srinivasan   SDOCM00122917    Update version history.
  *********************************************************************************************************************/
 
 /*

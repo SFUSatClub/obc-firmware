@@ -44,20 +44,20 @@ void vMainTask(void *pvParameters) {
 	test_event.action.subcmd_id = CMD_GET_TASKS;
 	addEvent(test_event);
 
-	CMD_t test_schd = {
-			.cmd_id = CMD_SCHED,
-			.subcmd_id = CMD_SCHED_ADD,
-			.cmd_sched_data = (CMD_SCHED_DATA_t){
-				.seconds_from_now = 8,
-						.scheduled_cmd_id = CMD_TASK,
-						.scheduled_subcmd_id = CMD_TASK_SUSPEND,
-						.scheduled_cmd_data = {
-								0x40,
-								0x00
-				}
-			}
-	};
-	addEventFromScheduledCommand(&test_schd);
+//	CMD_t test_schd = {
+//			.cmd_id = CMD_SCHED,
+//			.subcmd_id = CMD_SCHED_ADD,
+//			.cmd_sched_data = (CMD_SCHED_DATA_t){
+//				.seconds_from_now = 8,
+//						.scheduled_cmd_id = CMD_TASK,
+//						.scheduled_subcmd_id = CMD_TASK_SUSPEND,
+//						.scheduled_cmd_data = {
+//								0x40,
+//								0x00
+//				}
+//			}
+//	};
+//	addEventFromScheduledCommand(&test_schd);
 
 	showActiveEvents();
 
