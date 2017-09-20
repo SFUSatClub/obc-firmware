@@ -77,7 +77,7 @@ uint8_t rtcSetBit(uint16_t registerToWrite, uint8_t bitToSet, uint8_t bitValue);
 void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff);
 
 // holds the SPI config (set in rtcInit)
-spiDAT1_t rtc_spiConfig;
+spiDAT1_t flash_spiConfig;
 // can be used to offset the epoch from the ground. Default 0. (seconds)
 uint32_t epochOffset;
 // contains the cumulative seconds in months so we can easily calculate epochs
@@ -104,10 +104,10 @@ void tempAddSecondToHET() {
 }
 
 void rtcInit() {
-	rtc_spiConfig.CS_HOLD = RTC_CONFIG_CS_HOLD; //CS false = high during data transfer
-	rtc_spiConfig.WDEL = RTC_CONFIG_WDEL; // wdelay
-	rtc_spiConfig.DFSEL = RTC_CONFIG_DFSEL; // data format
-	rtc_spiConfig.CSNR = RTC_CONFIG_CSNR; // chip select to use
+	flash_spiConfig.CS_HOLD = RTC_CONFIG_CS_HOLD; //CS false = high during data transfer
+	flash_spiConfig.WDEL = RTC_CONFIG_WDEL; // wdelay
+	flash_spiConfig.DFSEL = RTC_CONFIG_DFSEL; // data format
+	flash_spiConfig.CSNR = RTC_CONFIG_CSNR; // chip select to use
 
 	epochOffset = 0; // init the offset to zero. This can be set from the ground if we need to fudge the epoch for some reason.
 
@@ -279,7 +279,7 @@ uint32_t getCurrentRTCTime() {
 void rtcWriteRegister(uint16_t registerToWrite, uint16_t valueToWrite) {
 	uint16_t txBuffer[2] = { WRITE | registerToWrite, valueToWrite };
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
-	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer);
+	spiTransmitData(RTC_SPI_REG, &flash_spiConfig, 2, txBuffer);
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 0); // deactivate CS
 }
 
@@ -300,8 +300,8 @@ void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff
 
 	// this is required because the RTC chip select is active high (nonstandard polarity)
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
-	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, blocksize, srcbuff);
-	spiReceiveData(RTC_SPI_REG, &rtc_spiConfig, blocksize, destbuff);
+	spiTransmitData(RTC_SPI_REG, &flash_spiConfig, blocksize, srcbuff);
+	spiReceiveData(RTC_SPI_REG, &flash_spiConfig, blocksize, destbuff);
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 0); // deactivate CS
 }
 
