@@ -64,9 +64,9 @@ void construct_packet_6(uint16_t command, uint32_t address, uint16_t *packet, ui
     // packet size = data bytes + command (1) + address (3) bytes
     // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB first)
     sendOut[0] = command;
-    sendOut[1] = address & 0x00ff0000;
-    sendOut[2] = address & 0x0000ff00;
-    sendOut[3] = address & 0x000000ff;
+    sendOut[1] = (address & 0xFF0000) >> 16;
+    sendOut[2] = (address & 0xFF00) >> 8;
+    sendOut[3] = (address) & 0xFF;
 
     uint16_t index;
 
@@ -90,6 +90,31 @@ void flash_read_16(uint32_t address, uint16_t *outBuffer){
     for(i = 0; i < 16; i++){
         outBuffer[i] = TG3_RX[i + 4];
     }
+}
+
+void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
+	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
+	{
+		construct_packet_16(FLASH_READ, address, dummyBytes_16);
+		mibspi_receive(FLASH_TWENTY,TG3_RX);
+
+		// strip off the first 4 bytes of the receive, since those are the responses to the command and address
+		int i = 0;
+		for(i = 0; i < 16; i++){
+			outBuffer[i] = TG3_RX[i + 4];
+		}
+
+	}
+	xSemaphoreGive( xFlashMutex );
+}
+
+void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
+	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
+	{
+		construct_packet_16(FLASH_WRITE, address, outBuffer);
+
+	}
+	xSemaphoreGive( xFlashMutex );
 }
 
 boolean rw16_test(uint32_t address){
@@ -130,9 +155,9 @@ void construct_packet_16(uint16_t command, uint32_t address, uint16_t *packet){
     // packet size = data bytes + command (1) + address (3) bytes
     // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB out first)
     sendOut[0] = command;
-    sendOut[1] = address & 0x00ff0000;
-    sendOut[2] = address & 0x0000ff00;
-    sendOut[3] = address & 0x000000ff;
+    sendOut[1] = (address & 0xFF0000) >> 16;
+    sendOut[2] = (address & 0xFF00) >> 8;
+    sendOut[3] = (address) & 0xFF;
 
     uint16_t index = 4;
 

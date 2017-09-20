@@ -106,6 +106,8 @@ int main(void)
 /* USER CODE BEGIN (3) */
 //	_enable_IRQ(); // global interrupt enable
     _enable_interrupt_();
+	address = 0;
+
 
 	// TODO: encapsulate these
 //	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
@@ -119,18 +121,18 @@ int main(void)
 
     _enable_interrupt_();
     flash_mibspi_init();
-//    flash_erase_chip();
 
     if(flash_test_JEDEC()){
     	serialSendln("Passed flash JEDEC test!");
     }
+    flash_erase_chip();
 
 	printStartupType();
 
 	stateMachineInit(); // we start in SAFE mode
 
 	xTaskCreate(vMainTask, "main", 300, NULL, MAIN_TASK_PRIORITY, NULL);
-    xMutex = xSemaphoreCreateMutex(); // this can't go inside
+    xFlashMutex = xSemaphoreCreateMutex(); // this can't go inside
 
 
 //	serialSendQ("created queue");

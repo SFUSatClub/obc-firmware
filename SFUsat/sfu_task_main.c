@@ -18,7 +18,9 @@ TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
-TaskHandle_t xFlashTaskHandle = NULL;
+TaskHandle_t xFlashReadHandle = NULL;
+TaskHandle_t xFlashWriteHandle = NULL;
+TaskHandle_t xFlashPickerHandle = NULL;
 
 
 void vMainTask(void *pvParameters) {
@@ -37,7 +39,9 @@ void vMainTask(void *pvParameters) {
 	//  xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vFlashRead, "state", 600, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFlashTaskHandle);
+	xTaskCreate(vFlashRead, "state", 600, NULL, FLASH_READ_DEFAULT_PRIORITY, &xFlashReadHandle);
+	xTaskCreate(vFlashWrite, "state", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
+	xTaskCreate(vFlashSectorPicker, "state", 300, NULL,3, &xFlashPickerHandle);
 
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};

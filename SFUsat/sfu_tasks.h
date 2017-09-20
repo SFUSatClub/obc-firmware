@@ -25,12 +25,14 @@
 // since we may create tasks all over the place, put default priorities here so it's easy to determine relative priority
 #define MAIN_TASK_PRIORITY 2
 #define BLINKY_TASK_DEFAULT_PRIORITY 1
-#define SERIAL_TASK_DEFAULT_PRIORITY 3
-#define RADIO_TASK_DEFAULT_PRIORITY 5
+#define SERIAL_TASK_DEFAULT_PRIORITY 6
+#define RADIO_TASK_DEFAULT_PRIORITY 1
 #define WATCHDOG_TASK_DEFAULT_PRIORITY 4
 #define STATE_TASK_DEFAULT_PRIORITY 3
-#define ADC_TASK_DEFAULT_PRIORITY 5
-#define FLASH_TASK_DEFAULT_PRIORITY 5
+#define ADC_TASK_DEFAULT_PRIORITY 1
+#define FLASH_READ_DEFAULT_PRIORITY 5
+#define FLASH_WRITE_DEFAULT_PRIORITY 4
+
 
 
 extern QueueHandle_t xQueue;
@@ -39,7 +41,11 @@ extern QueueHandle_t xQueue;
 void hundredBlinky(void *pvParameters);
 void vDemoADCTask(void *pvParameters); // example task that could be repurposed to monitor current with appropriate logging
 void vStateTask(void *pvParameters); // state checker
-void vFlashRead(void *pvParameters); // state checker
+void vFlashRead(void *pvParameters);
+void vFlashWrite(void *pvParameters);
+void vFlashSectorPicker(void *pvParameters);
+volatile uint32_t address;
+
 
 
 extern QueueHandle_t xSerialTXQueue;

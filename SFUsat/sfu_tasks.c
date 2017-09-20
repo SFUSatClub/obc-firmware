@@ -19,26 +19,46 @@ void hundredBlinky(void *pvParameters) { // this is the sanity checker task, bli
 }
 
 
-void vFlashRead(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
+void vFlashRead(void *pvParameters) {
 	char printBuffer[16];
 	uint16_t memBuffer[16];
 	uint32_t i;
 
 	while (1) {
-		flash_read_16(25, memBuffer);
+		flash_read_16_rtos(address, memBuffer);
 
 		for(i = 0; i < 16 ; i++){
-			if(memBuffer[i] < 80){
-				printBuffer[i] = (char)(memBuffer[i] + 48);
-			}
-			else{
-				printBuffer[i] = 0;
-			}
+			printBuffer[i] = (char)(memBuffer[i]);
+
+			// convert to ASCII
+//			if(memBuffer[i] < 80){
+//				printBuffer[i] = (char)(memBuffer[i] + 48);
+//			}
+//			else{
+//				printBuffer[i] = 0;
+//			}
 		}
 
 		serialSendQ(printBuffer);
 
-		vTaskDelay(pdMS_TO_TICKS(2000)); // delay 100ms. Use the macro
+		vTaskDelay(pdMS_TO_TICKS(1500));
+	}
+}
+
+void vFlashWrite(void *pvParameters) {
+	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+
+	while (1) {
+		flash_write_16_rtos(address, writeBuffer);
+//		address = address + 256;
+		vTaskDelay(pdMS_TO_TICKS(2000));
+	}
+}
+
+void vFlashSectorPicker(void *pvParameters) {
+	while (1) {
+		address = address + 50;
+		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
 
