@@ -5,16 +5,16 @@
 #include "sfu_cmds.h"
 #include "sfu_hardwaredefs.h"
 #include "flash_mibspi.h"
+#include "sfu_rtc.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
 void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
-
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
-		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
+		vTaskDelay(pdMS_TO_TICKS(5000)); // delay 100ms. Use the macro
 	}
 }
 
@@ -48,12 +48,16 @@ void vFlashRead(void *pvParameters) {
 }
 
 void vFlashWrite(void *pvParameters) {
+	uint32_t localEpoch;
 	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
 	while (1) {
+		localEpoch = getCurrentRTCTime();
+		writeBuffer[7] = (localEpoch & 0xFF00) >> 8;
+		writeBuffer[8] = (localEpoch & 0x00FF);
 		flash_write_16_rtos(addressWritten, writeBuffer);
+
 		addressWritten += 16;
-		//		address = address + 256;
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }

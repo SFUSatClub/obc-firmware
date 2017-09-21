@@ -63,6 +63,8 @@
 #include "sfu_utils.h"
 #include "sfu_startup.h"
 #include "flash_mibspi.h"
+#include "sfu_rtc.h"
+
 /* USER CODE END */
 
 /* Include Files */
@@ -118,6 +120,7 @@ int main(void)
 	spi_init();
 	adcInit();
 	gioInit();
+	rtcInit();
 
     _enable_interrupt_();
     flash_mibspi_init();

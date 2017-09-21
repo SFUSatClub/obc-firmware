@@ -85,7 +85,7 @@ const uint32_t cumulativeSecondsInMonth[12] = { 0, 2678400, 5097600, 7776000, 10
 		20995200, 23587200, 26265600, 28857600 }; // zero, seconds in january, then seconds in jan + feb, then jan + feb + mar
 // in feb, we add seconds in jan plus the current time in feb to get the seconds since start
 
-unsigned int rtc_epoch_time = 0;
+uint32_t rtc_epoch_time = 0;
 unsigned int het_epoch_time = 0;
 
 unsigned int getCurrentTime() {

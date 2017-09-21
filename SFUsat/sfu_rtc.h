@@ -21,7 +21,7 @@ unsigned int getCurrentTime();
  * Initiates several SPI transactions.
  * @return seconds
  */
-unsigned int getCurrentRTCTime();
+uint32_t getCurrentRTCTime();
 
 void tempAddSecondToHET();
 
