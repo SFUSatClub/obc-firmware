@@ -64,6 +64,7 @@
 #include "sfu_startup.h"
 #include "flash_mibspi.h"
 #include "sfu_rtc.h"
+#include "sfu_triumf.h"
 
 /* USER CODE END */
 
@@ -107,35 +108,42 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
 //	_enable_IRQ(); // global interrupt enable
-    _enable_interrupt_();
-	address = 0;
 
+    _enable_interrupt_();
+	gioInit();
 
 	// TODO: encapsulate these
 //	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
-	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
 	serialInit();
+
 	spi_init();
 	adcInit();
-	gioInit();
+
+	simpleWatchdog();
+
 	rtcInit();
 
     _enable_interrupt_();
+
     flash_mibspi_init();
 
-    if(flash_test_JEDEC()){
-    	serialSendln("Passed flash JEDEC test!");
-    }
-    flash_erase_chip();
-
-	printStartupType();
+    simpleWatchdog();
+    triumf_init();
 
 	stateMachineInit(); // we start in SAFE mode
 
+	printStartupType();
+
+	if(flash_test_JEDEC()){
+		serialSendln("Passed flash JEDEC test!");
+	}
+
 	xTaskCreate(vMainTask, "main", 300, NULL, MAIN_TASK_PRIORITY, NULL);
-    xFlashMutex = xSemaphoreCreateMutex(); // this can't go inside
+    xFlashMutex = xSemaphoreCreateMutex();
+    xRTCMutex = xSemaphoreCreateMutex();
 
 
 //	serialSendQ("created queue");

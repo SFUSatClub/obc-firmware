@@ -24,14 +24,14 @@
 // ------------ Task default priorities -------------------
 // since we may create tasks all over the place, put default priorities here so it's easy to determine relative priority
 #define MAIN_TASK_PRIORITY 2
-#define BLINKY_TASK_DEFAULT_PRIORITY 1
-#define SERIAL_TASK_DEFAULT_PRIORITY 6
+#define BLINKY_TASK_DEFAULT_PRIORITY 3
+#define SERIAL_TASK_DEFAULT_PRIORITY 5
 #define RADIO_TASK_DEFAULT_PRIORITY 1
-#define WATCHDOG_TASK_DEFAULT_PRIORITY 4
+#define WATCHDOG_TASK_DEFAULT_PRIORITY 6
 #define STATE_TASK_DEFAULT_PRIORITY 3
 #define ADC_TASK_DEFAULT_PRIORITY 1
-#define FLASH_READ_DEFAULT_PRIORITY 4
-#define FLASH_WRITE_DEFAULT_PRIORITY 5
+#define FLASH_READ_DEFAULT_PRIORITY 3
+#define FLASH_WRITE_DEFAULT_PRIORITY 4
 
 
 
@@ -45,6 +45,7 @@ void vFlashRead(void *pvParameters);
 void vFlashWrite(void *pvParameters);
 void vFlashSectorPicker(void *pvParameters);
 volatile uint32_t address;
+void vFlashRead2(void *pvParameters);
 
 
 

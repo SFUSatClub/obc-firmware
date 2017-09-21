@@ -16,7 +16,7 @@ QueueHandle_t xSerialRXQueue;
 void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
-		vTaskDelay(pdMS_TO_TICKS(5000)); // delay 100ms. Use the macro
+		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
 	}
 }
 
@@ -37,8 +37,26 @@ void vFlashRead(void *pvParameters) {
 				}
 				serialSendQ(printBuffer);
 			}
+			vTaskDelay(pdMS_TO_TICKS(3000));
 		}
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		vTaskDelay(pdMS_TO_TICKS(300));
+	}
+}
+
+void vFlashRead2(void *pvParameters) {
+	char printBuffer[16];
+	uint16_t memBuffer[16];
+	uint32_t i;
+	while (1) {
+		if((lastRead != addressWritten)){ // if we have a new one to read
+				flash_read_16_rtos((addressWritten-16), memBuffer);
+				for(i = 0; i < 16 ; i++){
+					printBuffer[i] = (char)(memBuffer[i]);
+				}
+				serialSendQ(printBuffer);
+		}
+		lastRead = addressWritten;
+		vTaskDelay(pdMS_TO_TICKS(300));
 	}
 }
 
@@ -59,7 +77,7 @@ void vFlashWrite(void *pvParameters) {
 		flash_write_16_rtos(addressWritten, writeBuffer);
 
 		addressWritten += 16;
-		vTaskDelay(pdMS_TO_TICKS(1200));
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -127,7 +145,7 @@ void vSerialTask(void *pvParameters) {
 		 * Dequeue next string to send over UART.
 		 */
 		const int numTxMsgs = uxQueueMessagesWaiting(xSerialTXQueue);
-		if (numTxMsgs > 5) {
+		if (numTxMsgs > 25) {
 			serialSend("WARNING: ");
 			char buffer[10];
 			snprintf(buffer, 10, "%d", numTxMsgs);

@@ -14,7 +14,7 @@
  */
 
 #include "flash_mibspi.h"
-
+#include "sfu_utils.h"
 
 
 void mibspi_write_byte(uint16_t toWrite){
@@ -185,7 +185,27 @@ boolean flash_test_JEDEC(void){
     }
     return FALSE;
 }
+uint32_t getEmptySector(){
+	uint16_t flashData[16] = {0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF};
+	uint32_t tempAddress;
+	uint32_t i;
+	uint8_t emptyBytes;
 
+	for(tempAddress = 0; tempAddress < 115200; tempAddress += 16){ // only check the first 450 pages so we're not here forever (that's about two hours of recording)
+		emptyBytes = 16;
+		simpleWatchdog();
+		 flash_read_16(tempAddress, flashData);
+		 for(i = 0; i < 16; i++){
+			 if(flashData[i] != 0x00FF){
+				 emptyBytes--;
+			 }
+		 }
+		 if(emptyBytes == 16){ // if we read a section with all 1's
+			 break;
+		 }
+	}
+	return tempAddress;
+}
 
 void flash_mibspi_init(){
     // NOTE: call _enable_interrupt_(); before this function
@@ -203,8 +223,6 @@ void flash_mibspi_init(){
     // Init by write enable and global unlock
     flash_write_enable();
     mibspi_write_byte(ULBPR);
-
-    addressWritten = 0;
 }
 
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){

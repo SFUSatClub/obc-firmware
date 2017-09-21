@@ -1,4 +1,6 @@
 #include "sfu_utils.h"
+#include "gio.h"
+#include "sfu_hardwaredefs.h"
 
 void busyWait(uint32_t ticksToWait){
 	// DON'T USE THIS - only for writing quick tests
@@ -34,6 +36,11 @@ char* itoa2(int num, char *buffer, int base, int itr)
         return itr>0 ? bsbuff: num2<0 ?buffer-1: buffer;
 }
 
+void simpleWatchdog(){
+	gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 1);
+	busyWait(5000);
+	gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 0);
+}
 
 
 //itoa2(localEpoch, writeBuffer[7], 10, 0){

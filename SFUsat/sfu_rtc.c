@@ -227,6 +227,8 @@ uint32_t getCurrentRTCTime() {
 	/*
 	 * Reset HET time.
 	 */
+	xSemaphoreTake( xRTCMutex, pdMS_TO_TICKS(200) );
+	{
 	het_epoch_time = 0;
 
 	/*
@@ -270,7 +272,8 @@ uint32_t getCurrentRTCTime() {
 		// Also if we're over year 4, past feb, we need to add another one. On feb 29, day will be auto-included because current time is RTC day * seconds per day.
 		rtc_epoch_time += 86400;
 	}
-
+	}
+	xSemaphoreGive( xRTCMutex );
 	return rtc_epoch_time;
 }
 

@@ -7,13 +7,17 @@
 
 #ifndef SFUSAT_SFU_RTC_H_
 #define SFUSAT_SFU_RTC_H_
-
+#include "FreeRTOS.h"
+#include "rtos_semphr.h"
 /**
  * Get "approximated" RTC epoch time.
  * Combines last actual time from RTC with time from Hercule's HET.
  * @return seconds
  */
 unsigned int getCurrentTime();
+
+SemaphoreHandle_t xRTCMutex;
+
 
 /**
  * Get "actual" RTC epoch time.
