@@ -6,6 +6,8 @@
 #include "sfu_hardwaredefs.h"
 #include "flash_mibspi.h"
 #include "sfu_rtc.h"
+#include "sfu_utils.h"
+
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -32,13 +34,6 @@ void vFlashRead(void *pvParameters) {
 				for(i = 0; i < 16 ; i++){
 					printBuffer[i] = (char)(memBuffer[i]);
 
-					// convert to ASCII
-					//			if(memBuffer[i] < 80){
-					//				printBuffer[i] = (char)(memBuffer[i] + 48);
-					//			}
-					//			else{
-					//				printBuffer[i] = 0;
-					//			}
 				}
 				serialSendQ(printBuffer);
 			}
@@ -49,16 +44,22 @@ void vFlashRead(void *pvParameters) {
 
 void vFlashWrite(void *pvParameters) {
 	uint32_t localEpoch;
-	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
-
+	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 32, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+	char thing[10];
 	while (1) {
 		localEpoch = getCurrentRTCTime();
-		writeBuffer[7] = (localEpoch & 0xFF00) >> 8;
-		writeBuffer[8] = (localEpoch & 0x00FF);
+
+		itoa2(localEpoch, thing, 10, 0);
+		writeBuffer[7] = (uint16_t)thing[0];
+		writeBuffer[8] =(uint16_t)thing[1];
+		writeBuffer[9] = (uint16_t)thing[2];
+		writeBuffer[10] =(uint16_t)thing[3];
+		writeBuffer[11] =(uint16_t)thing[4];
+
 		flash_write_16_rtos(addressWritten, writeBuffer);
 
 		addressWritten += 16;
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		vTaskDelay(pdMS_TO_TICKS(1200));
 	}
 }
 

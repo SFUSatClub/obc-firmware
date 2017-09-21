@@ -18,4 +18,5 @@
 #define second 6600000 // this is about a second for busy waiting at 80 MHz
 void busyWait(uint32_t ticksToWait); // DON'T USE THIS IN REAL CODE! - For quick n' dirty testing ONLY :)
 
+char* itoa2(int num, char *buffer, int base, int itr); // http://code.geeksforgeeks.org/lDrTiv
 #endif /* SFUSAT_SFU_UTILS_H */
