@@ -112,12 +112,15 @@ int main(void)
     _enable_interrupt_();
 	gioInit();
 
+	serialInit();
+
+	watchdog_busywait(3000); // to allow time for serial to connect up
+
 	// TODO: encapsulate these
 //	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-	serialInit();
 
 	spi_init();
 	adcInit();
@@ -141,7 +144,7 @@ int main(void)
 		serialSendln("Passed flash JEDEC test!");
 	}
 
-	xTaskCreate(vMainTask, "main", 300, NULL, MAIN_TASK_PRIORITY, NULL);
+	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
     xFlashMutex = xSemaphoreCreateMutex();
     xRTCMutex = xSemaphoreCreateMutex();
 

@@ -41,7 +41,9 @@ void vMainTask(void *pvParameters) {
 //	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vFlashWrite, "state", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
 	xTaskCreate(vFlashRead2, "state", 600, NULL, FLASH_READ_DEFAULT_PRIORITY, &xFlashReadHandle);
-//	xTaskCreate(vFlashSectorPicker, "state", 300, NULL,6, &xFlashPickerHandle);
+
+
+	//	xTaskCreate(vFlashSectorPicker, "state", 300, NULL,6, &xFlashPickerHandle);
 
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};

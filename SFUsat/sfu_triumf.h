@@ -10,7 +10,7 @@
 
 #include "flash_mibspi.h"
 
-#define ERASE_START 0 // configure whether we erase flash upon boot
+#define ERASE_START 1 // configure whether we erase flash upon boot
 
 void triumf_init();
 

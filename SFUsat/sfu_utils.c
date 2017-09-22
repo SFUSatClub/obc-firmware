@@ -42,6 +42,13 @@ void simpleWatchdog(){
 	gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 0);
 }
 
+void watchdog_busywait(int32_t numtickles){
+	while(numtickles > 0){
+		simpleWatchdog();
+		numtickles--;
+	}
+}
+
 
 //itoa2(localEpoch, writeBuffer[7], 10, 0){
 //	uint32_t
