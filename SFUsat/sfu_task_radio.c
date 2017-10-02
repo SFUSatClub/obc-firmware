@@ -99,12 +99,16 @@ BaseType_t initRadio() {
     //spiTransmitData(spiREG1, &spiDataConfig, blocksize, srcbuff);
 
 
-    readRegister(0x30);
-    readRegister(0x31);
+    readRegister(0x2D);
+    readRegister(0x2E);
+    readRegister(0x30 | BURST_BIT);
+    readRegister(0x31 | BURST_BIT);
     strobe(SNOP);
-    readAllRegisters();
+    //readAllRegisters();
+    readRegister(SMARTRF_SETTING_IOCFG0_ADDR);
     writeRegister(SMARTRF_SETTING_IOCFG0_ADDR, SMARTRF_SETTING_IOCFG0_VAL_RX);
-    readAllRegisters();
+    readRegister(SMARTRF_SETTING_IOCFG0_ADDR);
+    //readAllRegisters();
 
 	return pdPASS;
 }

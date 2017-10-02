@@ -213,7 +213,7 @@ int8_t cmdSched(const CMD_t *cmd) {
 }
 
 /**
- * Handle all task related commands.
+ * Handle all state related commands.
  * @param cmd
  * @return
  */
@@ -258,7 +258,7 @@ int8_t cmdState(const CMD_t *cmd) {
 			return 0;
 		}
 		/**
-		 * get previous state
+		 * Get previous state
 		 */
 		case CMD_STATE_PREV: {
 			printPrevState(cur_state,&state_persistent_data);
