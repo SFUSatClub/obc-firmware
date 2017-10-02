@@ -29,8 +29,6 @@ void vMainTask(void *pvParameters) {
 			BLINKY_TASK_DEFAULT_PRIORITY, /* This task will run at priority 1. */
 			&xBlinkyTaskHandle );
 
-	// Task priorities are #defined in sfu_tasks.h
-	//    xTaskCreate(vDemoADCTask, "ADC_demo", 300, NULL, ADC_TASK_DEFAULT_PRIORITY, &xADCTaskHandle);
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
@@ -39,7 +37,7 @@ void vMainTask(void *pvParameters) {
 	vTaskSuspend(xRadioTaskHandle);
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
-	Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};
+	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};
 	addEvent(test_event);
 
 	test_event.seconds_from_now = 6;
@@ -47,17 +45,16 @@ void vMainTask(void *pvParameters) {
 	addEvent(test_event);
 
 	CMD_t test_schd = {
-			.cmd_id = CMD_SCHED,
-			.subcmd_id = CMD_SCHED_ADD,
-			.cmd_sched_data = (CMD_SCHED_DATA_t){
-				.seconds_from_now = 8,
-						.scheduled_cmd_id = CMD_TASK,
-						.scheduled_subcmd_id = CMD_TASK_SUSPEND,
-						.scheduled_cmd_data = {
-								0x40,
-								0x00
-				}
-			}
+		.cmd_id = CMD_SCHED,
+		.subcmd_id = CMD_SCHED_ADD,
+		.cmd_sched_data = (CMD_SCHED_DATA_t){
+			.seconds_from_now = 8,
+			.scheduled_cmd_id = CMD_TASK,
+			.scheduled_subcmd_id = CMD_TASK_SUSPEND,
+			.scheduled_cmd_task_data = {
+				.task_id = TASK_BLINKY
+			},
+		}
 	};
 	addEventFromScheduledCommand(&test_schd);
 
@@ -66,8 +63,8 @@ void vMainTask(void *pvParameters) {
 	serialSendln("main tasks created");
 
 	while (1) {
-
 		serialSendQ("main");
+
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};

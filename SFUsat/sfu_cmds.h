@@ -101,11 +101,15 @@ typedef struct CMD_STATE_DATA {
 } CMD_STATE_DATA_t;
 
 /**
- * When the sub-command of CMD_SCHED is ADD, the cmd_data field will be reserved for the
- * arguments of the scheduled command. This struct is therefore inapplicable in this case.
+ * CMD_SCHED_MISC_DATA_t provides structured access to miscellaneous data when specifying a CMD_SCHED_DATA_t.
+ * CMD_SCHED_MISC_DATA_t is only ever used in this situation.
  *
- * When the sub-command of CMD_SCHED is not ADD (e.g., REMOVE, etc), this struct will be used to
- * type-pun cmd_data into the following fields.
+ * When the sub-command of CMD_SCHED_DATA_t is ADD, the scheduled_cmd_data field will be reserved for the
+ * arguments of the scheduled command. This struct, CMD_SCHED_MISC_DATA_t, will therefore be inapplicable
+ * in this case.
+ *
+ * When the sub-command of CMD_SCHED_DATA_t is not ADD (e.g., REMOVE, etc), this struct will be used to
+ * type-pun scheduled_cmd_data into the following fields.
  */
 typedef struct CMD_SCHED_MISC_DATA {
 	uint8_t event_idx_to_remove : 4;
