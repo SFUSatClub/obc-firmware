@@ -3,6 +3,10 @@
  *
  *  Created on: Sep 21, 2017
  *      Author: Richard
+ *
+ *      Code that deals specifically with the test at TRIUMF.
+ *      Primarily, set whether we want to read through the attached flash and start writing in empty space, or just
+ *      erase it every time we start up.
  */
 
 #include "sfu_triumf.h"

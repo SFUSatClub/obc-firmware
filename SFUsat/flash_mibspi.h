@@ -3,6 +3,21 @@
  *
  *  Created on: Aug 24, 2017
  *      Author: Richard
+ *
+ *      Flash driver for SST26 flash memory.
+ *      In HALCoGEN, 4 transfer groups were created. This is somewhat efficient, as we don't waste time sending a ton of
+ *      dummy bytes when we just need to send a single byte command, as we would with only 1 large transfer group.
+ *      TG number	Number of bytes
+ *      0			6
+ *      1			1
+ *      2			2
+ *      3			20
+ *
+ *      Keep in mind that ERASED flash is all 1's. So don't fill space with 0's if you will want to use it later, since erasing
+ *      is slow.
+ *
+ *
+ *
  */
 
 #ifndef SFUSAT_FLASH_MIBSPI_H_
@@ -14,13 +29,13 @@
 #include "rtos_semphr.h"
 
 // flags for complete transfers
-uint32_t TG0_IS_Complete; // in freertos, replace this with a mutex
+uint32_t TG0_IS_Complete;
 uint32_t TG1_IS_Complete;
 uint32_t TG2_IS_Complete;
 uint32_t TG3_IS_Complete;
 
-// Various buffers - these must be the same number of elements as the associated transfer group
-uint16_t TG3_RX[20];
+// Various buffers
+uint16_t TG3_RX[20]; // transfer group RX buffers must have same number of elements as the transfer group
 uint16 TG1_RX[2];
 uint16_t dummyBytes_16[16];
 uint32_t addressWritten;
@@ -28,6 +43,7 @@ uint32_t lastRead;
 
 SemaphoreHandle_t xFlashMutex;
 
+volatile uint32_t address; // stores flash address to write to
 
 
 // Flash Specific

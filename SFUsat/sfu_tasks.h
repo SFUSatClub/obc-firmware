@@ -34,8 +34,6 @@
 #define FLASH_WRITE_DEFAULT_PRIORITY 4
 #define TESTS_PRIORITY 3
 
-
-
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 
@@ -44,11 +42,7 @@ void vDemoADCTask(void *pvParameters); // example task that could be repurposed 
 void vStateTask(void *pvParameters); // state checker
 void vFlashRead(void *pvParameters);
 void vFlashWrite(void *pvParameters);
-void vFlashSectorPicker(void *pvParameters);
-volatile uint32_t address;
 void vFlashRead2(void *pvParameters);
-
-
 
 extern QueueHandle_t xSerialTXQueue;
 extern QueueHandle_t xSerialRXQueue;

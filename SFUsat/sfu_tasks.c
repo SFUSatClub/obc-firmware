@@ -20,8 +20,6 @@ void hundredBlinky(void *pvParameters) { // this is the sanity checker task, bli
 	}
 }
 
-
-
 void vFlashRead(void *pvParameters) {
 	char printBuffer[16];
 	uint16_t memBuffer[16];
@@ -82,12 +80,6 @@ void vFlashWrite(void *pvParameters) {
 	}
 }
 
-void vFlashSectorPicker(void *pvParameters) {
-	while (1) {
-		address = address + 50;
-		vTaskDelay(pdMS_TO_TICKS(5000));
-	}
-}
 
 void vDemoADCTask(void *pvParameters) {
 	adcData_t adc_data; //ADC Data Structure

@@ -93,6 +93,7 @@ void flash_read_16(uint32_t address, uint16_t *outBuffer){
 }
 
 void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
+	// in the RTOS so use a mutex
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
 		construct_packet_16(FLASH_READ, address, dummyBytes_16);
@@ -226,7 +227,7 @@ void flash_mibspi_init(){
 }
 
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){
-    switch (transfer_group){ // this will eventually handle the mutexes
+    switch (transfer_group){
     case 0:
         TG0_IS_Complete = 0x0000;
         break;

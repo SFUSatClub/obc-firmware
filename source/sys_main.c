@@ -114,18 +114,17 @@ int main(void)
 
 	serialInit();
 
-	watchdog_busywait(3000); // to allow time for serial to connect up
+	watchdog_busywait(3000); // to allow time for serial to connect up to script
 
 	// TODO: encapsulate these
 //	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-
 	spi_init();
 	adcInit();
 
-	simpleWatchdog();
+	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 
 	rtcInit();
 

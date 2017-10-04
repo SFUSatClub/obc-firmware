@@ -48,12 +48,3 @@ void watchdog_busywait(int32_t numtickles){
 		numtickles--;
 	}
 }
-
-
-//itoa2(localEpoch, writeBuffer[7], 10, 0){
-//	uint32_t
-//}
-//
-//thing(uint32_t input, uint16_t * destination){
-//
-//}
