@@ -78,7 +78,7 @@ const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[TEST0] = SMARTRF_SETTING_TEST0_ADDR
 };
 
-const uint16 SMARTRF_RX_VALS[NUM_CONFIG_REGISTERS] = {
+const uint16 SMARTRF_VALS_RX[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_RX,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_RX,
 	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_RX,
@@ -110,7 +110,7 @@ const uint16 SMARTRF_RX_VALS[NUM_CONFIG_REGISTERS] = {
 	[TEST0] = SMARTRF_SETTING_TEST0_VAL_RX
 };
 
-const uint16 SMARTRF_TX_VALS[NUM_CONFIG_REGISTERS] = {
+const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_TX,
 	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_TX,
@@ -144,13 +144,35 @@ const uint16 SMARTRF_TX_VALS[NUM_CONFIG_REGISTERS] = {
 
 
 /**
- * Masks
+ * Masks.
  */
+#define WRITE_BIT	(0x00)
 #define READ_BIT	(0x80)
 #define BURST_BIT	(0x40)
+/**
+ * Chip Status Byte Masks (section 10.1, page 31).
+ *
+ * Status mask:
+ * 		- (mask of flag << overlay mask on uint8). The shift is done this way to aid in readability.
+ * State mask:
+ * 		- mask out the status byte first using mask STATE before using STATE_X to check for equality.
+ * 		- eg, to check if in STATE_RX:
+ * 			- if ( (statusByte & STATE) == STATE_RX ) { // in STATE_RX }
+ */
+#define CHIP_RDY				(0b1000 << 4)	// Bits 7   Stays high until power and crystal have stabilized. Should always be low when using the SPI interface.
+#define STATE					(0b0111 << 4)	// Bits 6:4 Indicates the current main state machine mode.
+#define STATE_IDLE 					(0b000)			// IDLE state (Also reported for some transitional states instead of SETTLING or CALIBRATE).
+#define STATE_RX 					(0b001)			// Receive mode.
+#define STATE_TX 					(0b010)			// Transmit mode.
+#define STATE_FSTXON 				(0b011)			// Fast TX ready.
+#define STATE_CALIBRATE 			(0b100)			// Frequency synthesizer calibration is running.
+#define STATE_SETTLING 				(0b101)			// PLL is settling.
+#define STATE_RXFIFO_OVERFLOW 		(0b110)			// RX FIFO has overflowed. Read out any useful data, then flush the FIFO with SFRX.
+#define STATE_TXFIFO_UNDERFLOW 		(0b111)			// TX FIFO has underflowed. Acknowledge with SFTX.
+#define FIFO_BYTES_AVAILABLE	(0b1111 << 0)	// Bits 3:0 The number of bytes available in the RX FIFO or free bytes in the TX FIFO.
 
 /**
- * Command Strobe Registers (section 29, page 67)
+ * Command Strobe Registers (section 29, page 67).
  */
 #define SRES	(0x30) // Reset chip.
 #define SFSTXON	(0x31) // Enable and calibrate frequency synthesizer (if MCSM0.FS_AUTOCAL=1). If in RX (with CCA): Go to a wait state where only the synthesizer is running (for quick RX / TX turnaround).
@@ -167,7 +189,7 @@ const uint16 SMARTRF_TX_VALS[NUM_CONFIG_REGISTERS] = {
 #define SNOP	(0x3D) // No operation. May be used to get access to the chip status byte.
 
 /**
- * Status Registers (section 29.3, page 92)
+ * Status Registers (section 29.3, page 92).
  */
 #define PARTNUM			(0x30 | BURST_BIT) // Chip part number.
 #define VERSION			(0x31 | BURST_BIT) // Chip version number.
@@ -184,10 +206,22 @@ const uint16 SMARTRF_TX_VALS[NUM_CONFIG_REGISTERS] = {
 #define RCCTRL1_STATUS	(0x3C | BURST_BIT) // High byte of last RC oscillator calibration result.
 #define RCCTRL0_STATUS	(0x3D | BURST_BIT) // Low byte of last RC oscillator calibration result.
 
+/**
+ * FIFO Buffers (section 10.2, page 32).
+ *
+ * FIFO_TX is write-only.
+ * FIFO_RX is read-only.
+ * Both are accessed through the 0x3F address with appropriate read/write bits set.
+ */
+#define FIFO_TX (0x3F)
+#define FIFO_RX (0x3F)
+
 static spiDAT1_t spiDataConfig;
 
 QueueHandle_t xRadioTXQueue;
 QueueHandle_t xRadioRXQueue;
+
+static uint8 statusByte;
 
 void vRadioTask(void *pvParameters) {
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
@@ -201,46 +235,99 @@ void vRadioTask(void *pvParameters) {
 	}
 }
 
-static void readRegister(uint8 addr) {
+static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	statusByte = dest[0] & 0xff;
 	char buffer[30];
-	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, dest[0], dest[1]);
+	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, statusByte, dest[1]);
 	serialSendln(buffer);
+	return (dest[1] & 0xff);
 }
 
+static void writeRegister(uint8 addr, uint8 val) {
+	uint16 src[] = {addr | WRITE_BIT, val};
+	uint16 dest[] = {0x00, 0x00};
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	statusByte = dest[0] & 0xff;
+	char buffer[30];
+	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], statusByte, dest[1]);
+	serialSendln(buffer);
+}
 
 static void strobe(uint8 addr) {
 	uint16 src[] = {addr};
 	uint16 dest[] = {0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 1, src, dest);
+	statusByte = dest[0] & 0xff;
 	char buffer[30];
-	snprintf(buffer, 30, "S 0x%02x\r\n < 0x%02x", src[0], dest[0]);
+	snprintf(buffer, 30, "S 0x%02x\r\n < 0x%02x", src[0], statusByte);
 	serialSendln(buffer);
 }
 
-static void writeRegister(uint8 addr, uint8 val) {
-	uint16 src[] = {addr, val};
-	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
-	char buffer[30];
-	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], dest[0], dest[1]);
-	serialSendln(buffer);
-	//vTaskDelay(pdMS_TO_TICKS(1));
+/**
+ * Writes values from src buffer into TX FIFO.
+ * Currently only supports complete writes (when size of data to send is <= to numBytesInFIFO).
+ * TODO: Support partial writes (write what we can first, eg, what's sent is = numBytesInFIFO, then send the rest of it later).
+ *
+ * @param src Data buffer to send
+ * @param size Size of src (number of bytes)
+ * @return 1 on successful write, 0 on failure
+ */
+static int writeToTxFIFO(const uint8 *src, uint8 size) {
+	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	if (size > numBytesInFIFO || size == 0) { return 0; }
+	/*
+	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
+	 * or update this continuously with the radio's count of FIFO_BYTES_AVAILABLE via most recent statusByte.
+	 * I.E: What is more robust: to rely on the the SPI link, or this way?
+	 */
+	uint8 idx = 0;
+	while (numBytesInFIFO >= 1 && idx + 1 <= size) {
+		writeRegister(FIFO_TX, src[idx++]);
+		numBytesInFIFO--;
+	}
+	return 1;
+}
+
+/**
+ * Reads values from RX FIFO and stores them into dest buffer from dest[0] to dest [size - 1].
+ *
+ * @param dest
+ * @param size
+ * @return 1 if all bytes in FIFO read successfully, 0 otherwise (partial read, dest is too small to fit the rest, etc)
+ */
+static int readFromRxFIFO(uint8 *dest, uint8 size) {
+	/**
+	 * Strobe a no-op to ensure statusByte contains FIFO_BYTES_AVAILABLE for the RX FIFO, otherwise statusByte may
+	 * contain the FIFO_BYTES_AVAILABLE for the TX FIFO.
+	 */
+	strobe(SNOP);
+	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	uint8 idx = 0;
+	while (numBytesInFIFO > 0 && idx + 1 <= size) {
+		dest[idx++] = readRegister(FIFO_RX);
+		numBytesInFIFO--;
+	}
+	/**
+	 * If there are no bytes left in the FIFO yet we've managed to read at least one, then all bytes have been read successfully.
+	 */
+	return (numBytesInFIFO == 0 && idx >= 1);
 }
 
 static void writeAllConfigRegisters() {
-	int i;
-	for (i = 0; i < NUM_CONFIG_REGISTERS; i++) {
-		writeRegister(SMARTRF_ADDRS[i], SMARTRF_RX_VALS[i]);
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		writeRegister(SMARTRF_ADDRS[i], SMARTRF_VALS_RX[i]);
+		i++;
 	}
 }
 
 static void readAllConfigRegisters() {
-	int i;
-	for (i = 0; i < NUM_CONFIG_REGISTERS; i++) {
-		readRegister(SMARTRF_ADDRS[i]);
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		readRegister(SMARTRF_ADDRS[i++]);
 	}
 }
 
@@ -267,23 +354,25 @@ BaseType_t initRadio() {
     spiDataConfig.DFSEL = SPI_FMT_0;
     /*
      * Encoded SPI Transfer Group Chip Select
-     * cc1125 is active-low, on CS0
+     * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
     spiDataConfig.CSNR = SPI_CS_0;
-    //spiEnableLoopback(spiREG1, Digital_Lbk);
-    //spiTransmitData(spiREG1, &spiDataConfig, blocksize, srcbuff);
 
+    strobe(SRES);
     strobe(SNOP);
     readAllStatusRegisters();
     readAllConfigRegisters();
     writeAllConfigRegisters();
     readAllConfigRegisters();
+    strobe(SIDLE);
+
+    uint8 test[] = {0, 3, 9, 27, 14};
+    writeToTxFIFO(test, 5);
+    readFromRxFIFO(test, 5);
 
 	return pdPASS;
 }
-
-
 
 BaseType_t radioCmd(char * toSend) {
 	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
