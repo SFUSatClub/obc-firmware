@@ -172,7 +172,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define FIFO_BYTES_AVAILABLE	(0b1111 << 0)	// Bits 3:0 The number of bytes available in the RX FIFO or free bytes in the TX FIFO.
 
 /**
- * Command Strobe Registers (section 29, page 67).
+ * Command Strobe Registers (section 29.0, page 67).
  */
 #define SRES	(0x30) // Reset chip.
 #define SFSTXON	(0x31) // Enable and calibrate frequency synthesizer (if MCSM0.FS_AUTOCAL=1). If in RX (with CCA): Go to a wait state where only the synthesizer is running (for quick RX / TX turnaround).
@@ -256,6 +256,14 @@ static void writeRegister(uint8 addr, uint8 val) {
 	serialSendln(buffer);
 }
 
+/**
+ * Send single byte instruction to CC1101 (section 10.4, page 32).
+ *
+ * The R/W bit of addr can be either one or zero and will determine how the FIFO_BYTES_AVAILABLE field in the status byte should be interpreted.
+ * By default, the R/W bit is not set (0), so strobes to addresses will appear as writes.
+ *
+ * @param addr The address to strobe
+ */
 static void strobe(uint8 addr) {
 	uint16 src[] = {addr};
 	uint16 dest[] = {0x00};
@@ -267,7 +275,9 @@ static void strobe(uint8 addr) {
 }
 
 /**
- * Writes values from src buffer into TX FIFO.
+ * Writes values from src buffer into TX FIFO (section 10.5, page 32).
+ *
+ * Assumes last operation was a write (header has R/W bit set to 0); that FIFO_BYTES_AVAILABLE contains number of bytes free in TX FIFO.
  * Currently only supports complete writes (when size of data to send is <= to numBytesInFIFO).
  * TODO: Support partial writes (write what we can first, eg, what's sent is = numBytesInFIFO, then send the rest of it later).
  *
@@ -277,6 +287,7 @@ static void strobe(uint8 addr) {
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
 	if (size > numBytesInFIFO || size == 0) { return 0; }
 	/*
 	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
@@ -292,18 +303,15 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 }
 
 /**
- * Reads values from RX FIFO and stores them into dest buffer from dest[0] to dest [size - 1].
+ * Reads values from RX FIFO and  them into dest buffer from dest[0] to dest [size - 1].
  *
- * @param dest
- * @param size
+ * Assumes last operation was a read (header has R/W bit set to 1); that FIFO_BYTES_AVAILABLE contains number of bytes to read from RX FIFO.
+ *
+ * @param dest Values read will be stored into this array
+ * @param size Size of dest (number of bytes)
  * @return 1 if all bytes in FIFO read successfully, 0 otherwise (partial read, dest is too small to fit the rest, etc)
  */
 static int readFromRxFIFO(uint8 *dest, uint8 size) {
-	/**
-	 * Strobe a no-op to ensure statusByte contains FIFO_BYTES_AVAILABLE for the RX FIFO, otherwise statusByte may
-	 * contain the FIFO_BYTES_AVAILABLE for the TX FIFO.
-	 */
-	strobe(SNOP);
 	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
 	uint8 idx = 0;
 	while (numBytesInFIFO > 0 && idx + 1 <= size) {
@@ -359,7 +367,6 @@ BaseType_t initRadio() {
      */
     spiDataConfig.CSNR = SPI_CS_0;
 
-    strobe(SRES);
     strobe(SNOP);
     readAllStatusRegisters();
     readAllConfigRegisters();
@@ -368,7 +375,19 @@ BaseType_t initRadio() {
     strobe(SIDLE);
 
     uint8 test[] = {0, 3, 9, 27, 14};
-    writeToTxFIFO(test, 5);
+    /**
+     * R/W bit was previously set to 0 (WRITE) from the above strobe; status byte will have FIFO_BYTES_AVAILABLE for TX FIFO, so no need for another strobe to update our status byte.
+     */
+    int i = 0;
+    for (i = 0; i < 11; i++) {
+        writeToTxFIFO(test, 5);
+        readRegister(TXBYTES);
+    }
+    /**
+     * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
+     */
+    strobe(SNOP | READ_BIT);
+    readRegister(RXBYTES);
     readFromRxFIFO(test, 5);
 
 	return pdPASS;
