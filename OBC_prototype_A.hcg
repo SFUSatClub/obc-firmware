@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SETTINGS>
+  <DEVICE>
+    <family>TMS570LS09x_07x</family>
+    <device>TMS570LS0714PGE</device>
+    <dilfile>OBC_prototype_A.dil</dilfile>
+    <tools>ti</tools>
+  </DEVICE>
+  <VERSION>
+    <version>04.06.00</version>
+  </VERSION>
+  <HET1>
+    <FILENAME>
+      <HET1ASMHDR>
+        <NAME/>
+      </HET1ASMHDR>
+      <HET1ASMSRC>
+        <NAME/>
+      </HET1ASMSRC>
+    </FILENAME>
+  </HET1>
+  <HET2>
+    <FILENAME>
+      <HET2ASMHDR>
+        <NAME/>
+      </HET2ASMHDR>
+      <HET2ASMSRC>
+        <NAME/>
+      </HET2ASMSRC>
+    </FILENAME>
+  </HET2>
+</SETTINGS>
