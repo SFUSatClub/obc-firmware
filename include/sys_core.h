@@ -137,6 +137,11 @@ void _gotoCPUIdle_(void);
 */
 void _coreEnableIrqVicOffset_(void);
 
+/** @fn void _coreEnableVfp_(void)
+*   @brief Enable vector floating point unit
+*/
+void _coreEnableVfp_(void);
+
 /** @fn void _coreEnableEventBusExport_(void)
 *   @brief Enable event bus export for external monitoring modules
 *   @note It is required to enable event bus export to process ecc issues.
@@ -337,6 +342,14 @@ void _esmCcmErrorsClear_(void);
 *   instructions in Auxiliary Control register.
 */
 void _errata_CORTEXR4_66_(void);
+
+/** @fn void _errata_CORTEXR4_57_(void)
+*   @brief Work Around for Errata CORTEX-R4#57
+*
+*   Disable out-of-order single-precision floating point  
+*   multiply-accumulate instruction completion.
+*/
+void _errata_CORTEXR4_57_(void);
 
 #ifdef __cplusplus
 }

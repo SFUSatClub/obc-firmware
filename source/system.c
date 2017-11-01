@@ -77,7 +77,7 @@ void setupPLL(void)
 /* USER CODE BEGIN (3) */
 /* USER CODE END */
 
-    /* Disable PLL1 and PLL2 */
+    /* Disable PLL1 */
     systemREG1->CSDISSET = 0x00000002U;
     /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
     while((systemREG1->CSDIS & 0x2U) != 0x2U)
@@ -143,14 +143,14 @@ void trimLPO(void)
     {
 
         systemREG1->LPOMONCTL  = (uint32)((uint32)1U << 24U)
-                                | (uint32)LPO_TRIM_VALUE;
+                                | LPO_TRIM_VALUE;
     }
     else
     {
 
         systemREG1->LPOMONCTL   =  (uint32)((uint32)1U << 24U)
                                  | (uint32)((uint32)16U << 8U)
-                                 | (uint32)16U;
+                                 | 16U;
     }
 
 /* USER CODE BEGIN (5) */
@@ -169,20 +169,20 @@ void setupFlash(void)
 
     /** - Setup flash read mode, address wait states and data wait states */
     flashWREG->FRDCNTL =  0x00000000U
-                       | (uint32)((uint32)1U << 8U)
-                       | (uint32)((uint32)0U << 4U)
-                       | (uint32)1U;
+                       | (uint32)((uint32)3U << 8U)
+                       | (uint32)((uint32)1U << 4U)
+                       |  1U;
 
     /** - Setup flash access wait states for bank 7 */
     FSM_WR_ENA_HL    = 0x5U;
     EEPROM_CONFIG_HL = 0x00000002U
-                     | (uint32)((uint32)3U << 16U) ;
+                     | (uint32)((uint32)9U << 16U) ;
 
 /* USER CODE BEGIN (7) */
 /* USER CODE END */
 
     /** - Disable write access to flash state machine registers */
-    FSM_WR_ENA_HL = 0xAU;
+    FSM_WR_ENA_HL    = 0xAU;
 
     /** - Setup flash bank power modes */
     flashWREG->FBFALLBACK = 0x00000000U
@@ -233,11 +233,12 @@ void mapClocks(void)
 
     /** @b Initialize @b Clock @b Tree: */
     /** - Disable / Enable clock domain */
-    systemREG1->CDDIS = (uint32)((uint32)0U << 4U ) /* AVCLK1, 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)1U << 5U ) /* AVCLK2, 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 8U ) /* VCLK3, 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 10U) /* AVCLK3, 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 11U); /* AVCLK4, 1 - OFF, 0 - ON */
+    systemREG1->CDDIS = (uint32)((uint32)0U << 4U ) /* AVCLK1 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)0U << 5U ) /* AVCLK2 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)0U << 8U ) /* VCLK3 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)0U << 9U ) /* VCLK4 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)1U << 10U) /* AVCLK3 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)0U << 11U); /* AVCLK4 , 1 - OFF, 0 - ON */
 
 
     /* Work Around for Errata SYS#46:
@@ -272,7 +273,7 @@ void mapClocks(void)
     /** - Setup RTICLK1 and RTICLK2 clocks */
     systemREG1->RCLKSRC = (uint32)((uint32)1U << 24U)
                         | (uint32)((uint32)SYS_VCLK << 16U)
-                        | (uint32)((uint32)1U << 8U)
+                        | (uint32)((uint32)3U << 8U)
                         | (uint32)((uint32)SYS_VCLK << 0U);
 
     /** - Setup asynchronous peripheral clock sources for AVCLK1 and AVCLK2 */
@@ -281,18 +282,21 @@ void mapClocks(void)
 
     /** - Setup synchronous peripheral clock dividers for VCLK1, VCLK2, VCLK3 */
     systemREG1->CLKCNTL  = (systemREG1->CLKCNTL & 0xF0FFFFFFU)
-                         | (uint32)((uint32)0U << 24U);
+                         | (uint32)((uint32)1U << 24U);
     systemREG1->CLKCNTL  = (systemREG1->CLKCNTL & 0xFFF0FFFFU)
-                         | (uint32)((uint32)0U << 16U);
+                         | (uint32)((uint32)1U << 16U);
+
+    systemREG2->CLK2CNTL = (systemREG2->CLK2CNTL & 0xFFFFF0FFU)
+                         | (uint32)((uint32)1U << 8U);
 
 /* USER CODE BEGIN (13) */
 /* USER CODE END */
 
     /* Now the PLLs are locked and the PLL outputs can be sped up */
     /* The R-divider was programmed to be 0xF. Now this divider is changed to programmed value */
-    systemREG1->PLLCTL1 = (systemREG1->PLLCTL1 & 0xE0FFFFFFU) | (uint32)((uint32)(2U - 1U) << 24U);
+    systemREG1->PLLCTL1 = (systemREG1->PLLCTL1 & 0xE0FFFFFFU) | (uint32)((uint32)(1U - 1U) << 24U);
 
-    /* Enable Frequency modulation */
+    /* Enable/Disable Frequency modulation */
     systemREG1->PLLCTL2 |= 0x00000000U;
 
 /* USER CODE BEGIN (14) */
@@ -378,7 +382,6 @@ void systemInit(void)
 
     /** - Configure the LPO such that HF LPO is as close to 10MHz as possible */
     trimLPO();
-
 
 
 /* USER CODE BEGIN (23) */
@@ -499,6 +502,7 @@ void systemGetConfigValue(system_config_reg_t *config_reg, config_value_type_t t
         config_reg->CONFIG_SYSECR = SYS_SYSECR_CONFIGVALUE;
 
         config_reg->CONFIG_STCCLKDIV = SYS2_STCCLKDIV_CONFIGVALUE;
+        config_reg->CONFIG_CLK2CNTL = SYS2_CLK2CNTL_CONFIGVALUE;
         config_reg->CONFIG_CLKSLIP = SYS2_CLKSLIP_CONFIGVALUE;
         config_reg->CONFIG_EFC_CTLEN = SYS2_EFC_CTLEN_CONFIGVALUE;
     }
@@ -534,8 +538,8 @@ void systemGetConfigValue(system_config_reg_t *config_reg, config_value_type_t t
         config_reg->CONFIG_DEVCR1 = systemREG1->DEVCR1;
         config_reg->CONFIG_SYSECR = systemREG1->SYSECR;
 
-        /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
         config_reg->CONFIG_STCCLKDIV = systemREG2->STCCLKDIV;
+        config_reg->CONFIG_CLK2CNTL = systemREG2->CLK2CNTL;
         config_reg->CONFIG_CLKSLIP = systemREG2->CLKSLIP;
         config_reg->CONFIG_EFC_CTLEN = systemREG2->EFC_CTLEN;
     }

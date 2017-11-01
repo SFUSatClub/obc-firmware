@@ -690,11 +690,11 @@ typedef struct esm_config_reg
 
 /* Configuration registers initial value */
 #define ESM_EEPAPR1_CONFIGVALUE	((uint32)((uint32)0U << 31U)\
-                               | (uint32)((uint32)1U << 30U)\
+                               | (uint32)((uint32)0U << 30U)\
                                | (uint32)((uint32)0U << 29U)\
-                               | (uint32)((uint32)1U << 28U)\
-                               | (uint32)((uint32)1U << 27U)\
-                               | (uint32)((uint32)1U << 26U)\
+                               | (uint32)((uint32)0U << 28U)\
+                               | (uint32)((uint32)0U << 27U)\
+                               | (uint32)((uint32)0U << 26U)\
                                | (uint32)((uint32)0U << 25U)\
                                | (uint32)((uint32)0U << 24U)\
                                | (uint32)((uint32)0U << 23U)\
@@ -703,14 +703,14 @@ typedef struct esm_config_reg
                                | (uint32)((uint32)0U << 20U)\
                                | (uint32)((uint32)0U << 19U)\
                                | (uint32)((uint32)0U << 18U)\
-                               | (uint32)((uint32)1U << 17U)\
+                               | (uint32)((uint32)0U << 17U)\
                                | (uint32)((uint32)0U << 16U)\
-                               | (uint32)((uint32)1U << 15U)\
+                               | (uint32)((uint32)0U << 15U)\
                                | (uint32)((uint32)0U << 14U)\
                                | (uint32)((uint32)0U << 13U)\
                                | (uint32)((uint32)0U << 12U)\
                                | (uint32)((uint32)0U << 11U)\
-                               | (uint32)((uint32)1U << 10U)\
+                               | (uint32)((uint32)0U << 10U)\
                                | (uint32)((uint32)0U <<  9U)\
                                | (uint32)((uint32)0U <<  8U)\
                                | (uint32)((uint32)0U <<  7U)\

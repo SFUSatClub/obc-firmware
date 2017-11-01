@@ -120,6 +120,13 @@ typedef volatile struct gioPort
 */
 #define gioPORTA ((gioPORT_t *)0xFFF7BC34U)
 
+/** @def gioPORTB
+*   @brief GIO Port (B) Register Pointer
+*
+*   Pointer used by the GIO driver to access PORTB
+*/
+#define gioPORTB ((gioPORT_t *)0xFFF7BC54U)
+
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
 

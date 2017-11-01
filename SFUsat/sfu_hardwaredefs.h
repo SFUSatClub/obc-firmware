@@ -14,7 +14,45 @@
 #include "spi.h"
 #include "mibspi.h"
 
+// --------------------- SETTINGS FOR PROTOTYPE A ---------------------------
+#if SFUSAT_BOARD == 1
+//  ---------------  RTC Defines --------------------
+#define RTC_CS_PORT gioPORTA
+#define RTC_CS_PIN 1
+#define RTC_SPI_REG spiREG2
+// RTC SPI Config (set in rtcInit())
+#define RTC_CONFIG_CS_HOLD 0 //CS false = high during data transfer
+#define RTC_CONFIG_WDEL 1 // wdelay
+#define RTC_CONFIG_DFSEL SPI_FMT_0 // data format
+#define RTC_CONFIG_CSNR 0x00 // chip select to use
 
+// ---------------- General Functionality ------------------
+#define DEBUG_LED_PORT gioPORTA
+#define DEBUG_LED_PIN 6
+
+#define WATCHDOG_TICKLE_PORT gioPORTA
+#define WATCHDOG_TICKLE_PIN 7
+
+#define DEMO_ADC_REG adcREG1
+#define DEMO_ADC_PIN 1
+
+#define UART_PORT sciREG
+
+
+// ----------------- Radio -------------------------
+#define TASK_RADIO_REG spiREG3
+
+//----------------- FLASH --------------------
+#define FLASH_MIBSPI_REG mibspiREG1
+#define FLASH_DATA_FORMAT 0
+#define FLASH0_TRANSFER_GROUP 0
+#define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
+#define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
+#define FLASH_TWENTY 3 // TG 20 byte length
+#endif
+
+// --------------------- SETTINGS FOR LAUNCHPAD ---------------------------
+#if SFUSAT_BOARD == 0
 //  ---------------  RTC Defines --------------------
 #define RTC_CS_PORT gioPORTA
 #define RTC_CS_PIN 1
@@ -35,17 +73,21 @@
 #define DEMO_ADC_REG adcREG1
 #define DEMO_ADC_PIN 1
 
-// ----------------- Radio -------------------------
+#define UART_PORT scilinREG
 
+// ----------------- Radio -------------------------
 #define TASK_RADIO_REG spiREG3
 
 //----------------- FLASH --------------------
-
 #define FLASH_MIBSPI_REG mibspiREG1
 #define FLASH_DATA_FORMAT 0
 #define FLASH0_TRANSFER_GROUP 0
 #define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
 #define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
 #define FLASH_TWENTY 3 // TG 20 byte length
+#endif
+
+
+
 #endif
 

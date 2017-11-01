@@ -149,6 +149,13 @@ typedef volatile struct canBase
 */
 #define canREG2 ((canBASE_t *)0xFFF7DE00U)
 
+/** @def canREG3
+*   @brief CAN3 Register Frame Pointer
+*
+*   This pointer is used by the CAN driver to access the CAN3 registers.
+*/
+#define canREG3 ((canBASE_t *)0xFFF7E000U)
+
 /** @def canRAM1
 *   @brief CAN1 Mailbox RAM Pointer
 *
@@ -162,6 +169,13 @@ typedef volatile struct canBase
 *   This pointer is used by the CAN driver to access the CAN2 RAM.
 */
 #define canRAM2 (*(volatile uint32 *)0xFF1C0000U)
+
+/** @def canRAM3
+*   @brief CAN3 Mailbox RAM Pointer
+*
+*   This pointer is used by the CAN driver to access the CAN3 RAM.
+*/
+#define canRAM3 (*(volatile uint32 *)0xFF1A0000U)
 
 /** @def canPARRAM1
 *   @brief CAN1 Mailbox Parity RAM Pointer
@@ -178,6 +192,14 @@ typedef volatile struct canBase
 *   for testing RAM parity error detect logic.
 */
 #define canPARRAM2 (*(volatile uint32 *)(0xFF1C0000U + 0x10U))
+
+/** @def canPARRAM3
+*   @brief CAN3 Mailbox Parity RAM Pointer
+*
+*   This pointer is used by the CAN driver to access the CAN3 Parity RAM
+*   for testing RAM parity error detect logic.
+*/
+#define canPARRAM3 (*(volatile uint32 *)(0xFF1A0000U + 0x10U))
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

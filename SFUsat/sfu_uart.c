@@ -8,12 +8,13 @@
 
 #include "sfu_uart.h"
 #include "sfu_task_radio.h"
+#include "sfu_hardwaredefs.h"
 
 unsigned char currChar = '\0';
 
 void serialInit(){
     sciInit(); //initialize the SCI driver
-    sciReceive(scilinREG, 1, &currChar); // place into receive mode
+    sciReceive(UART_PORT, 1, &currChar); // place into receive mode
 }
 
 BaseType_t serialSendQ(const char * toSend) {
@@ -32,19 +33,19 @@ BaseType_t serialSendQFromISR(char * toSend) {
 }
 
 void serialSendCh(char charToSend) {
-	sciSend(scilinREG, 1, (unsigned char *)&charToSend);
-	sciReceive(scilinREG, 1, &currChar);
+	sciSend(UART_PORT, 1, (unsigned char *)&charToSend);
+	sciReceive(UART_PORT, 1, &currChar);
 }
 void serialSend(char* stringToSend) {
-	sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
-	sciReceive(scilinREG, 1, &currChar);
+	sciSend(UART_PORT, strlen(stringToSend), (unsigned char *)stringToSend);
+	sciReceive(UART_PORT, 1, &currChar);
 }
 
 void serialSendln(const char* stringToSend){
-    sciSend(scilinREG, strlen(stringToSend), (unsigned char *)stringToSend);
-    sciSend(scilinREG, 2, "\r\n");
+    sciSend(UART_PORT, strlen(stringToSend), (unsigned char *)stringToSend);
+    sciSend(UART_PORT, 2, "\r\n");
 
-    sciReceive(scilinREG, 1, &currChar);
+    sciReceive(UART_PORT, 1, &currChar);
 }
 
 
@@ -52,6 +53,6 @@ void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt h
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    sciReceive(scilinREG, 1, &currChar); // go back into receive mode
+    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
 }
 

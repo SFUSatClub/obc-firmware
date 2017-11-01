@@ -12,7 +12,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -170,6 +170,31 @@ typedef volatile struct het1RamBase
 
 #define NHET1RAMPARLOC	(*(volatile uint32 *)0xFF462000U)
 #define NHET1RAMLOC		(*(volatile uint32 *)0xFF460000U)
+
+/** @def hetREG2
+*   @brief HET2 Register Frame Pointer
+*
+*   This pointer is used by the HET driver to access the het module registers.
+*/
+#define hetREG2 ((hetBASE_t *)0xFFF7B900U)
+
+/** @def hetPORT2
+*   @brief HET2 GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of HET2
+*   (use the GIO drivers to access the port pins).
+*/
+#define hetPORT2 ((gioPORT_t *)0xFFF7B94CU)
+
+/** @def hetRAM2
+*   @brief NHET1 RAM Pointer
+*
+*   This pointer is used by the HET driver to access the NHET2 memory.
+*/
+#define hetRAM2 ((hetRAMBASE_t *)0xFF440000U)
+
+#define NHET2RAMPARLOC	(*(volatile uint32 *)0xFF442000U)
+#define NHET2RAMLOC		(*(volatile uint32 *)0xFF440000U)
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

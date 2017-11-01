@@ -2,7 +2,7 @@
 *   @brief GIO Driver Definition File
 *   @date 07-July-2017
 *   @version 04.07.00
-*   
+*
 */
 
 /* 
@@ -58,15 +58,19 @@ typedef struct gio_config_reg
     uint32 CONFIG_POL;
     uint32 CONFIG_INTENASET;
     uint32 CONFIG_LVLSET;
-	
+
 	uint32 CONFIG_PORTADIR;
 	uint32 CONFIG_PORTAPDR;
 	uint32 CONFIG_PORTAPSL;
 	uint32 CONFIG_PORTAPULDIS;
 
+	uint32 CONFIG_PORTBDIR;
+	uint32 CONFIG_PORTBPDR;
+	uint32 CONFIG_PORTBPSL;
+	uint32 CONFIG_PORTBPULDIS;
 }gio_config_reg_t;
 
-#define GIO_INTDET_CONFIGVALUE		0U
+#define GIO_INTDET_CONFIGVALUE    0U
 #define GIO_POL_CONFIGVALUE	      ((uint32)((uint32)0U << 0U) \
 								 | (uint32)((uint32)0U << 1U) \
 								 | (uint32)((uint32)0U << 2U) \
@@ -74,7 +78,16 @@ typedef struct gio_config_reg
 								 | (uint32)((uint32)0U << 4U) \
 								 | (uint32)((uint32)0U << 5U) \
 								 | (uint32)((uint32)0U << 6U) \
-								 | (uint32)((uint32)0U << 7U))
+								 | (uint32)((uint32)0U << 7U) \
+								 | (uint32)((uint32)0U << 8U) \
+								 | (uint32)((uint32)0U << 9U) \
+								 | (uint32)((uint32)0U << 10U)\
+								 | (uint32)((uint32)0U << 11U)\
+								 | (uint32)((uint32)0U << 12U)\
+								 | (uint32)((uint32)0U << 13U)\
+								 | (uint32)((uint32)0U << 14U)\
+								 | (uint32)((uint32)0U << 15U))
+
 
 #define GIO_INTENASET_CONFIGVALUE ((uint32)((uint32)0U << 0U) \
 							     | (uint32)((uint32)0U << 1U) \
@@ -83,7 +96,15 @@ typedef struct gio_config_reg
 							     | (uint32)((uint32)0U << 4U) \
 							     | (uint32)((uint32)0U << 5U) \
 							     | (uint32)((uint32)0U << 6U) \
-							     | (uint32)((uint32)0U << 7U))
+							     | (uint32)((uint32)0U << 7U) \
+								 | (uint32)((uint32)0U << 8U) \
+								 | (uint32)((uint32)0U << 9U) \
+								 | (uint32)((uint32)0U << 10U)\
+								 | (uint32)((uint32)0U << 11U)\
+								 | (uint32)((uint32)0U << 12U)\
+								 | (uint32)((uint32)0U << 13U)\
+								 | (uint32)((uint32)0U << 14U)\
+								 | (uint32)((uint32)0U << 15U))
 
 #define GIO_LVLSET_CONFIGVALUE    ((uint32)((uint32)0U << 0U) \
 								 | (uint32)((uint32)0U << 1U) \
@@ -92,14 +113,28 @@ typedef struct gio_config_reg
 								 | (uint32)((uint32)0U << 4U) \
 								 | (uint32)((uint32)0U << 5U) \
 								 | (uint32)((uint32)0U << 6U) \
-								 | (uint32)((uint32)0U << 7U))
-				                                                  
-#define GIO_PORTADIR_CONFIGVALUE	((uint32)((uint32)1U << 0U) | (uint32)((uint32)1U << 1U) | (uint32)((uint32)1U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)1U << 7U))
+								 | (uint32)((uint32)0U << 7U) \
+								 | (uint32)((uint32)0U << 8U) \
+								 | (uint32)((uint32)0U << 9U) \
+								 | (uint32)((uint32)0U << 10U)\
+								 | (uint32)((uint32)0U << 11U)\
+								 | (uint32)((uint32)0U << 12U)\
+								 | (uint32)((uint32)0U << 13U)\
+								 | (uint32)((uint32)0U << 14U)\
+								 | (uint32)((uint32)0U << 15U))
+
+#define GIO_PORTADIR_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)1U << 6U) | (uint32)((uint32)0U << 7U))
 #define GIO_PORTAPDR_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
-#define GIO_PORTAPSL_CONFIGVALUE	((uint32)((uint32)1U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
+#define GIO_PORTAPSL_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
 #define GIO_PORTAPULDIS_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) |(uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
 
-/** 
+#define GIO_PORTBDIR_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
+#define GIO_PORTBPDR_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
+#define GIO_PORTBPSL_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
+#define GIO_PORTBPULDIS_CONFIGVALUE	((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) |(uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) | (uint32)((uint32)0U << 6U) | (uint32)((uint32)0U << 7U))
+
+
+/**
  *  @defgroup GIO GIO
  *  @brief General-Purpose Input/Output Module.
  *

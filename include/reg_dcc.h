@@ -89,6 +89,13 @@ typedef volatile struct dccBase
 #define dccREG1   ((dccBASE_t *)0xFFFFEC00U)
 
 
+/** @def dccREG2
+*   @brief DCC2 Register Frame Pointer
+*
+*   This pointer is used by the DCC driver to access the dcc2 module registers.
+*/
+#define dccREG2   ((dccBASE_t *)0xFFFFF400U)
+
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
 

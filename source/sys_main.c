@@ -107,13 +107,17 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-//	_enable_IRQ(); // global interrupt enable
+	_enable_IRQ(); // global interrupt enable
+
+
 
     _enable_interrupt_();
-	gioInit();
 
 	serialInit();
 
+	gioInit();
+
+	serialSendln("Sup");
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
 
 	// TODO: encapsulate these

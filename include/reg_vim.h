@@ -11,7 +11,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -98,7 +98,7 @@ typedef volatile struct vimBase
     uint32      FIQVECREG;        /* 0x0074       */
     uint32      CAPEVT;           /* 0x0078       */	
     uint32        rsvd3;          /* 0x007C       */
-    uint32      CHANCTRL[24U];    /* 0x0080-0x0DC */
+    uint32      CHANCTRL[32U];    /* 0x0080-0x0FC */
 } vimBASE_t;
 
 #define vimREG ((vimBASE_t *)0xFFFFFE00U)

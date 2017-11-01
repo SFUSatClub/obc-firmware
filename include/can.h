@@ -629,6 +629,7 @@ typedef struct can_config_reg
 } can_config_reg_t;
 
 
+
 /** 
  *  @defgroup CAN CAN
  *  @brief Controller Area Network Module.

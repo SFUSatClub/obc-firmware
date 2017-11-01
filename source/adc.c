@@ -106,7 +106,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup event group sample window */
-    adcREG1->EVSAMP = 0U;
+    adcREG1->EVSAMP = 1U;
 
     /** - Setup event group sample discharge 
     *     - Setup discharge prescaler
@@ -121,7 +121,7 @@ void adcInit(void)
     *     - Enable/Disable continuous conversion
     */
     adcREG1->GxMODECR[1U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000020U
+                          | (uint32)0x00000000U
                           | (uint32)0x00000000U
                           | (uint32)0x00000000U;
 
@@ -133,7 +133,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup group 1 sample window */
-    adcREG1->G1SAMP = 0U;
+    adcREG1->G1SAMP = 1U;
 
     /** - Setup group 1 sample discharge 
     *     - Setup discharge prescaler
@@ -160,7 +160,7 @@ void adcInit(void)
                    | (uint32)ADC1_EVENT;
 
     /** - Setup group 2 sample window */
-    adcREG1->G2SAMP = 0U;
+    adcREG1->G2SAMP = 1U;
 
     /** - Setup group 2 sample discharge 
     *     - Setup discharge prescaler
@@ -197,7 +197,6 @@ void adcInit(void)
     adcREG1->PARCR = 0x00000005U;
 
 
-
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
 }
@@ -206,9 +205,8 @@ void adcInit(void)
 /* USER CODE END */
 
 
-
 /** - s_adcSelect is used as constant table for channel selection */
-static const uint32 s_adcSelect[1U][3U] =
+static const uint32 s_adcSelect[2U][3U] =
 {
     {0x00000000U |
     0x00000000U |
@@ -243,7 +241,7 @@ static const uint32 s_adcSelect[1U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U |
-    0x00000200U |
+    0x00000000U |
     0x00000000U |
     0x00000000U |
     0x00000000U |
@@ -281,14 +279,65 @@ static const uint32 s_adcSelect[1U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U |
+    0x00000000U},
+    {0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U ,
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U,
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
+    0x00000000U |
     0x00000000U}
 };
 
 /** - s_adcFiFoSize is used as constant table for channel selection */
-static const uint32 s_adcFiFoSize[1U][3U] =
+static const uint32 s_adcFiFoSize[2U][3U] =
 {
     {16U,
-    1U,
+    16U,
+    16U},
+    {16U,
+    16U,
     16U}
 };
 
@@ -299,6 +348,7 @@ static const uint32 s_adcFiFoSize[1U][3U] =
 *   @brief Starts an ADC conversion
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -312,14 +362,16 @@ static const uint32 s_adcFiFoSize[1U][3U] =
 /* Requirements : HL_SR186 */
 void adcStartConversion(adcBASE_t *adc, uint32 group)
 {
+    uint32 index = (adc == adcREG1) ? 0U : 1U;
+
 /* USER CODE BEGIN (7) */
 /* USER CODE END */
 
     /** - Setup FiFo size */
-    adc->GxINTCR[group] = s_adcFiFoSize[0U][group];
+    adc->GxINTCR[group] = s_adcFiFoSize[index][group];
 
     /** - Start Conversion */
-    adc->GxSEL[group] = s_adcSelect[0U][group];
+    adc->GxSEL[group] = s_adcSelect[index][group];
 
     /**   @note The function adcInit has to be called before this function can be used. */
 
@@ -335,7 +387,7 @@ void adcStartConversion(adcBASE_t *adc, uint32 group)
 *   @brief Stops an ADC conversion
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
-
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -369,6 +421,7 @@ void adcStopConversion(adcBASE_t *adc, uint32 group)
 *   @brief Resets FiFo read and write pointer.
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -400,11 +453,11 @@ void adcResetFiFo(adcBASE_t *adc, uint32 group)
 /* USER CODE END */
 
 
-/** @fn uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
+/** @fn uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t * data)
 *   @brief Gets converted a ADC values
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
-
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -418,14 +471,15 @@ void adcResetFiFo(adcBASE_t *adc, uint32 group)
 /* SourceId : ADC_SourceId_005 */
 /* DesignId : ADC_DesignId_005 */
 /* Requirements : HL_SR189 */
-uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
+uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t * data)
 {
     uint32  i;
     uint32  buf;
     uint32  mode;    
+    uint32  index = (adc == adcREG1) ? 0U : 1U;
+
 	uint32  intcr_reg = adc->GxINTCR[group];
-	
-    uint32  count = (intcr_reg >= 256U) ? s_adcFiFoSize[0U][group] : (s_adcFiFoSize[0U][group] - (uint32)(intcr_reg & 0xFFU));
+    uint32  count = (intcr_reg >= 256U) ? s_adcFiFoSize[index][group] : (s_adcFiFoSize[index][group] - (uint32)(intcr_reg & 0xFFU));
     adcData_t *ptr = data; 
 
 /* USER CODE BEGIN (16) */
@@ -442,8 +496,8 @@ uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
 		  /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
           ptr->value = (uint16)(buf & 0xFFFU);
           ptr->id    = (uint32)((buf >> 16U) & 0x1FU);
-		  /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer operation required." */		  
-          ptr++;
+          /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+		  ptr++;
         }
       }
       else
@@ -455,8 +509,8 @@ uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
 		  /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
           ptr->value = (uint16)(buf & 0x3FFU);
           ptr->id    = (uint32)((buf >> 10U) & 0x1FU);
-		  /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer operation required." */		  
-          ptr++;
+          /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+		  ptr++;
         }
       }
 
@@ -481,6 +535,7 @@ uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
 *   @brief Checks if FiFo buffer is full
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -488,7 +543,7 @@ uint32 adcGetData(adcBASE_t *adc, uint32 group, adcData_t *data)
 *   @return The function will return:
 *           - 0: When FiFo buffer is not full   
 *           - 1: When FiFo buffer is full   
-*           - 3: When FiFo buffer overflow occured    
+*           - 3: When FiFo buffer overflow occurred    
 *
 *   This function checks FiFo buffer status.
 *
@@ -522,7 +577,7 @@ uint32 adcIsFifoFull(adcBASE_t *adc, uint32 group)
 *   @brief Checks if Conversion is complete
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
-
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -562,6 +617,7 @@ uint32 adcIsConversionComplete(adcBASE_t *adc, uint32 group)
 *   @brief Computes offset error using Calibration mode
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   This function computes offset error using Calibration mode
 *
 */
@@ -663,7 +719,9 @@ void adcCalibration(adcBASE_t *adc)
 *   @brief Computes offset error using Mid Point Calibration mode
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *	@return This function will return offset error using Mid Point Calibration mode
+*
 *   This function computes offset error using Mid Point Calibration mode
 *
 */
@@ -763,6 +821,7 @@ uint32 adcMidPointCalibration(adcBASE_t *adc)
 *   @brief Enable notification
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -801,6 +860,7 @@ void adcEnableNotification(adcBASE_t *adc, uint32 group)
 *   @brief Disable notification
 *   @param[in] adc Pointer to ADC module:
 *              - adcREG1: ADC1 module pointer
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group Hardware group of ADC module:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -917,11 +977,13 @@ void adc1GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type)
         config_reg->CONFIG_PARCR = adcREG1->PARCR;
 	}
 }
+
+
 /* USER CODE BEGIN (35) */
 /* USER CODE END */
 
 
 
 
-/* USER CODE BEGIN (44) */
-/* USER CODE END */
+
+

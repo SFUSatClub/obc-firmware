@@ -165,14 +165,19 @@ typedef volatile struct systemBase2
     uint32   rsvd1;        /* 0x0000 */
     uint32   rsvd2;        /* 0x0004 */
     uint32 STCCLKDIV;      /* 0x0008 */
-    uint32   rsvd3[25U];   /* 0x000C */
-    uint32  CLKSLIP;       /* 0x0070 */
-    uint32  rsvd7[30U];    /* 0x0074 */
-    uint32  EFC_CTLEN;     /* 0x00EC */
-    uint32  DIEIDL_REG0;   /* 0x00F0 */
-    uint32  DIEIDH_REG1;   /* 0x00F4 */
-    uint32  DIEIDL_REG2;   /* 0x00F8 */
-    uint32  DIEIDH_REG3;   /* 0x00FC */
+    uint32  rsvd3[6U];     /* 0x000C */
+    uint32 ECPCNTRL0;      /* 0x0024 */
+    uint32  rsvd4[5U];     /* 0x0028 */
+    uint32 CLK2CNTL;       /* 0x003C */	
+    uint32  rsvd6;         /* 0x0040 */
+    uint32  rsvd7[11U];    /* 0x0044 */
+    uint32 CLKSLIP;        /* 0x0070 */
+    uint32  rsvd8[30U];    /* 0x0074 */
+    uint32 EFC_CTLEN;      /* 0x00EC */
+    uint32 DIEIDL_REG0;    /* 0x00F0 */
+    uint32 DIEIDH_REG1;    /* 0x00F4 */
+    uint32 DIEIDL_REG2;    /* 0x00F8 */
+    uint32 DIEIDH_REG3;    /* 0x00FC */
 } systemBASE2_t;
 
 /** @def systemREG2
