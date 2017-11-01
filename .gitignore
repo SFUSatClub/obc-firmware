@@ -4,3 +4,5 @@ Release/
 .metadata
 .DS_Store
 **/.launch
+
+\.launches/

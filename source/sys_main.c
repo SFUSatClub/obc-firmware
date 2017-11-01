@@ -126,7 +126,7 @@ int main(void)
 
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 
-	rtcInit();
+//	rtcInit();
 
     _enable_interrupt_();
 
