@@ -220,6 +220,7 @@ static spiDAT1_t spiDataConfig;
 
 QueueHandle_t xRadioTXQueue;
 QueueHandle_t xRadioRXQueue;
+QueueHandle_t xRadioCHIMEQueue;
 
 static uint8 statusByte;
 
@@ -234,6 +235,32 @@ void vRadioTask(void *pvParameters) {
 		initRadio();
 	}
 }
+
+// TX task
+void vRadioTX(void *pvParameters) {
+	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	initRadio(); // required?
+
+	// how does pvparameters work?
+	uint8 txsize;
+	uint8 txsrc[];
+	if !(writeToTxFIFO(txsrc, txsize)){
+		//error
+	}
+}
+
+// RX task
+void vRadioRX(void *pvParameters){
+	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	initRadio(); // required?
+}
+
+// CHIME task
+void vRadioCHIME(void *pvParameters){
+	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));s
+	initRadio(); // required?
+}
+
 
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
