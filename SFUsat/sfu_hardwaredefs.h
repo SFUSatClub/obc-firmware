@@ -17,9 +17,9 @@
 // --------------------- SETTINGS FOR PROTOTYPE A ---------------------------
 #if SFUSAT_BOARD == 1
 //  ---------------  RTC Defines --------------------
-#define RTC_CS_PORT gioPORTA
-#define RTC_CS_PIN 1
-#define RTC_SPI_REG spiREG2
+#define RTC_CS_PORT spiPORT4
+#define RTC_CS_PIN 0
+#define RTC_SPI_REG spiREG4
 // RTC SPI Config (set in rtcInit())
 #define RTC_CONFIG_CS_HOLD 0 //CS false = high during data transfer
 #define RTC_CONFIG_WDEL 1 // wdelay

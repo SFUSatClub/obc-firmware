@@ -108,9 +108,6 @@ int main(void)
 {
 /* USER CODE BEGIN (3) */
 	_enable_IRQ(); // global interrupt enable
-
-
-
     _enable_interrupt_();
 
 	serialInit();
@@ -121,36 +118,41 @@ int main(void)
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
 
 	// TODO: encapsulate these
-//	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
-	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
+//	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
+//	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-	spi_init();
-	adcInit();
+//	spi_init();
+//	adcInit();
 
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 
 //	rtcInit();
+//	uint32_t mytime;
+//	mytime = getCurrentRTCTime();
 
-    _enable_interrupt_();
+//    flash_mibspi_init();
 
-    flash_mibspi_init();
+//    simpleWatchdog();
+//    triumf_init();
 
-    simpleWatchdog();
-    triumf_init();
+//	stateMachineInit(); // we start in SAFE mode
+//	printStartupType();
 
-	stateMachineInit(); // we start in SAFE mode
+//	if(flash_test_JEDEC()){
+//		serialSendln("Passed flash JEDEC test!");
+//	}
 
-	printStartupType();
-
-	if(flash_test_JEDEC()){
-		serialSendln("Passed flash JEDEC test!");
-	}
-
-	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
+//	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
     xFlashMutex = xSemaphoreCreateMutex();
     xRTCMutex = xSemaphoreCreateMutex();
 
+	xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
+			"blinky",/* Text name for the task. This is to facilitate debugging only. */
+			configMINIMAL_STACK_SIZE, /* Stack depth - small microcontrollers will use much less stack than this. */
+			NULL, /* This example does not use the task parameter. */
+			BLINKY_TASK_DEFAULT_PRIORITY, /* This task will run at priority 1. */
+			&xBlinkyTaskHandle );
 
 //	serialSendQ("created queue");
 //	/* Create two instances of the task that will send to the queue. The task
