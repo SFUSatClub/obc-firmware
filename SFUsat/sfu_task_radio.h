@@ -14,6 +14,7 @@
 
 void vRadioTask( void *pvParameters );
 BaseType_t initRadio();
+static int writeToTxFIFO(const uint8 *src, uint8 size);
 
 extern QueueHandle_t xRadioTXQueue;
 extern QueueHandle_t xRadioRXQueue;

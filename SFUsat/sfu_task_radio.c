@@ -242,11 +242,9 @@ void vRadioTX(void *pvParameters) {
 	initRadio(); // required?
 
 	// how does pvparameters work?
-	uint8 txsize;
-	uint8 txsrc[];
-	if !(writeToTxFIFO(txsrc, txsize)){
-		//error
-	}
+	uint8 txsize = 10;
+	uint8 txsrc[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	writeToTxFIFO(txsrc, txsize);
 }
 
 // RX task
@@ -257,7 +255,7 @@ void vRadioRX(void *pvParameters){
 
 // CHIME task
 void vRadioCHIME(void *pvParameters){
-	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));s
+	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));
 	initRadio(); // required?
 }
 
