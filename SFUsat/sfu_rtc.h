@@ -18,6 +18,12 @@ unsigned int getCurrentTime();
 
 SemaphoreHandle_t xRTCMutex;
 
+// holds the SPI config (set in rtcInit)
+spiDAT1_t rtc_spiConfig;
+// can be used to offset the epoch from the ground. Default 0. (seconds)
+uint32_t epochOffset;
+
+uint32_t no_rtos_test_getCurrentRTCTime();
 
 /**
  * Get "actual" RTC epoch time.
@@ -105,5 +111,7 @@ uint8_t rtcReadRegister(uint16_t registerToRead);
 uint8_t rtcGetBit(uint16_t registerToRead, uint8_t bitToCheck);
 uint8_t rtcSetBit(uint16_t registerToWrite, uint8_t bitToSet, uint8_t bitValue);
 void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff);
+
+
 
 #endif /* SFUSAT_SFU_RTC_H_ */

@@ -114,7 +114,7 @@ int main(void)
 
 	gioInit();
 
-	serialSendln("Sup");
+	serialSendln("SFUSat Started!");
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
 
 	// TODO: encapsulate these
@@ -126,10 +126,10 @@ int main(void)
 //	adcInit();
 
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
-//	rtcInit();
-//	uint32_t mytime;
-//	mytime = getCurrentRTCTime();
+	spiInit();
+	rtcInit();
+	uint32_t mytime;
+	mytime = no_rtos_test_getCurrentRTCTime();
 
 //    flash_mibspi_init();
 
@@ -144,8 +144,8 @@ int main(void)
 //	}
 
 //	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
-    xFlashMutex = xSemaphoreCreateMutex();
-    xRTCMutex = xSemaphoreCreateMutex();
+//    xFlashMutex = xSemaphoreCreateMutex();
+//    xRTCMutex = xSemaphoreCreateMutex();
 
 	xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
 			"blinky",/* Text name for the task. This is to facilitate debugging only. */

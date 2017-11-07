@@ -15,10 +15,7 @@
 
 
 
-// holds the SPI config (set in rtcInit)
-spiDAT1_t rtc_spiConfig;
-// can be used to offset the epoch from the ground. Default 0. (seconds)
-uint32_t epochOffset;
+
 // contains the cumulative seconds in months so we can easily calculate epochs
 const uint32_t cumulativeSecondsInMonth[12] = { 0, 2678400, 5097600, 7776000, 10368000, 13046400, 15638400, 18316800,
 		20995200, 23587200, 26265600, 28857600 }; // zero, seconds in january, then seconds in jan + feb, then jan + feb + mar
@@ -43,6 +40,7 @@ void tempAddSecondToHET() {
 }
 
 void rtcInit() {
+	// must call spiInit before this.
 	rtc_spiConfig.CS_HOLD = RTC_CONFIG_CS_HOLD; //CS false = high during data transfer
 	rtc_spiConfig.WDEL = RTC_CONFIG_WDEL; // wdelay
 	rtc_spiConfig.DFSEL = RTC_CONFIG_DFSEL; // data format
@@ -213,6 +211,50 @@ uint32_t getCurrentRTCTime() {
 	}
 	}
 	xSemaphoreGive( xRTCMutex );
+	return rtc_epoch_time;
+}
+
+uint32_t no_rtos_test_getCurrentRTCTime() {
+	/*
+	 * Reset HET time.
+	 */
+	// no mutex on this so we can test without the rtos
+	het_epoch_time = 0;
+
+	/*
+	 * Initiate RTC SPI transfers to get current actual rtc_epoch_time.
+	 */
+	// Note: doesn't handle more than 1 leap year!
+	// also assumes we start on jan 1, year 2000 @ RTC power on (which we do)
+	uint8_t year = rtc_get_year(); // save these since we need them multiple times and we don't want them to change between reads
+	uint8_t month = rtc_get_month();
+
+	/**
+	 * Upper bound the month received from RTC SPI to 11, just
+	 * in case, since if we index with anything >= 12 we will explode.
+	 * TODO: check if the convertBCD operations in rtc_get_month
+	 * negate the need for this check.
+	 */
+	uint32_t monthIdx = month - 1;
+	monthIdx = monthIdx >= 12 ? 11 : monthIdx;
+    uint32_t nonLeapYear =
+    		  epochOffset
+    		+ (year*31536000)
+			+ (cumulativeSecondsInMonth[monthIdx])
+			+ ((rtc_get_day() -1)*86400)
+			+ (rtc_get_hours()*3600)
+			+ (rtc_get_minutes()*60)
+			+ rtc_get_seconds();
+
+	rtc_epoch_time = nonLeapYear;
+
+	if ((month >= 3 && year == 0) || (year >> 0)) {
+		// normally consider feb as having 28 days. However, RTC does 29-day feb on years divisible by 4, and year 0
+		// so if we're in year 0 or more and past feb, we need to add that leap day.
+		// Also if we're over year 4, past feb, we need to add another one. On feb 29, day will be auto-included because current time is RTC day * seconds per day.
+		rtc_epoch_time += 86400;
+	}
+
 	return rtc_epoch_time;
 }
 
