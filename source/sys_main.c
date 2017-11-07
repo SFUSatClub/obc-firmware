@@ -44,7 +44,6 @@
 
 /* USER CODE BEGIN (0) */
 #include "sys_core.h"
-
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
@@ -100,8 +99,6 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 */
 
 /* USER CODE BEGIN (2) */
-
-
 /* USER CODE END */
 
 int main(void)
@@ -111,25 +108,23 @@ int main(void)
     _enable_interrupt_();
 
 	serialInit();
-
 	gioInit();
+	spiInit();
+	//	adcInit();
 
 	serialSendln("SFUSat Started!");
+
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
+	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+
+	rtcInit();
+	uint32_t mytime;
+	mytime = no_rtos_test_getCurrentRTCTime();
 
 	// TODO: encapsulate these
 ////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
 //	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 //	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
-
-//	spi_init();
-//	adcInit();
-
-	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-	spiInit();
-	rtcInit();
-	uint32_t mytime;
-	mytime = no_rtos_test_getCurrentRTCTime();
 
 //    flash_mibspi_init();
 
