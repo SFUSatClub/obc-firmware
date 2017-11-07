@@ -118,51 +118,29 @@ int main(void)
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 
 	rtcInit();
-	uint32_t mytime;
-	mytime = no_rtos_test_getCurrentRTCTime();
-
-	// TODO: encapsulate these
-////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
-//	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
-//	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
     flash_mibspi_init();
 
 //    simpleWatchdog();
-//    triumf_init();
+    triumf_init();
 
-//	stateMachineInit(); // we start in SAFE mode
-//	printStartupType();
+	stateMachineInit(); // we start in SAFE mode
+	printStartupType();
 
 	if(flash_test_JEDEC()){
 		serialSendln("Passed flash JEDEC test!");
 	}
 
-//	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
-//    xFlashMutex = xSemaphoreCreateMutex();
-//    xRTCMutex = xSemaphoreCreateMutex();
+	// TODO: encapsulate these
+////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
+	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	serialSendQ("created queue");
 
-	xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
-			"blinky",/* Text name for the task. This is to facilitate debugging only. */
-			configMINIMAL_STACK_SIZE, /* Stack depth - small microcontrollers will use much less stack than this. */
-			NULL, /* This example does not use the task parameter. */
-			BLINKY_TASK_DEFAULT_PRIORITY, /* This task will run at priority 1. */
-			&xBlinkyTaskHandle );
+    xFlashMutex = xSemaphoreCreateMutex();
+    xRTCMutex = xSemaphoreCreateMutex();
 
-//	serialSendQ("created queue");
-//	/* Create two instances of the task that will send to the queue. The task
-//     parameter is used to pass the value that the task will write to the queue,
-//     In this case, a string (character pointer) will be passed to the queue.
-//	 */
-//
-//	xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
-//	xTaskCreate(periodicSenderTask, "InfreqPST", 100, (void *) 5000, 1, NULL);
-//	serialSendQ("created pst");
-//
-//	/* Create the task that will read from the queue. The task is created with
-//     priority 2, so above the priority of the sender tasks. */
-//	BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
-//	serialSendQ("created rcvr");
+	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();
 
