@@ -198,24 +198,24 @@ typedef struct mibspi_config_reg
 #define MIBSPI1_PCDIS_CONFIGVALUE    ((uint32)((uint32)0U << 0U) | (uint32)((uint32)0U << 1U) | (uint32)((uint32)0U << 2U) | (uint32)((uint32)0U << 3U) | (uint32)((uint32)0U << 4U) | (uint32)((uint32)0U << 5U) |  (uint32)((uint32)0U << 8U) | (uint32)((uint32)0U << 9U) | (uint32)((uint32)0U << 10U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)0U << 11U) | (uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 25U))
 #define MIBSPI1_PCPSL_CONFIGVALUE    ((uint32)((uint32)1U << 0U) | (uint32)((uint32)1U << 1U) | (uint32)((uint32)1U << 2U) | (uint32)((uint32)1U << 3U) | (uint32)((uint32)1U << 4U) | (uint32)((uint32)1U << 5U) |  (uint32)((uint32)1U << 8U) | (uint32)((uint32)1U << 9U) | (uint32)((uint32)1U << 10U) | (uint32)((uint32)1U << 16U) | (uint32)((uint32)1U << 11U) | (uint32)((uint32)1U << 24U) | (uint32)((uint32)1U << 17U) | (uint32)((uint32)1U << 25U))
 
-#define MIBSPI1_DELAY_CONFIGVALUE    ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)0U << 8U) | (uint32)((uint32)0U << 0U))
+#define MIBSPI1_DELAY_CONFIGVALUE    ((uint32)((uint32)14U << 24U) | (uint32)((uint32)15U << 16U) | (uint32)((uint32)0U << 8U) | (uint32)((uint32)0U << 0U))
 
-#define MIBSPI1_FMT0_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
+#define MIBSPI1_FMT0_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)1U << 16U) | (uint32)((uint32)199U << 8U) | (uint32)((uint32)8U << 0U))
 #define MIBSPI1_FMT1_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
 #define MIBSPI1_FMT2_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
 #define MIBSPI1_FMT3_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
 
 #define MIBSPI1_MIBSPIE_CONFIGVALUE  1U
-#define MIBSPI1_LTGPEND_CONFIGVALUE  ((uint32)((uint32)((8U+0U+0U+0U+0U+0U+0U+0U)-1U) << 8U))
+#define MIBSPI1_LTGPEND_CONFIGVALUE  ((uint32)((uint32)((6U+1U+2U+20U+0U+0U+0U+0U)-1U) << 8U))
 
 #define MIBSPI1_TGCTRL0_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)0U << 8U)))
-#define MIBSPI1_TGCTRL1_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)8U << 8U)))
-#define MIBSPI1_TGCTRL2_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U) << 8U)))
-#define MIBSPI1_TGCTRL3_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U+0U) << 8U)))
-#define MIBSPI1_TGCTRL4_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U+0U+0U) << 8U)))
-#define MIBSPI1_TGCTRL5_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U+0U+0U+0U) << 8U)))
-#define MIBSPI1_TGCTRL6_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U+0U+0U+0U+0U) << 8U)))
-#define MIBSPI1_TGCTRL7_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(8U+0U+0U+0U+0U+0U+0U) << 8U)))
+#define MIBSPI1_TGCTRL1_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)6U << 8U)))
+#define MIBSPI1_TGCTRL2_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U) << 8U)))
+#define MIBSPI1_TGCTRL3_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U+2U) << 8U)))
+#define MIBSPI1_TGCTRL4_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U+2U+20U) << 8U)))
+#define MIBSPI1_TGCTRL5_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U+2U+20U+0U) << 8U)))
+#define MIBSPI1_TGCTRL6_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U+2U+20U+0U+0U) << 8U)))
+#define MIBSPI1_TGCTRL7_CONFIGVALUE  (0xFFFF7FFFU & ((uint32)((uint32)1U << 30U) | (uint32)((uint32)0U << 29U) | (uint32)((uint32)TRG_ALWAYS << 20U) | (uint32)((uint32)TRG_DISABLED << 16U) | (uint32)((uint32)(6U+1U+2U+20U+0U+0U+0U) << 8U)))
 
 #define MIBSPI1_UERRCTRL_CONFIGVALUE (0x00000005U)
 

@@ -126,7 +126,7 @@ int main(void)
 //	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 //	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-//    flash_mibspi_init();
+    flash_mibspi_init();
 
 //    simpleWatchdog();
 //    triumf_init();
@@ -134,9 +134,9 @@ int main(void)
 //	stateMachineInit(); // we start in SAFE mode
 //	printStartupType();
 
-//	if(flash_test_JEDEC()){
-//		serialSendln("Passed flash JEDEC test!");
-//	}
+	if(flash_test_JEDEC()){
+		serialSendln("Passed flash JEDEC test!");
+	}
 
 //	xTaskCreate(vMainTask, "main", 400, NULL, MAIN_TASK_PRIORITY, NULL);
 //    xFlashMutex = xSemaphoreCreateMutex();

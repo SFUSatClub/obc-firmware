@@ -845,7 +845,7 @@ void rtiGetConfigValue(rti_config_reg_t *config_reg, config_value_type_t type)
 }
 
 /* USER CODE BEGIN (73) */
-#if SFUSAT_BOARD != 1
+#if SFUSAT_BOARD == 0
 /* USER CODE END */
 
 /** @fn void vPortPreemptiveTick(void)
@@ -873,8 +873,6 @@ void vPortPreemptiveTick(void)
     /* USER CODE END */
 }
 #endif
-
-
 
 
 

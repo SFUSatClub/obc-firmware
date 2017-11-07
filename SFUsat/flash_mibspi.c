@@ -181,11 +181,21 @@ boolean flash_test_JEDEC(void){
     mibspi_send(FLASH0_TRANSFER_GROUP, rmdid);
     mibspi_receive(FLASH0_TRANSFER_GROUP,TG0_RX);
 
+#if FLASH_CHIP_TYPE == 1
+    if(TG0_RX[1] == 157 && TG0_RX[2] == 96 && TG0_RX[3] == 21){
+        return TRUE;
+    }
+    return FALSE;
+#endif
+
+#if FLASH_CHIP_TYPE == 0
     if(TG0_RX[1] == 191 && TG0_RX[2] == 0x26 && TG0_RX[3] == 0x42){
         return TRUE;
     }
     return FALSE;
+#endif
 }
+
 uint32_t getEmptySector(){
 	uint16_t flashData[16] = {0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF, 0x00FF};
 	uint32_t tempAddress;
