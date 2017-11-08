@@ -211,7 +211,7 @@ vPortYeildWithinAPI
 ;/*-----------------------------------------------------------*/
 ; Preemptive Tick
 
-        .def vPortPreemptiveTick
+
         .asmfunc
 vPortPreemptiveTick
 
