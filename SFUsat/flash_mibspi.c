@@ -58,8 +58,9 @@ void flash_write_enable(){
 }
 
 
-void construct_packet_6(uint16_t command, uint32_t address, uint16_t *packet, uint16_t databytes){
+void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packet, uint16_t databytes){
     uint16_t sendOut[6] = { 0 };
+    uint16_t index;
 
     // packet size = data bytes + command (1) + address (3) bytes
     // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB first)
@@ -67,8 +68,6 @@ void construct_packet_6(uint16_t command, uint32_t address, uint16_t *packet, ui
     sendOut[1] = (address & 0xFF0000) >> 16;
     sendOut[2] = (address & 0xFF00) >> 8;
     sendOut[3] = (address) & 0xFF;
-
-    uint16_t index;
 
     for(index = 4; index < 4 + databytes; index++){
         sendOut[index] = packet[index - 4];
@@ -82,7 +81,7 @@ void construct_packet_6(uint16_t command, uint32_t address, uint16_t *packet, ui
 }
 
 void flash_read_16(uint32_t address, uint16_t *outBuffer){
-    construct_packet_16(FLASH_READ, address, dummyBytes_16);
+    construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
     mibspi_receive(FLASH_TWENTY,TG3_RX);
 
     // strip off the first 4 bytes of the receive, since those are the responses to the command and address
@@ -96,7 +95,7 @@ void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
 	// in the RTOS so use a mutex
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
-		construct_packet_16(FLASH_READ, address, dummyBytes_16);
+		construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
 		mibspi_receive(FLASH_TWENTY,TG3_RX);
 
 		// strip off the first 4 bytes of the receive, since those are the responses to the command and address
@@ -112,7 +111,7 @@ void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
 void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
-		construct_packet_16(FLASH_WRITE, address, outBuffer);
+		construct_send_packet_16(FLASH_WRITE, address, outBuffer);
 
 	}
 	xSemaphoreGive( xFlashMutex );
@@ -123,7 +122,7 @@ boolean rw16_test(uint32_t address){
     // uses the transfer group with 20 byte size
 
     uint16_t test_bytes_16[16] = {0x0001, 0x0001, 0x0000, 0x0007, 0x0003, 0x0005, 0x000F, 0x0004, 0x0007, 0x000B, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
-    construct_packet_16(FLASH_WRITE, address, test_bytes_16);
+    construct_send_packet_16(FLASH_WRITE, address, test_bytes_16);
 
     while(flash_status() != 0){ // wait for the write to complete
     }
@@ -149,9 +148,9 @@ uint16_t flash_status(){
     return TG1_RX[1];
 }
 
-void construct_packet_16(uint16_t command, uint32_t address, uint16_t *packet){
+void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t *packet){
     uint16_t sendOut[20] = { 0 };
-    uint16_t databytes = 16;
+    uint16_t index;
 
     // packet size = data bytes + command (1) + address (3) bytes
     // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB out first)
@@ -160,9 +159,7 @@ void construct_packet_16(uint16_t command, uint32_t address, uint16_t *packet){
     sendOut[2] = (address & 0xFF00) >> 8;
     sendOut[3] = (address) & 0xFF;
 
-    uint16_t index = 4;
-
-    for(index = 4; index < 4 + databytes; index++){
+    for(index = 4; index < 4 + 16; index++){
         sendOut[index] = packet[index - 4];
     }
 
@@ -172,6 +169,36 @@ void construct_packet_16(uint16_t command, uint32_t address, uint16_t *packet){
     mibspi_send(FLASH_TWENTY, sendOut);
 }
 
+void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
+	// TODO: since this all works off 16-bit words, need to ensure we're ok with SPIFFss 8-bit src pointers
+	// TODO: make RTOS-safe version.
+	// for size, every 16 bytes, construct a packet and send it out.
+
+	uint16_t sendOut[16] = { 0 };
+	uint32_t outIndex; // the place in each output frame
+	uint32_t inIndex; // the place in the input data buffer
+	uint32_t numDummy;
+
+	    		outIndex = 0; // the place in each frame
+	    		for(inIndex = 0; inIndex < size; inIndex ++){
+	    			sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
+	    			if(inIndex % 16 == 0){ // every 16, send out and increment address for the next one
+		    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+		    			outIndex = 0;
+		    			address += 16; // I think this is right.
+	    			}
+	    		}
+
+	    		// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
+	    		if(outIndex != 16){
+	    			for(numDummy = 16 - outIndex; numDummy == 0; numDummy --){
+	    				outIndex++;
+	    				sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+	    			}
+	    			address += 16;
+	    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+	    		}
+}
 
 boolean flash_test_JEDEC(void){
     // reads the JEDEC ID. It's 3 bytes long and is 0xBF, 0x26, 0x42 for the SST26

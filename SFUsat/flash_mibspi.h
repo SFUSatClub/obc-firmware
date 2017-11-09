@@ -62,9 +62,13 @@ uint32_t getEmptySector(); // finds the first section with 16 1's in it
 boolean flash_test_JEDEC(void); // reads and confirms JEDEC ID
 boolean rw16_test(uint32_t address); // reads and writes 16 bytes to the specified address
 
-// Data construction
-void construct_packet_6(uint16_t command, uint32_t address, uint16_t * packet, uint16_t databytes);
-void construct_packet_16(uint16_t command, uint32_t address, uint16_t * packet);
+// Data construction and send
+void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t * packet, uint16_t databytes);
+void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t * packet);
+
+// For SPIFFS
+void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src); // write an arbitrary data buffer to flash
+
 
 // SPI drivers
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA);
