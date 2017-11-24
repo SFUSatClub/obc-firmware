@@ -12,6 +12,7 @@
 
 typedef enum {
 	IOCFG0,
+	IOCFG1,
 	FIFOTHR,
 	SYNC1,
 	SYNC0,
@@ -48,6 +49,7 @@ typedef enum {
  */
 const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_ADDR,
+	[IOCFG1] = SMARTRF_SETTING_IOCFG1_ADDR,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_ADDR,
 	[SYNC1] = SMARTRF_SETTING_SYNC1_ADDR,
 	[SYNC0] = SMARTRF_SETTING_SYNC0_ADDR,
@@ -80,6 +82,7 @@ const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 
 const uint16 SMARTRF_VALS_RX[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_RX,
+	[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_RX,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_RX,
 	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_RX,
 	[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_RX,
@@ -112,6 +115,7 @@ const uint16 SMARTRF_VALS_RX[NUM_CONFIG_REGISTERS] = {
 
 const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
+	[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_TX,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_TX,
 	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_TX,
 	[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_TX,
@@ -259,13 +263,13 @@ void vRadioTX(void *pvParameters) {
 
 
 	// how does pvparameters work?
-	/*
-	uint8 txsize;
-	uint8 txsrc[];
-	if !(writeToTxFIFO(txsrc, txsize)){
-		//error
-	}
-	*/
+
+	uint8 txsize = 10;
+	uint8 txsrc[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	writeToTxFIFO(txsrc, txsize);
+	strobe(STX);
+	//TODO: check last packet was transmitted
+
 }
 
 // RX task
@@ -285,10 +289,11 @@ static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
-	statusByte = dest[0] & 0xff;
-	char buffer[30];
+	statusByte = dest[0] & 0xff; //table 23 of CC1101 Datasheet
+	/*char buffer[30];
 	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, statusByte, dest[1]);
 	serialSendln(buffer);
+	*/
 	return (dest[1] & 0xff);
 }
 
@@ -297,9 +302,9 @@ static void writeRegister(uint8 addr, uint8 val) {
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff;
-	char buffer[30];
+	/*char buffer[30];
 	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], statusByte, dest[1]);
-	serialSendln(buffer);
+	serialSendln(buffer);*/
 }
 
 /**
@@ -332,7 +337,7 @@ static void strobe(uint8 addr) {
  * @return 1 on successful write, 0 on failure
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
-	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	uint8 numBytesInFIFO = 64;
 	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
 	if (size > numBytesInFIFO || size == 0) { return 0; }
 	/*
@@ -370,10 +375,10 @@ static int readFromRxFIFO(uint8 *dest, uint8 size) {
 	return (numBytesInFIFO == 0 && idx >= 1);
 }
 
-static void writeAllConfigRegisters() {
+static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		writeRegister(SMARTRF_ADDRS[i], SMARTRF_VALS_RX[i]);
+		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
 		i++;
 	}
 }
@@ -385,21 +390,37 @@ static void readAllConfigRegisters() {
 	}
 }
 
-static void readAllStatusRegisters() {
-	readRegister(PARTNUM);
-	readRegister(VERSION);
-	readRegister(FREQEST);
-	readRegister(LQI);
-	readRegister(RSSI);
-	readRegister(MARCSTATE);
-	readRegister(WORTIME1);
-	readRegister(WORTIME0);
-	readRegister(PKTSTATUS);
-	readRegister(VCO_VC_DAC);
-	readRegister(TXBYTES);
-	readRegister(RXBYTES);
-	readRegister(RCCTRL1_STATUS);
-	readRegister(RCCTRL0_STATUS);
+static uint8 * readAllStatusRegisters() {
+	static uint8 contents[14];
+	contents[0] = readRegister(PARTNUM);
+	contents[1] = readRegister(VERSION);
+	contents[2] = readRegister(FREQEST);
+	contents[3] = readRegister(LQI);
+	contents[4] = readRegister(RSSI);
+	contents[5] = readRegister(MARCSTATE);
+	contents[6] = readRegister(WORTIME1);
+	contents[7] = readRegister(WORTIME0);
+	contents[8] = readRegister(PKTSTATUS);
+	contents[9] = readRegister(VCO_VC_DAC);
+	contents[10] = readRegister(TXBYTES);
+	contents[11] = readRegister(RXBYTES);
+	contents[12] = readRegister(RCCTRL1_STATUS);
+	contents[13] = readRegister(RCCTRL0_STATUS); //how is this possible in burst mode??????????
+	return contents;
+}
+
+static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		if(config[i] != regVal){
+			char buffer[30];
+			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
+			serialSendln(buffer);
+		}
+		i++;
+	}
+	return 0;
 }
 
 BaseType_t initRadio() {
@@ -413,28 +434,93 @@ BaseType_t initRadio() {
      */
     spiDataConfig.CSNR = SPI_CS_0;
 
-    strobe(SNOP);
-    readAllStatusRegisters();
-    readAllConfigRegisters();
-    writeAllConfigRegisters();
-    readAllConfigRegisters();
-    strobe(SIDLE);
+    uint8 *stat = readAllStatusRegisters();
+    char buffer[30];
 
-    uint8 test[] = {0, 3, 9, 27, 14};
+    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
+    	uint8 packetLen  = 30;
+        uint8 test[100] = { 0 };
+        int i = 0;
+        while (i < packetLen) {
+        	test[i] = i;
+        	i++;
+        }
+
+        i = 0;
+
+    while (i < 100){
+    strobe(SRES);
+    strobe(SNOP);
+
+    snprintf(buffer, 30, "Radio Status Registers:");
+    serialSendln(buffer);
+    	snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+    			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
+				stat[10], stat[11], stat[12], stat[13]);
+    	serialSendln(buffer);
+    /*
+    snprintf(buffer, 30, "PARTNUM\t%02x", stat[0]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "VERSION\t%02x", stat[1]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "FREQEST\t%02x", stat[2]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "LQI\t%02x", stat[3]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "RSSI\t%02x", stat[4]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "MARCSTATE\t%02x", stat[5]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "WORTIME1\t%02x", stat[6]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "WORTIME0\t%02x", stat[7]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "PKTSTATUS\t%02x", stat[8]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "VCO_VC_DAC\t%02x", stat[9]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "TXBYTES\t%02x", stat[10]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "RXBYTES\t%02x", stat[11]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "RCCTRL1_STATUS\t%02x", stat[12]);
+    serialSendln(buffer);
+    snprintf(buffer, 30, "RCCTRL0_STATUS\t%02x", stat[13]);
+    serialSendln(buffer);
+    */
+
+    strobe(SIDLE);
+    writeAllConfigRegisters(SMARTRF_VALS_TX);
+    if(!checkConfig(SMARTRF_VALS_TX)){
+    	snprintf(buffer, 30, "register configs match");
+    	serialSendln(buffer);
+    }
+
     /**
      * R/W bit was previously set to 0 (WRITE) from the above strobe; status byte will have FIFO_BYTES_AVAILABLE for TX FIFO, so no need for another strobe to update our status byte.
      */
-    int i = 0;
-    for (i = 0; i < 11; i++) {
-        writeToTxFIFO(test, 5);
-        readRegister(TXBYTES);
+
+
+    	snprintf(buffer, 30, "Write to TX FIFO");
+    	serialSendln(buffer);
+    	snprintf(buffer, 30, "%02x byte filled in TX FIFO", readRegister(TXBYTES));
+    	serialSendln(buffer);
+        if(!writeToTxFIFO(test, packetLen)){
+        	snprintf(buffer, 30, "WARNING: FIFO too full, did not attempt write");
+        	serialSendln(buffer);
+        }
+        strobe(STX);
+        vTaskDelay(pdMS_TO_TICKS(100));
+        //strobe(SFTX);
+        i++;
     }
+
     /**
      * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
      */
     strobe(SNOP | READ_BIT);
-    readRegister(RXBYTES);
-    readFromRxFIFO(test, 5);
+    //readRegister(RXBYTES);
+    //readFromRxFIFO(test, 5);
 
 	return pdPASS;
 }
