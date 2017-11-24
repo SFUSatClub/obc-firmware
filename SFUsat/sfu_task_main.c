@@ -12,6 +12,9 @@
 #include "sfu_rtc.h"
 #include "sfu_state.h"
 
+
+
+
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -19,7 +22,13 @@ TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 
+TaskHandle_t xRadioRXHandle = NULL;
+TaskHandle_t xRadioTXHandle = NULL;
+TaskHandle_t xRadioCHIMEHandle = NULL;
+
 void vMainTask(void *pvParameters) {
+	struct RadioDAT Radio_container;
+
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS so it can print correctly
 
 	xTaskCreate( hundredBlinky, /* Pointer to the function that implements the task. */
@@ -30,11 +39,16 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );
 
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
-	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	//xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	//xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 
-	vTaskSuspend(xRadioTaskHandle);
+		//(void *const)&Radio_container
+	xTaskCreate(vRadioRX, "RXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle); //(void *const)RadioDAT
+	xTaskCreate(vRadioTX, "TXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTXHandle);
+	xTaskCreate(vRadioCHIME, "CHIMEradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle);
+
+	//vTaskSuspend(xRadioTaskHandle);
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};

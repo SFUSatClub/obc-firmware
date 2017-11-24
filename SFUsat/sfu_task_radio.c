@@ -238,15 +238,34 @@ void vRadioTask(void *pvParameters) {
 
 // TX task
 void vRadioTX(void *pvParameters) {
+	struct RadioDAT Radio_container;
+	Radio_container.srcsz = 100;
+	uint8 idx = 0;
+	for (idx = 0; idx < Radio_container.srcsz; idx++){
+		Radio_container.srcdat[idx] = idx;
+	}
+
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	initRadio(); // required?
+	//initialize radio herehello
+
+
+
+	if (writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz) != 1){
+		//error
+	}
+
+
+	//writeToTxFIFO(*(Radio_container*)pvParameters.srcdat, *(Radio_container*)pvParameters.srcsz);
+
 
 	// how does pvparameters work?
+	/*
 	uint8 txsize;
 	uint8 txsrc[];
 	if !(writeToTxFIFO(txsrc, txsize)){
 		//error
 	}
+	*/
 }
 
 // RX task
@@ -257,7 +276,7 @@ void vRadioRX(void *pvParameters){
 
 // CHIME task
 void vRadioCHIME(void *pvParameters){
-	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));s
+	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));
 	initRadio(); // required?
 }
 

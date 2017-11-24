@@ -104,8 +104,8 @@ int main(void)
 
 	// TODO: encapsulate these
 	xQueue = xQueueCreate(5, sizeof(char *));
-	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xSerialTXQueue = xQueueCreate(100, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(100, sizeof(portCHAR));
 
 	serialInit();
 	spi_init();
