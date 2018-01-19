@@ -39,16 +39,16 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );
 
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
-	//xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	//xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 
 		//(void *const)&Radio_container
-	xTaskCreate(vRadioRX, "RXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle); //(void *const)RadioDAT
-	xTaskCreate(vRadioTX, "TXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTXHandle);
-	xTaskCreate(vRadioCHIME, "CHIMEradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle);
+	//xTaskCreate(vRadioRX, "RXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle); //(void *const)RadioDAT
+	//xTaskCreate(vRadioTX, "TXradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTXHandle);
+	//xTaskCreate(vRadioCHIME, "CHIMEradio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioRXHandle);
 
-	//vTaskSuspend(xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};

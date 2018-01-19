@@ -302,9 +302,6 @@ static void writeRegister(uint8 addr, uint8 val) {
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff;
-	/*char buffer[30];
-	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], statusByte, dest[1]);
-	serialSendln(buffer);*/
 }
 
 /**
@@ -347,8 +344,11 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	 */
 	uint8 idx = 0;
 	while (numBytesInFIFO >= 1 && idx + 1 <= size) {
-		writeRegister(FIFO_TX, src[idx++]);
+		writeRegister(FIFO_TX, src[idx++]); //FIFO_TX single byte access
 		numBytesInFIFO--;
+		//char buffer[30];
+		//snprintf(buffer, 30, "FIFO_BYTES_AVAILABLE %02x", statusByte);
+		//serialSendln(buffer);
 	}
 	return 1;
 }
@@ -405,7 +405,7 @@ static uint8 * readAllStatusRegisters() {
 	contents[10] = readRegister(TXBYTES);
 	contents[11] = readRegister(RXBYTES);
 	contents[12] = readRegister(RCCTRL1_STATUS);
-	contents[13] = readRegister(RCCTRL0_STATUS); //how is this possible in burst mode??????????
+	contents[13] = readRegister(RCCTRL0_STATUS);
 	return contents;
 }
 
@@ -417,6 +417,7 @@ static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
 			char buffer[30];
 			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
 			serialSendln(buffer);
+			return 1;
 		}
 		i++;
 	}
@@ -424,6 +425,7 @@ static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
 }
 
 BaseType_t initRadio() {
+	//what task should SPI initialization occure in?
 	spiDataConfig.CS_HOLD = TRUE;
 	spiDataConfig.WDEL = TRUE;
     spiDataConfig.DFSEL = SPI_FMT_0;
@@ -446,9 +448,8 @@ BaseType_t initRadio() {
         	i++;
         }
 
-        i = 0;
 
-    while (i < 100){
+
     strobe(SRES);
     strobe(SNOP);
 
@@ -458,42 +459,13 @@ BaseType_t initRadio() {
     			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
 				stat[10], stat[11], stat[12], stat[13]);
     	serialSendln(buffer);
-    /*
-    snprintf(buffer, 30, "PARTNUM\t%02x", stat[0]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "VERSION\t%02x", stat[1]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "FREQEST\t%02x", stat[2]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "LQI\t%02x", stat[3]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "RSSI\t%02x", stat[4]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "MARCSTATE\t%02x", stat[5]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "WORTIME1\t%02x", stat[6]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "WORTIME0\t%02x", stat[7]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "PKTSTATUS\t%02x", stat[8]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "VCO_VC_DAC\t%02x", stat[9]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "TXBYTES\t%02x", stat[10]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "RXBYTES\t%02x", stat[11]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "RCCTRL1_STATUS\t%02x", stat[12]);
-    serialSendln(buffer);
-    snprintf(buffer, 30, "RCCTRL0_STATUS\t%02x", stat[13]);
-    serialSendln(buffer);
-    */
+
 
     strobe(SIDLE);
     writeAllConfigRegisters(SMARTRF_VALS_TX);
     if(!checkConfig(SMARTRF_VALS_TX)){
-    	snprintf(buffer, 30, "register configs match");
-    	serialSendln(buffer);
+    	//snprintf(buffer, 30, "register configs match");
+    	//serialSendln(buffer);
     }
 
     /**
@@ -501,24 +473,26 @@ BaseType_t initRadio() {
      */
 
 
-    	snprintf(buffer, 30, "Write to TX FIFO");
-    	serialSendln(buffer);
-    	snprintf(buffer, 30, "%02x byte filled in TX FIFO", readRegister(TXBYTES));
-    	serialSendln(buffer);
+    	//snprintf(buffer, 30, "Write to TX FIFO");
+    	//serialSendln(buffer);
+    	strobe(STX);
         if(!writeToTxFIFO(test, packetLen)){
         	snprintf(buffer, 30, "WARNING: FIFO too full, did not attempt write");
         	serialSendln(buffer);
         }
+        snprintf(buffer, 30, "%02x byte filled in TX FIFO", readRegister(TXBYTES));
+        serialSendln(buffer);
+        snprintf(buffer, 30, "Before SFTX state %02x", statusByte);
+        serialSendln(buffer);
         strobe(STX);
+        		snprintf(buffer, 30, "SFTX Strobe %02x", statusByte);
+        		serialSendln(buffer);
         vTaskDelay(pdMS_TO_TICKS(100));
-        //strobe(SFTX);
-        i++;
-    }
 
     /**
      * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
      */
-    strobe(SNOP | READ_BIT);
+    strobe(SNOP); //burst bit should be zero for strobe, write bit can be 0 or 1
     //readRegister(RXBYTES);
     //readFromRxFIFO(test, 5);
 
