@@ -64,7 +64,8 @@ void vFlashWrite(void *pvParameters) {
 	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 32, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 	char thing[10];
 	while (1) {
-		localEpoch = getCurrentRTCTime();
+//		serialSendQ("RTC");
+		localEpoch = no_rtos_test_getCurrentRTCTime();
 
 		itoa2(localEpoch, thing, 10, 0);
 		writeBuffer[7] = (uint16_t)thing[0];

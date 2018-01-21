@@ -18,7 +18,7 @@ void triumf_init(){
 
 #if ERASE_START
 	    flash_erase_chip();
-	    addressWritten = getEmptySector();
+	    addressWritten = 0;
 	    lastRead = addressWritten;
 
 #endif

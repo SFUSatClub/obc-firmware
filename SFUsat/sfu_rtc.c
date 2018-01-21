@@ -63,6 +63,7 @@ void rtcInit() {
 		rtcSetBit(CTRL_STATUS, V2F_REG, 0);
 		rtcResetTime();
 	}
+
 	rtcSetBit(EEPROM_CTRL, TRICKLE_R1K, 1); // enable 1.5k ohm trickle charge resistor
 }
 
@@ -295,8 +296,15 @@ uint8_t rtcGetBit(uint16_t registerToRead, uint8_t bitToCheck) {
 }
 
 uint8_t rtcSetBit(uint16_t registerToWrite, uint8_t bitToSet, uint8_t bitValue) {
+	// bitToSet is zero indexed
 	uint8_t rtcbits = rtcReadRegister(registerToWrite);
-	rtcbits ^= (-bitValue ^ rtcbits) & bitToSet;
+	if(bitValue == 1){
+		rtcbits |= (1 << bitToSet);
+	}
+	else{
+		rtcbits &= ~(1 << bitToSet);
+	}
+//	rtcbits ^= (-bitValue ^ rtcbits) & bitToSet; // this doesn't work correctly!
 	uint16_t sendoff = 0x00ff & rtcbits; // spi handlers like 16-bits, so right align the whole thing
 	rtcWriteRegister(registerToWrite, sendoff);
 

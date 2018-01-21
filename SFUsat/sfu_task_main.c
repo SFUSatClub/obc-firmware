@@ -36,10 +36,10 @@ void vMainTask(void *pvParameters) {
 	//    xTaskCreate(vDemoADCTask, "ADC_demo", 300, NULL, ADC_TASK_DEFAULT_PRIORITY, &xADCTaskHandle);
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	//  xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
-	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vFlashWrite, "state", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
-	xTaskCreate(vFlashRead2, "state", 600, NULL, FLASH_READ_DEFAULT_PRIORITY, &xFlashReadHandle);
+//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+//	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
+	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
+	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
 
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};

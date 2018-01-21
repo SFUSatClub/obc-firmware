@@ -232,9 +232,9 @@ static const uint32 s_adcSelect[2U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U,
-    0x00000000U |
-    0x00000000U |
-    0x00000000U |
+    0x00000001U |
+    0x00000002U |
+    0x00000004U |
     0x00000000U |
     0x00000000U |
     0x00000000U |
@@ -983,6 +983,29 @@ void adc1GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type)
 /* USER CODE END */
 
 
+/* USER CODE BEGIN (38) */
+/* USER CODE END */
+/** @fn void adc1Group1Interrupt(void)
+*   @brief ADC1 Group 1 Interrupt Handler
+*/
+#pragma CODE_STATE(adc1Group1Interrupt, 32)
+#pragma INTERRUPT(adc1Group1Interrupt, IRQ)
+
+/* SourceId : ADC_SourceId_015 */
+/* DesignId : ADC_DesignId_013 */
+/* Requirements : HL_SR197, HL_SR196 */
+void adc1Group1Interrupt(void)
+{
+/* USER CODE BEGIN (39) */
+/* USER CODE END */
+    
+    adcREG1->GxINTFLG[1U] = 9U;
+
+    adcNotification(adcREG1, adcGROUP1);
+
+/* USER CODE BEGIN (40) */
+/* USER CODE END */
+}
 
 
 
