@@ -220,6 +220,8 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define FIFO_TX (0x3F)
 #define FIFO_RX (0x3F)
 
+#define FIFO_LENGTH (64)
+
 static spiDAT1_t spiDataConfig;
 
 QueueHandle_t xRadioTXQueue;
@@ -254,7 +256,7 @@ void vRadioTX(void *pvParameters) {
 
 
 
-	if (writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz) != 1){
+	if (!writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz)){
 		//error
 	}
 
@@ -334,9 +336,9 @@ static void strobe(uint8 addr) {
  * @return 1 on successful write, 0 on failure
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
-	uint8 numBytesInFIFO = 64;
+	uint8 numBytesInFIFO = FIFO_LENGTH;
 	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
-	if (size > numBytesInFIFO || size == 0) { return 0; }
+	if (size > numBytesInFIFO || size == 0) { return 1; }
 	/*
 	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
 	 * or update this continuously with the radio's count of FIFO_BYTES_AVAILABLE via most recent statusByte.
@@ -350,7 +352,8 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 		//snprintf(buffer, 30, "FIFO_BYTES_AVAILABLE %02x", statusByte);
 		//serialSendln(buffer);
 	}
-	return 1;
+	if(readRegister(TXBYTES) != size) {return 2;}
+	return 0; //TODO: Is this the best practice for returning error codes? should >0 be for nominal and <0 for errors?
 }
 
 /**
@@ -455,17 +458,16 @@ BaseType_t initRadio() {
 
     snprintf(buffer, 30, "Radio Status Registers:");
     serialSendln(buffer);
-    	snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+    snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
     			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
 				stat[10], stat[11], stat[12], stat[13]);
-    	serialSendln(buffer);
+    serialSendln(buffer);
 
 
-    strobe(SIDLE);
     writeAllConfigRegisters(SMARTRF_VALS_TX);
-    if(!checkConfig(SMARTRF_VALS_TX)){
-    	//snprintf(buffer, 30, "register configs match");
-    	//serialSendln(buffer);
+    if(checkConfig(SMARTRF_VALS_TX)){
+    	snprintf(buffer, 30, "radio registers do not match!");
+    	serialSendln(buffer);
     }
 
     /**
@@ -475,24 +477,32 @@ BaseType_t initRadio() {
 
     	//snprintf(buffer, 30, "Write to TX FIFO");
     	//serialSendln(buffer);
-    	strobe(STX);
-        if(!writeToTxFIFO(test, packetLen)){
-        	snprintf(buffer, 30, "WARNING: FIFO too full, did not attempt write");
-        	serialSendln(buffer);
+    	//strobe(STX); //idle to TX state transition time is 799us with calibration
+    	strobe(SNOP);
+    	snprintf(buffer, 30, "Before writeToFifo state %02x", statusByte);
+    	serialSendln(buffer);
+        switch(writeToTxFIFO(test, packetLen)){
+        	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
+        			serialSendln(buffer);
+        			break;
+        	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
+            		serialSendln(buffer);
+            		break;
         }
-        snprintf(buffer, 30, "%02x byte filled in TX FIFO", readRegister(TXBYTES));
-        serialSendln(buffer);
-        snprintf(buffer, 30, "Before SFTX state %02x", statusByte);
+        snprintf(buffer, 30, "Post FIFO write state %02x", statusByte);
         serialSendln(buffer);
         strobe(STX);
-        		snprintf(buffer, 30, "SFTX Strobe %02x", statusByte);
-        		serialSendln(buffer);
-        vTaskDelay(pdMS_TO_TICKS(100));
+        snprintf(buffer, 30, "STX Strobe %02x", statusByte);
+        serialSendln(buffer);
 
     /**
      * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
      */
-    strobe(SNOP); //burst bit should be zero for strobe, write bit can be 0 or 1
+    while(true){ //TODO: use timer and return timeout error if radio never returns to IDLE
+    	strobe(SNOP);
+    	if(statusByte && 0x70 != STATE_TX << 4){break;}
+    }
+
     //readRegister(RXBYTES);
     //readFromRxFIFO(test, 5);
 

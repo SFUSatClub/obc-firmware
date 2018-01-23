@@ -191,8 +191,8 @@ typedef struct {
 #define SMARTRF_SETTING_MDMCFG0_VAL_TX          0xF8
 #define SMARTRF_SETTING_DEVIATN_VAL_TX          0x15
 #define SMARTRF_SETTING_MCSM2_VAL_TX            0x07
-#define SMARTRF_SETTING_MCSM1_VAL_TX            0x30
-#define SMARTRF_SETTING_MCSM0_VAL_TX            0x18
+#define SMARTRF_SETTING_MCSM1_VAL_TX            0x30 //idle after sending packet
+#define SMARTRF_SETTING_MCSM0_VAL_TX            0x18 //autocal when going from IDLE to TX
 #define SMARTRF_SETTING_FOCCFG_VAL_TX           0x16
 #define SMARTRF_SETTING_BSCFG_VAL_TX            0x6C
 #define SMARTRF_SETTING_AGCCTRL2_VAL_TX         0x03
