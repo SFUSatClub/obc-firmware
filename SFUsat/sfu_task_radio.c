@@ -348,11 +348,8 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	while (numBytesInFIFO >= 1 && idx + 1 <= size) {
 		writeRegister(FIFO_TX, src[idx++]); //FIFO_TX single byte access
 		numBytesInFIFO--;
-		//char buffer[30];
-		//snprintf(buffer, 30, "FIFO_BYTES_AVAILABLE %02x", statusByte);
-		//serialSendln(buffer);
 	}
-	if(readRegister(TXBYTES) != size) {return 2;}
+	if(readRegister(TXBYTES) != size) {return 2;} //check that TX_FIFO is filled with the correct amount of data
 	return 0; //TODO: Is this the best practice for returning error codes? should >0 be for nominal and <0 for errors?
 }
 
@@ -443,7 +440,7 @@ BaseType_t initRadio() {
     char buffer[30];
 
     //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
-    	uint8 packetLen  = 30;
+    	uint8 packetLen  = 60;
         uint8 test[100] = { 0 };
         int i = 0;
         while (i < packetLen) {
@@ -489,16 +486,12 @@ BaseType_t initRadio() {
             		serialSendln(buffer);
             		break;
         }
-        snprintf(buffer, 30, "Post FIFO write state %02x", statusByte);
-        serialSendln(buffer);
         strobe(STX);
         snprintf(buffer, 30, "STX Strobe %02x", statusByte);
         serialSendln(buffer);
 
-    /**
-     * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
-     */
-    while(true){ //TODO: use timer and return timeout error if radio never returns to IDLE
+
+    while(true){ //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
     	strobe(SNOP);
     	if(statusByte && 0x70 != STATE_TX << 4){break;}
     }
