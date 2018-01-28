@@ -106,15 +106,15 @@ typedef struct {
 
 
 // TX
-#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x29
-#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x5B
+#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x6F //on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
+#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2e
 #define SMARTRF_SETTING_IOCFG0_VAL_TX           0x06
 #define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47
 #define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 //sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x1E
-#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04
-#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04
+#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x40 //64 bytes fixed length packet
+#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04 //status byte enabled, no address check
+#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 //fixed packet length, CRC enabled, use FIFO, no whitening
 #define SMARTRF_SETTING_ADDR_VAL_TX             0x00
 #define SMARTRF_SETTING_CHANNR_VAL_TX           0x00
 #define SMARTRF_SETTING_FSCTRL1_VAL_TX          0x06
@@ -123,7 +123,7 @@ typedef struct {
 #define SMARTRF_SETTING_FREQ1_VAL_TX            0xBB
 #define SMARTRF_SETTING_FREQ0_VAL_TX            0x13
 #define SMARTRF_SETTING_MDMCFG4_VAL_TX          0xF8
-#define SMARTRF_SETTING_MDMCFG3_VAL_TX          0x83
+#define SMARTRF_SETTING_MDMCFG3_VAL_TX          0x83 //300 baud
 #define SMARTRF_SETTING_MDMCFG2_VAL_TX          0x03
 #define SMARTRF_SETTING_MDMCFG1_VAL_TX          0x22
 #define SMARTRF_SETTING_MDMCFG0_VAL_TX          0xF8
@@ -140,7 +140,7 @@ typedef struct {
 #define SMARTRF_SETTING_WOREVT0_VAL_TX          0x6B
 #define SMARTRF_SETTING_WORCTRL_VAL_TX          0xFB
 #define SMARTRF_SETTING_FREND1_VAL_TX           0x56
-#define SMARTRF_SETTING_FREND0_VAL_TX           0x10
+#define SMARTRF_SETTING_FREND0_VAL_TX           0x10 //using PA_TABLE index 0
 #define SMARTRF_SETTING_FSCAL3_VAL_TX           0xE9
 #define SMARTRF_SETTING_FSCAL2_VAL_TX           0x2A
 #define SMARTRF_SETTING_FSCAL1_VAL_TX           0x00

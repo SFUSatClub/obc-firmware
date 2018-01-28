@@ -80,38 +80,6 @@ const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[TEST0] = SMARTRF_SETTING_TEST0_ADDR
 };
 
-const uint16 SMARTRF_VALS_RX[NUM_CONFIG_REGISTERS] = {
-	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_RX,
-	[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_RX,
-	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_RX,
-	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_RX,
-	[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_RX,
-	[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_RX,
-	[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_VAL_RX,
-	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_RX,
-	[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_VAL_RX,
-	[FREQ2] = SMARTRF_SETTING_FREQ2_VAL_RX,
-	[FREQ1] = SMARTRF_SETTING_FREQ1_VAL_RX,
-	[FREQ0] = SMARTRF_SETTING_FREQ0_VAL_RX,
-	[MDMCFG4] = SMARTRF_SETTING_MDMCFG4_VAL_RX,
-	[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_VAL_RX,
-	[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_VAL_RX,
-	[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_VAL_RX,
-	[DEVIATN] = SMARTRF_SETTING_DEVIATN_VAL_RX,
-	[MCSM1] = SMARTRF_SETTING_MCSM1_VAL_RX,
-	[MCSM0] = SMARTRF_SETTING_MCSM0_VAL_RX,
-	[FOCCFG] = SMARTRF_SETTING_FOCCFG_VAL_RX,
-	[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_VAL_RX,
-	[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_VAL_RX,
-	[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_RX,
-	[FSCAL3] = SMARTRF_SETTING_FSCAL3_VAL_RX,
-	[FSCAL2] = SMARTRF_SETTING_FSCAL2_VAL_RX,
-	[FSCAL1] = SMARTRF_SETTING_FSCAL1_VAL_RX,
-	[FSCAL0] = SMARTRF_SETTING_FSCAL0_VAL_RX,
-	[TEST2] = SMARTRF_SETTING_TEST2_VAL_RX,
-	[TEST1] = SMARTRF_SETTING_TEST1_VAL_RX,
-	[TEST0] = SMARTRF_SETTING_TEST0_VAL_RX
-};
 
 const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
@@ -217,6 +185,8 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * FIFO_RX is read-only.
  * Both are accessed through the 0x3F address with appropriate read/write bits set.
  */
+#define PA_TABLE (0x3E)
+#define PA_TABLE_SETTING (0x60)
 #define FIFO_TX (0x3F)
 #define FIFO_RX (0x3F)
 
@@ -466,6 +436,7 @@ BaseType_t initRadio() {
     	snprintf(buffer, 30, "radio registers do not match!");
     	serialSendln(buffer);
     }
+    writeRegister(PA_TABLE, PA_TABLE_SETTING);
 
     /**
      * R/W bit was previously set to 0 (WRITE) from the above strobe; status byte will have FIFO_BYTES_AVAILABLE for TX FIFO, so no need for another strobe to update our status byte.
@@ -476,8 +447,6 @@ BaseType_t initRadio() {
     	//serialSendln(buffer);
     	//strobe(STX); //idle to TX state transition time is 799us with calibration
     	strobe(SNOP);
-    	snprintf(buffer, 30, "Before writeToFifo state %02x", statusByte);
-    	serialSendln(buffer);
         switch(writeToTxFIFO(test, packetLen)){
         	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
         			serialSendln(buffer);
@@ -487,14 +456,15 @@ BaseType_t initRadio() {
             		break;
         }
         strobe(STX);
-        snprintf(buffer, 30, "STX Strobe %02x", statusByte);
+
+        strobe(SNOP);
+        //while(statusByte && 0x70 != STATE_TX << 4){strobe(SNOP);}
+        while(statusByte && 0x70 == STATE_TX << 4){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
+        snprintf(buffer, 30, "Transmission Complete");
         serialSendln(buffer);
+        //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
 
-    while(true){ //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
-    	strobe(SNOP);
-    	if(statusByte && 0x70 != STATE_TX << 4){break;}
-    }
 
     //readRegister(RXBYTES);
     //readFromRxFIFO(test, 5);
