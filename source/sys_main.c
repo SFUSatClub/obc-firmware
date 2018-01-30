@@ -65,6 +65,7 @@
 #include "sfu_rtc.h"
 #include "sfu_triumf.h"
 
+#include "unit_tests/unit_tests.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -110,21 +111,6 @@ int main(void)
 	serialInit();
 	gioInit();
 	spiInit();
-
-	// Richard ADC test
-	adcInit();
-    uint32 ch_count=0;
-    uint32 id    =0;
-    uint32 value =0;
-    adcData_t adc_data[24];
-    adcStartConversion(adcREG1,adcGROUP1);
-    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0);
-    ch_count = adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
-    ch_count = ch_count;
-    /* adc_data[0] -> should have conversions for Group1 channel0 */
-    /* adc_data[1] -> should have conversions for Group1 channel1 */
-    id    = adc_data[0].id;
-    value = adc_data[0].value;
 
 
 	serialSendln("SFUSat Started!");
