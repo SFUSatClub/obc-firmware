@@ -82,6 +82,33 @@ void vFlashWrite(void *pvParameters) {
 }
 
 
+void vADCRead(void *pvParameters) {
+//	adcData_t adc_data; //ADC Data Structure
+	uint32_t value;
+	uint32_t thing;
+	char buffer[10];
+	unsigned int numChars, send_value; //Declare variables
+
+	while (1) {
+	value = test_adc(2);
+	thing = 0;
+
+	numChars = ltoa(value,(char *)buffer);
+	buffer[numChars]=':';
+
+	// 12 bit adc; value takes 4 bytes max
+	ltoa(send_value,(char *)buffer + numChars + 1);
+	serialSendQ(buffer);
+
+	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	thing = 3242;
+	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	}
+}
+
+
+
+
 void vDemoADCTask(void *pvParameters) {
 	adcData_t adc_data; //ADC Data Structure
 	char buffer[10];

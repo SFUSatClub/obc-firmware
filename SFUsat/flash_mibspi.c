@@ -31,7 +31,7 @@ void flash_erase_chip(){
     mibspi_write_byte(WRITE_ENABLE);
     mibspi_write_byte(CHIP_ERASE);
 
-    flash_busy_erasing_chip();
+    flash_busy_erasing_chip(); // only returns once chip is erased
 }
 
 void flash_busy_erasing_chip(){
@@ -179,25 +179,26 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 	uint32_t inIndex; // the place in the input data buffer
 	uint32_t numDummy;
 
-	    		outIndex = 0; // the place in each frame
-	    		for(inIndex = 0; inIndex < size; inIndex ++){
-	    			sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
-	    			if(inIndex % 16 == 0){ // every 16, send out and increment address for the next one
-		    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
-		    			outIndex = 0;
-		    			address += 16; // I think this is right.
-	    			}
-	    		}
+	outIndex = 0; // the place in each frame
+	for(inIndex = 0; inIndex < size; inIndex ++){
+		sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
+		outIndex++;
+		if(outIndex == 16){ // (16 not 15 since we increment it right above) - every 16, send out and increment address for the next one
+			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+			outIndex = 0;
+			address += 16; // I think this is right.
+		}
+	}
 
-	    		// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
-	    		if(outIndex != 16){
-	    			for(numDummy = 16 - outIndex; numDummy == 0; numDummy --){
-	    				outIndex++;
-	    				sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
-	    			}
-	    			address += 16;
-	    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
-	    		}
+	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
+	if(outIndex != 16){
+		for(numDummy = 16 - outIndex; numDummy == 0; numDummy --){
+			outIndex++;
+			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+		}
+		address += 16;
+		construct_send_packet_16(FLASH_WRITE, address, sendOut);
+	}
 }
 
 boolean flash_test_JEDEC(void){
@@ -208,14 +209,14 @@ boolean flash_test_JEDEC(void){
     mibspi_send(FLASH0_TRANSFER_GROUP, rmdid);
     mibspi_receive(FLASH0_TRANSFER_GROUP,TG0_RX);
 
-#if FLASH_CHIP_TYPE == 1
+#if FLASH_CHIP_TYPE == 1 // 1 = IS25LP016D
     if(TG0_RX[1] == 157 && TG0_RX[2] == 96 && TG0_RX[3] == 21){
         return TRUE;
     }
     return FALSE;
 #endif
 
-#if FLASH_CHIP_TYPE == 0
+#if FLASH_CHIP_TYPE == 0 // 0 = SST26
     if(TG0_RX[1] == 191 && TG0_RX[2] == 0x26 && TG0_RX[3] == 0x42){
         return TRUE;
     }
