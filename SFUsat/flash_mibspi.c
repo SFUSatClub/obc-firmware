@@ -169,7 +169,6 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t *pack
 }
 
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
-	// TODO: since this all works off 16-bit words, need to ensure we're ok with SPIFFss 8-bit src pointers
 	// TODO: make RTOS-safe version.
 	// for size, every 16 bytes, construct a packet and send it out.
 
@@ -184,11 +183,13 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 		outIndex++;
 		if(outIndex == 16){ // (16 not 15 since we increment it right above) - every 16, send out and increment address for the next one
 			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+			  while(flash_status() != 0){ // wait for the write to complete
+			    }
 			outIndex = 0;
-			address += 16; // I think this is right.
+			address += 16;
 		}
 	}
-	// set
+
 	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
 	if(outIndex != 0){
 		numDummy = 16 - outIndex;
@@ -196,7 +197,6 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
 			outIndex++;
 		}
-//		address += 16;
 		construct_send_packet_16(FLASH_WRITE, address, sendOut);
 	}
 }
