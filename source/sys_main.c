@@ -116,6 +116,9 @@ int main(void)
 
 	serialSendln("SFUSat Started!");
 
+    flash_mibspi_init();
+    test_flash();
+
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 
@@ -124,7 +127,6 @@ int main(void)
 	uint32_t newtime;
 	newtime = no_rtos_test_getCurrentRTCTime();
 
-    flash_mibspi_init();
 
 //    simpleWatchdog();
     triumf_init();

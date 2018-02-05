@@ -103,7 +103,6 @@ void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
 		for(i = 0; i < 16; i++){
 			outBuffer[i] = TG3_RX[i + 4];
 		}
-
 	}
 	xSemaphoreGive( xFlashMutex );
 }
@@ -189,14 +188,15 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 			address += 16; // I think this is right.
 		}
 	}
-
+	// set
 	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
-	if(outIndex != 16){
-		for(numDummy = 16 - outIndex; numDummy == 0; numDummy --){
-			outIndex++;
+	if(outIndex != 0){
+		numDummy = 16 - outIndex;
+		for(numDummy; numDummy > 0; numDummy--){
 			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+			outIndex++;
 		}
-		address += 16;
+//		address += 16;
 		construct_send_packet_16(FLASH_WRITE, address, sendOut);
 	}
 }
