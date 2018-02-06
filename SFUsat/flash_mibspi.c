@@ -35,15 +35,14 @@ void flash_erase_chip(){
 }
 
 void flash_busy_erasing_chip(){
-    TG1_RX[0] = 0;
-    TG1_RX[1] = 0;
+    uint16_t buf[2] = {0};
 
     mibspi_write_two(READ_REG_STATUS,0x0000);
-    mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+    mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
 
-    while(TG1_RX[1] == 0x83){ // reports 131 while still erasing. Takes ~45ms to do a chip erase
+    while(buf[1] == 0x0003 && buf[0] == 0x00ff){ // reports 131 while still erasing. Takes ~45ms to do a chip erase
         mibspi_write_two(READ_REG_STATUS,0x0000);
-        mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+        mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
     }
 }
 
