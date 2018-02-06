@@ -71,6 +71,14 @@ uint32_t test_flash(void){
    result = checkArbitrary(test_address, 48, test_bytes_48);
    if (result == TRUE){ resultCount++; } // this should pass
 
+
+// Test read arbitrary
+// RA: Manually confirm results - it's too late to write a checker :D
+//   uint8_t readBuf[48] = {0xFF}; // since flash default = FF
+//   flash_read_arbitrary(test_address, 48, readBuf); // note: we only send in 38 bytes of random data. So get back a bunch of gunk at the end (zeros? - seems like it should be FF's)
+//   flash_read_arbitrary(128, 4, readBuf);
+//   flash_read_arbitrary(64, 16, readBuf);
+
     return resultCount;
 }
 

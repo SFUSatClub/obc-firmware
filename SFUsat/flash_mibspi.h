@@ -68,6 +68,7 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t * pac
 
 // For SPIFFS
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src); // write an arbitrary data buffer to flash
+void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest);
 
 
 // SPI drivers

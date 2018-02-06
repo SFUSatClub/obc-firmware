@@ -110,7 +110,6 @@ void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
 		construct_send_packet_16(FLASH_WRITE, address, outBuffer);
-
 	}
 	xSemaphoreGive( xFlashMutex );
 }
@@ -191,12 +190,36 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 
 	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
 	if(outIndex != 0){
-		numDummy = 16 - outIndex;
-		for(numDummy; numDummy > 0; numDummy--){
+		for(numDummy = 16 - outIndex; numDummy > 0; numDummy--){
 			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
 			outIndex++;
 		}
 		construct_send_packet_16(FLASH_WRITE, address, sendOut);
+	}
+}
+
+void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest){
+	// TODO: make RTOS-safe version.
+
+	uint32_t readCounter; // the place in each output frame
+	uint32_t inIndex; // the place in the input data buffer
+	uint16_t readBuffer[16] = {0xFFFF}; // since F is empty flash value but we only ever use the 8 LSB's
+
+	readCounter = 0;
+	inIndex = 0;
+
+	flash_read_16(address, readBuffer); // read first 16 bytes
+
+	for(readCounter = 0; readCounter < size; readCounter++){ // loop through entire size and stick the bytes into the dest array
+		dest[readCounter] = readBuffer[inIndex];
+		inIndex++;
+
+		// Read the next 16 bytes
+		if(inIndex == 16){ // since we increment it above
+			inIndex = 0;
+			address += 16;
+			flash_read_16(address, readBuffer); // read first 16 bytes
+		}
 	}
 }
 
