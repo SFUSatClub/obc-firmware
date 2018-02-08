@@ -31,19 +31,18 @@ void flash_erase_chip(){
     mibspi_write_byte(WRITE_ENABLE);
     mibspi_write_byte(CHIP_ERASE);
 
-    flash_busy_erasing_chip();
+    flash_busy_erasing_chip(); // only returns once chip is erased
 }
 
 void flash_busy_erasing_chip(){
-    TG1_RX[0] = 0;
-    TG1_RX[1] = 0;
+    uint16_t buf[2] = {0};
 
     mibspi_write_two(READ_REG_STATUS,0x0000);
-    mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+    mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
 
-    while(TG1_RX[1] == 0x83){ // reports 131 while still erasing. Takes ~45ms to do a chip erase
+    while(buf[1] == 0x0003 && buf[0] == 0x00ff){ // reports 131 while still erasing. Takes ~45ms to do a chip erase
         mibspi_write_two(READ_REG_STATUS,0x0000);
-        mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+        mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
     }
 }
 
@@ -103,7 +102,6 @@ void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
 		for(i = 0; i < 16; i++){
 			outBuffer[i] = TG3_RX[i + 4];
 		}
-
 	}
 	xSemaphoreGive( xFlashMutex );
 }
@@ -112,7 +110,6 @@ void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
 		construct_send_packet_16(FLASH_WRITE, address, outBuffer);
-
 	}
 	xSemaphoreGive( xFlashMutex );
 }
@@ -170,7 +167,6 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t *pack
 }
 
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
-	// TODO: since this all works off 16-bit words, need to ensure we're ok with SPIFFss 8-bit src pointers
 	// TODO: make RTOS-safe version.
 	// for size, every 16 bytes, construct a packet and send it out.
 
@@ -179,25 +175,52 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 	uint32_t inIndex; // the place in the input data buffer
 	uint32_t numDummy;
 
-	    		outIndex = 0; // the place in each frame
-	    		for(inIndex = 0; inIndex < size; inIndex ++){
-	    			sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
-	    			if(inIndex % 16 == 0){ // every 16, send out and increment address for the next one
-		    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
-		    			outIndex = 0;
-		    			address += 16; // I think this is right.
-	    			}
-	    		}
+	outIndex = 0; // the place in each frame
+	for(inIndex = 0; inIndex < size; inIndex ++){
+		sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
+		outIndex++;
+		if(outIndex == 16){ // (16 not 15 since we increment it right above) - every 16, send out and increment address for the next one
+			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+			  while(flash_status() != 0){ // wait for the write to complete
+			    }
+			outIndex = 0;
+			address += 16;
+		}
+	}
 
-	    		// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
-	    		if(outIndex != 16){
-	    			for(numDummy = 16 - outIndex; numDummy == 0; numDummy --){
-	    				outIndex++;
-	    				sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
-	    			}
-	    			address += 16;
-	    			construct_send_packet_16(FLASH_WRITE, address, sendOut);
-	    		}
+	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
+	if(outIndex != 0){
+		for(numDummy = 16 - outIndex; numDummy > 0; numDummy--){
+			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+			outIndex++;
+		}
+		construct_send_packet_16(FLASH_WRITE, address, sendOut);
+	}
+}
+
+void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest){
+	// TODO: make RTOS-safe version.
+
+	uint32_t readCounter; // the place in each output frame
+	uint32_t inIndex; // the place in the input data buffer
+	uint16_t readBuffer[16] = {0xFFFF}; // since F is empty flash value but we only ever use the 8 LSB's
+
+	readCounter = 0;
+	inIndex = 0;
+
+	flash_read_16(address, readBuffer); // read first 16 bytes
+
+	for(readCounter = 0; readCounter < size; readCounter++){ // loop through entire size and stick the bytes into the dest array
+		dest[readCounter] = readBuffer[inIndex];
+		inIndex++;
+
+		// Read the next 16 bytes
+		if(inIndex == 16){ // since we increment it above
+			inIndex = 0;
+			address += 16;
+			flash_read_16(address, readBuffer); // read first 16 bytes
+		}
+	}
 }
 
 boolean flash_test_JEDEC(void){
@@ -208,14 +231,14 @@ boolean flash_test_JEDEC(void){
     mibspi_send(FLASH0_TRANSFER_GROUP, rmdid);
     mibspi_receive(FLASH0_TRANSFER_GROUP,TG0_RX);
 
-#if FLASH_CHIP_TYPE == 1
+#if FLASH_CHIP_TYPE == 1 // 1 = IS25LP016D
     if(TG0_RX[1] == 157 && TG0_RX[2] == 96 && TG0_RX[3] == 21){
         return TRUE;
     }
     return FALSE;
 #endif
 
-#if FLASH_CHIP_TYPE == 0
+#if FLASH_CHIP_TYPE == 0 // 0 = SST26
     if(TG0_RX[1] == 191 && TG0_RX[2] == 0x26 && TG0_RX[3] == 0x42){
         return TRUE;
     }

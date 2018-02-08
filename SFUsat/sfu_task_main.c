@@ -20,6 +20,7 @@ TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFlashReadHandle = NULL;
 TaskHandle_t xFlashWriteHandle = NULL;
+TaskHandle_t xADCNewHandle = NULL;
 
 
 void vMainTask(void *pvParameters) {
@@ -39,7 +40,10 @@ void vMainTask(void *pvParameters) {
 //	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 //	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
-	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
+	xTaskCreate(vADCRead, "read adc", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
+
+
+	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCNewHandle);
 
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
