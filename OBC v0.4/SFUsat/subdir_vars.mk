@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../SFUsat/eric-test.c \
 ../SFUsat/flash_mibspi.c \
 ../SFUsat/sfu_cmds.c \
 ../SFUsat/sfu_rtc.c \
@@ -20,7 +19,6 @@ C_SRCS += \
 ../SFUsat/sfu_utils.c 
 
 C_DEPS += \
-./SFUsat/eric-test.d \
 ./SFUsat/flash_mibspi.d \
 ./SFUsat/sfu_cmds.d \
 ./SFUsat/sfu_rtc.d \
@@ -36,7 +34,6 @@ C_DEPS += \
 ./SFUsat/sfu_utils.d 
 
 OBJS += \
-./SFUsat/eric-test.obj \
 ./SFUsat/flash_mibspi.obj \
 ./SFUsat/sfu_cmds.obj \
 ./SFUsat/sfu_rtc.obj \
@@ -52,7 +49,6 @@ OBJS += \
 ./SFUsat/sfu_utils.obj 
 
 OBJS__QUOTED += \
-"SFUsat/eric-test.obj" \
 "SFUsat/flash_mibspi.obj" \
 "SFUsat/sfu_cmds.obj" \
 "SFUsat/sfu_rtc.obj" \
@@ -68,7 +64,6 @@ OBJS__QUOTED += \
 "SFUsat/sfu_utils.obj" 
 
 C_DEPS__QUOTED += \
-"SFUsat/eric-test.d" \
 "SFUsat/flash_mibspi.d" \
 "SFUsat/sfu_cmds.d" \
 "SFUsat/sfu_rtc.d" \
@@ -84,7 +79,6 @@ C_DEPS__QUOTED += \
 "SFUsat/sfu_utils.d" 
 
 C_SRCS__QUOTED += \
-"../SFUsat/eric-test.c" \
 "../SFUsat/flash_mibspi.c" \
 "../SFUsat/sfu_cmds.c" \
 "../SFUsat/sfu_rtc.c" \

@@ -7,16 +7,19 @@
 #include "flash_mibspi.h"
 #include "sfu_rtc.h"
 #include "sfu_utils.h"
+#include "unit_tests/unit_tests.h"
 
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
-void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
+void blinky(void *pvParameters) { // blinks LED at 10Hz
+	// You can initialize variables for your task here. Runs once.
+	// The loop of the task will run repeatedly until the task is preempted. So delay or suspend the task once you're done processing.
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
-		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
+		vTaskDelay(pdMS_TO_TICKS(200)); // delay 200ms. Use the macro
 	}
 }
 
@@ -83,15 +86,27 @@ void vFlashWrite(void *pvParameters) {
 
 
 void vADCRead(void *pvParameters) {
-//	adcData_t adc_data; //ADC Data Structure
+	// TODO: this task should start a conversion of group 1 (will read ADC channel 2 for starters)
+	// TODO: instead of waiting for the conversion to complete, add a semaphore from the ISR callback (adc1Group1Interrupt)
+	// this task would start conversion, suspend and wait for semaphore (xsemaphoretake). When the semaphore is raised (given) in adc1Group1Interrupt,
+	// it means the conversion is done. This task will take the semaphore back, then grab the data as we do now.
+	// With the data, create a new task and get the data into the task. - task notification, task param, queue, etc.
+	// In the new task, print out the data received.
+	// This is a lot of stuff, but it mimics what we will eventually need to do - call tasks to write data out to flash and save it.
+	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
+	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
+
 	uint32_t value;
-	uint32_t thing;
 	char buffer[10];
 	unsigned int numChars, send_value; //Declare variables
 
 	while (1) {
+		// start conversion (it's inside test_adc)
+
+		// take a semaphore here
 	value = test_adc(2);
-	thing = 0;
+
+	// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
 	numChars = ltoa(value,(char *)buffer);
 	buffer[numChars]=':';
@@ -100,33 +115,10 @@ void vADCRead(void *pvParameters) {
 	ltoa(send_value,(char *)buffer + numChars + 1);
 	serialSendQ(buffer);
 
-	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
-	thing = 3242;
-	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
 
-
-
-
-void vDemoADCTask(void *pvParameters) {
-	adcData_t adc_data; //ADC Data Structure
-	char buffer[10];
-	unsigned int numChars, value; //Declare variables
-
-	while (1) {
-		adcStartConversion(DEMO_ADC_REG, DEMO_ADC_PIN); //Start ADC conversion
-		while (!adcIsConversionComplete(DEMO_ADC_REG, DEMO_ADC_PIN)); //Wait for ADC conversion
-		adcGetData(DEMO_ADC_REG, DEMO_ADC_PIN, &adc_data); //Store conversion into ADC pointer
-		value = (unsigned int) adc_data.value;
-		numChars = ltoa(adc_data.id,(char *)buffer);
-		buffer[numChars]=':';
-
-		// 12 bit adc; value takes 4 bytes max
-		ltoa(value,(char *)buffer + numChars + 1);
-		serialSendQ(buffer);
-	}
-}
 
 void vStateTask(void *pvParameters) {
 	while (1){

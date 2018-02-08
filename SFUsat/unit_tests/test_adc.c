@@ -38,7 +38,7 @@ uint32_t test_adc(uint8_t channel){
 
     adcData_t adc_data[24]; // there are 24 channels
     adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
-    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete
+    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
     ch_count = adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
     /* adc_data[0] -> should have conversions for Group1 channel0 */

@@ -72,7 +72,7 @@
 #define WATCHDOG_TICKLE_PIN 7
 
 #define DEMO_ADC_REG adcREG1
-#define DEMO_ADC_PIN 1
+#define DEMO_ADC_PIN 2
 
 #define UART_PORT sciREG
 

@@ -43,28 +43,34 @@
 
 
 /* USER CODE BEGIN (0) */
+//  ---------- TI/External System ----------
 #include "sys_core.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
-#include "adc.h"
-#include "gio.h"
-#include "mibspi.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 #include "sys_pmu.h"
 #endif
 
-#include "sfu_spi.h"
-#include "sfu_tasks.h"
-#include "sfu_uart.h"
+// ---------- TI/External Hardware ----------
+#include "adc.h"
+#include "gio.h"
+#include "mibspi.h"
 
+//  ---------- SFUSat Hardware ----------
+#include "sfu_spi.h"
+#include "sfu_uart.h"
+#include "flash_mibspi.h"
+
+//  ---------- SFUSat System ----------
+#include "sfu_startup.h"
+#include "sfu_tasks.h"
 #include "sfu_state.h"
 #include "sfu_utils.h"
-#include "sfu_startup.h"
-#include "flash_mibspi.h"
 #include "sfu_rtc.h"
-#include "sfu_triumf.h"
 
+//  ---------- SFUSat Tests (optional) ----------
+#include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 /* USER CODE END */
 
@@ -105,41 +111,40 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 int main(void)
 {
 /* USER CODE BEGIN (3) */
+// ---------- SETUP/INIT HARDWARE ----------
 	_enable_IRQ(); // global interrupt enable
     _enable_interrupt_();
 
 	serialInit();
 	gioInit();
 	spiInit();
-	init_adc_test();
-
-
-	serialSendln("SFUSat Started!");
-
     flash_mibspi_init();
-    test_flash();
+
+// ---------- SFUSat INIT ----------
+	rtcInit();
+	stateMachineInit(); // we start in SAFE mode
+
+// ---------- BRINGUP/PRELIMINARY PHASE ----------
+	serialSendln("SFUSat Started!");
 
 	watchdog_busywait(3000); // to allow time for serial to connect up to script
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
-	rtcInit();
-
-	uint32_t newtime;
-	newtime = no_rtos_test_getCurrentRTCTime();
-
-
-//    simpleWatchdog();
-    triumf_init();
-
-	stateMachineInit(); // we start in SAFE mode
 	printStartupType();
 
-	if(flash_test_JEDEC()){
+// ---------- INIT TESTS ----------
+	// TODO: if tests fail, actually do something
+	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	test_flash();
+	init_adc_test();
+    triumf_init();
+
+	if(flash_test_JEDEC()){ // kind of redundant now
 		serialSendln("Passed flash JEDEC test!");
 	}
 
+// ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
+//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
@@ -147,11 +152,15 @@ int main(void)
     xFlashMutex = xSemaphoreCreateMutex();
     xRTCMutex = xSemaphoreCreateMutex();
 
+// ---------- SETUP/START RTOS ----------
+    // vMainTask starts up all of the top level tasks. From those, other tasks are spawned as necessary.
 	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();
 
-	for(;;); // keep running the scheduler
+	while(1){
+		// keep running the scheduler
+	}
 
 	/* USER CODE END */
 

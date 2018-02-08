@@ -8,6 +8,7 @@
 #include "sfu_uart.h"
 #include "sfu_cmds.h"
 #include "sfu_scheduler.h"
+#include "sfu_state.h"
 
 int8_t cmdHelp(const CMD_t *cmd) {
 	switch (cmd->subcmd_help_id) {

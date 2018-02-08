@@ -37,8 +37,7 @@
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 
-void hundredBlinky(void *pvParameters);
-void vDemoADCTask(void *pvParameters); // example task that could be repurposed to monitor current with appropriate logging
+void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
 void vFlashRead(void *pvParameters);
 void vFlashWrite(void *pvParameters);
