@@ -1,7 +1,7 @@
 /** @file reg_mibspi.h
 *   @brief MIBSPI Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -12,7 +12,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -139,7 +139,37 @@ typedef volatile struct mibspiBase
 */
 #define mibspiPORT1 ((gioPORT_t *)0xFFF7F418U)
 
+/** @def mibspiREG3
+*   @brief MIBSPI3 Register Frame Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi module registers.
+*/
+#define mibspiREG3 ((mibspiBASE_t *)0xFFF7F800U)
 
+
+/** @def mibspiPORT3
+*   @brief MIBSPI3 GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of MIBSPI3
+*   (use the GIO drivers to access the port pins).
+*/
+#define mibspiPORT3 ((gioPORT_t *)0xFFF7F818U)
+
+/** @def mibspiREG5
+*   @brief MIBSPI5 Register Frame Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi module registers.
+*/
+#define mibspiREG5 ((mibspiBASE_t *)0xFFF7FC00U)
+
+
+/** @def mibspiPORT5
+*   @brief MIBSPI5 GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of MIBSPI5
+*   (use the GIO drivers to access the port pins).
+*/
+#define mibspiPORT5 ((gioPORT_t *)0xFFF7FC18U)
 
 
 /** @struct mibspiRamBase
@@ -184,12 +214,41 @@ typedef volatile struct mibspiRamBase
 */
 #define mibspiRAM1 ((mibspiRAM_t *)0xFF0E0000U)
 
+/** @def mibspiRAM3
+*   @brief MIBSPI3 Buffer RAM Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi buffer memory.
+*/
+#define mibspiRAM3 ((mibspiRAM_t *)0xFF0C0000U)
+
+/** @def mibspiRAM5
+*   @brief MIBSPI5 Buffer RAM Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi buffer memory.
+*/
+#define mibspiRAM5 ((mibspiRAM_t *)0xFF0A0000U)
+
 /** @def mibspiPARRAM1
 *   @brief MIBSPI1 Buffer RAM PARITY Pointer
 *
 *   This pointer is used by the MIBSPI driver to access the mibspi buffer memory.
 */
 #define mibspiPARRAM1 (*(volatile uint32 *)(0xFF0E0000U + 0x00000400U))
+
+/** @def mibspiPARRAM3
+*   @brief MIBSPI3 Buffer RAM PARITY Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi buffer memory.
+*/
+#define mibspiPARRAM3 (*(volatile uint32 *)(0xFF0C0000U + 0x00000400U))
+
+
+/** @def mibspiPARRAM5
+*   @brief MIBSPI5 Buffer RAM PARITY Pointer
+*
+*   This pointer is used by the MIBSPI driver to access the mibspi buffer memory.
+*/
+#define mibspiPARRAM5 (*(volatile uint32 *)(0xFF0A0000U + 0x00000400U))
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

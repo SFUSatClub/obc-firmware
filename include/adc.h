@@ -1,7 +1,7 @@
 /** @file adc.h
 *   @brief ADC Driver Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -57,7 +57,6 @@ extern "C" {
 
 /* USER CODE BEGIN (0) */
 /* USER CODE END */
-
 
 /* ADC General Definitions */
 
@@ -142,10 +141,53 @@ enum adc1HwTriggerSource
 	ADC1_RTI_COMP0 = 3U,   /**< Alias for RTI compare 0 match   */
 	ADC1_HET1_12 = 4U,     /**< Alias for HET1 pin 12           */
 	ADC1_HET1_14 = 5U,     /**< Alias for HET1 pin 14           */
-	ADC1_HET1_17 = 6U,     /**< Alias for HET1 pin 17           */
-	ADC1_HET1_19 = 7U      /**< Alias for HET1 pin 19           */
+	ADC1_GIOB0 = 6U,       /**< Alias for GIO port b pin 0      */
+	ADC1_GIOB1 = 7U,       /**< Alias for GIO port b pin 1      */
+
+	ADC1_HET2_5 = 1U,      /**< Alias for HET2 pin 5            */
+	ADC1_HET1_27 = 2U,     /**< Alias for HET1 pin 27           */
+	ADC1_HET1_17 = 4U,     /**< Alias for HET1 pin 17           */
+	ADC1_HET1_19 = 5U,     /**< Alias for HET1 pin 19           */
+	ADC1_HET1_11 = 6U,     /**< Alias for HET1 pin 11           */
+	ADC1_HET2_13 = 7U,     /**< Alias for HET2 pin 13           */
+
+	ADC1_EPWM_B = 1U,      /**< Alias for B Signal EPWM         */
+	ADC1_EPWM_A1 = 3U,     /**< Alias for A1 Signal EPWM        */	
+	ADC1_HET2_1 = 5U,      /**< Alias for HET2 pin 1            */
+	ADC1_EPWM_A2 = 6U,     /**< Alias for A2 Signal EPWM        */
+	ADC1_EPWM_AB = 7U      /**< Alias for AB Signal EPWM        */	
+
 };
 
+/** @enum adc2HwTriggerSource
+*   @brief Alias names for hardware trigger source
+*   This enumeration is used to provide alias names for the hardware trigger sources:
+*/
+
+enum adc2HwTriggerSource
+{
+	ADC2_EVENT = 0U,       /**< Alias for event pin             */
+	ADC2_HET1_8 = 1U,      /**< Alias for HET1 pin 8            */
+	ADC2_HET1_10 = 2U,     /**< Alias for HET1 pin 10           */
+	ADC2_RTI_COMP0 = 3U,   /**< Alias for RTI compare 0 match   */
+	ADC2_HET1_12 = 4U,     /**< Alias for HET1 pin 12           */
+	ADC2_HET1_14 = 5U,     /**< Alias for HET1 pin 14           */
+	ADC2_GIOB0 = 6U,       /**< Alias for GIO port b pin 0      */
+	ADC2_GIOB1 = 7U,       /**< Alias for GIO port b pin 1      */
+	ADC2_HET2_5 = 1U,      /**< Alias for HET2 pin 5            */
+	ADC2_HET1_27 = 2U,     /**< Alias for HET1 pin 27           */
+	ADC2_HET1_17 = 4U,     /**< Alias for HET1 pin 17           */
+	ADC2_HET1_19 = 5U,     /**< Alias for HET1 pin 19           */
+	ADC2_HET1_11 = 6U,     /**< Alias for HET1 pin 11           */
+	ADC2_HET2_13 = 7U,     /**< Alias for HET2 pin 13           */
+	
+	ADC2_EPWM_B = 1U,      /**< Alias for B Signal EPWM         */
+	ADC2_EPWM_A1 = 3U,     /**< Alias for A1 Signal EPWM        */	
+	ADC2_HET2_1 = 5U,      /**< Alias for HET2 pin 1            */
+	ADC2_EPWM_A2 = 6U,     /**< Alias for A2 Signal EPWM        */
+	ADC2_EPWM_AB = 7U      /**< Alias for AB Signal EPWM        */	
+
+};
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */
@@ -167,6 +209,7 @@ typedef struct adcData
 
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
+
 typedef struct adc_config_reg
 {           
     uint32 CONFIG_OPMODECR;
@@ -190,7 +233,7 @@ typedef struct adc_config_reg
 #define ADC1_CLOCKCR_CONFIGVALUE		(7U)
 
 #define ADC1_G0MODECR_CONFIGVALUE		((uint32)ADC_12_BIT | (uint32)0x00000000U | (uint32)0x00000000U)
-#define ADC1_G1MODECR_CONFIGVALUE		((uint32)ADC_12_BIT | (uint32)0x00000020U | (uint32)0x00000000U | (uint32)0x00000000U)
+#define ADC1_G1MODECR_CONFIGVALUE		((uint32)ADC_12_BIT | (uint32)0x00000000U | (uint32)0x00000000U | (uint32)0x00000000U)
 #define ADC1_G2MODECR_CONFIGVALUE		((uint32)ADC_12_BIT | (uint32)0x00000000U | (uint32)0x00000000U | (uint32)0x00000000U)
 
 #define ADC1_G0SRC_CONFIGVALUE 			((uint32)0x00000000U | (uint32)ADC1_EVENT)
@@ -200,15 +243,16 @@ typedef struct adc_config_reg
 #define ADC1_BNDCR_CONFIGVALUE			((uint32)((uint32)8U << 16U)|(8U + 8U))
 #define ADC1_BNDEND_CONFIGVALUE			(2U)
 
-#define ADC1_G0SAMP_CONFIGVALUE			(0U)
-#define ADC1_G1SAMP_CONFIGVALUE			(0U)
-#define ADC1_G2SAMP_CONFIGVALUE			(0U)
+#define ADC1_G0SAMP_CONFIGVALUE			(1U)
+#define ADC1_G1SAMP_CONFIGVALUE			(1U)
+#define ADC1_G2SAMP_CONFIGVALUE			(1U)
 
 #define ADC1_G0SAMPDISEN_CONFIGVALUE	((uint32)((uint32)0U << 8U) | 0x00000000U)
 #define ADC1_G1SAMPDISEN_CONFIGVALUE	((uint32)((uint32)0U << 8U) | 0x00000000U)
 #define ADC1_G2SAMPDISEN_CONFIGVALUE	((uint32)((uint32)0U << 8U) | 0x00000000U)
 
 #define ADC1_PARCR_CONFIGVALUE			(0x00000005U)
+
 
 /** 
  *  @defgroup ADC ADC
@@ -241,11 +285,13 @@ void adcSetEVTPin(adcBASE_t *adc, uint32 value);
 uint32 adcGetEVTPin(adcBASE_t *adc);
 
 void adc1GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type);
+void adc2GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type);
+
 /** @fn void adcNotification(adcBASE_t *adc, uint32 group)
 *   @brief Group notification
 *   @param[in] adc Pointer to ADC node:
 *              - adcREG1: ADC1 module pointer
-
+*              - adcREG2: ADC2 module pointer
 *   @param[in] group number of ADC node:
 *              - adcGROUP0: ADC event group
 *              - adcGROUP1: ADC group 1
@@ -255,12 +301,11 @@ void adc1GetConfigValue(adc_config_reg_t *config_reg, config_value_type_t type);
 */
 void adcNotification(adcBASE_t *adc, uint32 group);
 
-/**@}*/
 /* USER CODE BEGIN (3) */
 /* USER CODE END */
 
+/**@}*/
 #ifdef __cplusplus
 }
 #endif
-
 #endif

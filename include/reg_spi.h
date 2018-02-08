@@ -1,7 +1,7 @@
 /** @file reg_spi.h
 *   @brief SPI Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -12,7 +12,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -132,9 +132,8 @@ typedef volatile struct spiBase
 */
 #define spiPORT2 ((gioPORT_t *)0xFFF7F618U)
 
-
 /** @def spiREG3
-*   @brief SPI3 Register Frame Pointer
+*   @brief SPI3 (MIBSPI - Compatibility Mode) Register Frame Pointer
 *
 *   This pointer is used by the SPI driver to access the spi module registers.
 */
@@ -142,12 +141,44 @@ typedef volatile struct spiBase
 
 
 /** @def spiPORT3
-*   @brief SPI3 GIO Port Register Pointer
+*   @brief SPI3 (MIBSPI - Compatibility Mode) GIO Port Register Pointer
 *
 *   Pointer used by the GIO driver to access I/O PORT of SPI3
 *   (use the GIO drivers to access the port pins).
 */
 #define spiPORT3 ((gioPORT_t *)0xFFF7F818U)
+
+/** @def spiREG4
+*   @brief SPI4 Register Frame Pointer
+*
+*   This pointer is used by the SPI driver to access the spi module registers.
+*/
+#define spiREG4 ((spiBASE_t *)0xFFF7FA00U)
+
+
+/** @def spiPORT4
+*   @brief SPI4 GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of SPI4
+*   (use the GIO drivers to access the port pins).
+*/
+#define spiPORT4 ((gioPORT_t *)0xFFF7FA18U)
+
+/** @def spiREG5
+*   @brief SPI5 (MIBSPI - Compatibility Mode) Register Frame Pointer
+*
+*   This pointer is used by the SPI driver to access the spi module registers.
+*/
+#define spiREG5 ((spiBASE_t *)0xFFF7FC00U)
+
+
+/** @def spiPORT5
+*   @brief SPI5 (MIBSPI - Compatibility Mode) GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of SPI5
+*   (use the GIO drivers to access the port pins).
+*/
+#define spiPORT5 ((gioPORT_t *)0xFFF7FC18U)
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

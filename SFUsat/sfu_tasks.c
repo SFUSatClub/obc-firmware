@@ -4,18 +4,110 @@
 #include "sfu_tasks.h"
 #include "sfu_cmds.h"
 #include "sfu_hardwaredefs.h"
+#include "flash_mibspi.h"
+#include "sfu_rtc.h"
+#include "sfu_utils.h"
+
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
 void hundredBlinky(void *pvParameters) { // this is the sanity checker task, blinks LED at 10Hz
-
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 100ms. Use the macro
 	}
 }
+
+void vFlashRead(void *pvParameters) {
+	char printBuffer[16];
+	uint16_t memBuffer[16];
+	uint32_t i;
+	uint32_t j;
+
+	while (1) {
+		if((addressWritten > 16) && ((addressWritten-16) % 256 == 0)){ // need to be over 16 since 16 - 16 % 256 = 0
+			for(j = (addressWritten - 16 - 256); j < addressWritten - 16; j += 16){
+				flash_read_16_rtos(j, memBuffer);
+				for(i = 0; i < 16 ; i++){
+					printBuffer[i] = (char)(memBuffer[i]);
+
+				}
+				serialSendQ(printBuffer);
+			}
+			vTaskDelay(pdMS_TO_TICKS(3000));
+		}
+		vTaskDelay(pdMS_TO_TICKS(300));
+	}
+}
+
+void vFlashRead2(void *pvParameters) {
+	char printBuffer[16];
+	uint16_t memBuffer[16];
+	uint32_t i;
+	while (1) {
+		if((lastRead != addressWritten)){ // if we have a new one to read
+				flash_read_16_rtos((addressWritten-16), memBuffer);
+				for(i = 0; i < 16 ; i++){
+					printBuffer[i] = (char)(memBuffer[i]);
+				}
+				serialSendQ(printBuffer);
+		}
+		lastRead = addressWritten;
+		vTaskDelay(pdMS_TO_TICKS(300));
+	}
+}
+
+void vFlashWrite(void *pvParameters) {
+	uint32_t localEpoch;
+	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 32, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+	char thing[10];
+	while (1) {
+//		serialSendQ("RTC");
+		localEpoch = no_rtos_test_getCurrentRTCTime();
+
+		itoa2(localEpoch, thing, 10, 0);
+		writeBuffer[7] = (uint16_t)thing[0];
+		writeBuffer[8] =(uint16_t)thing[1];
+		writeBuffer[9] = (uint16_t)thing[2];
+		writeBuffer[10] =(uint16_t)thing[3];
+		writeBuffer[11] =(uint16_t)thing[4];
+
+		flash_write_16_rtos(addressWritten, writeBuffer);
+
+		addressWritten += 16;
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
+}
+
+
+void vADCRead(void *pvParameters) {
+//	adcData_t adc_data; //ADC Data Structure
+	uint32_t value;
+	uint32_t thing;
+	char buffer[10];
+	unsigned int numChars, send_value; //Declare variables
+
+	while (1) {
+	value = test_adc(2);
+	thing = 0;
+
+	numChars = ltoa(value,(char *)buffer);
+	buffer[numChars]=':';
+
+	// 12 bit adc; value takes 4 bytes max
+	ltoa(send_value,(char *)buffer + numChars + 1);
+	serialSendQ(buffer);
+
+	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	thing = 3242;
+	vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
+	}
+}
+
+
+
 
 void vDemoADCTask(void *pvParameters) {
 	adcData_t adc_data; //ADC Data Structure
@@ -37,7 +129,6 @@ void vDemoADCTask(void *pvParameters) {
 }
 
 void vStateTask(void *pvParameters) {
-
 	while (1){
 		cur_state = runState( cur_state, &state_persistent_data ); // update state machine
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
@@ -74,7 +165,7 @@ void vSerialTask(void *pvParameters) {
 		 * Dequeue next string to send over UART.
 		 */
 		const int numTxMsgs = uxQueueMessagesWaiting(xSerialTXQueue);
-		if (numTxMsgs > 5) {
+		if (numTxMsgs > 25) {
 			serialSend("WARNING: ");
 			char buffer[10];
 			snprintf(buffer, 10, "%d", numTxMsgs);

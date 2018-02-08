@@ -13,79 +13,15 @@
 
 #include <assert.h>
 
-// RTC Registers
-#define CTRL_1
-#define CTRL_INT 0X01
-#define CTRL_INTFLAG 0x02
-#define CTRL_STATUS 0x03
-#define CTRL_RESET 0x04
 
-#define PON_REG 32
-#define SYSR_REG 16
-#define SR_REG 16
-#define SRF_REG 16
-#define V2F_REG 0x03
-#define V1F_REG 0x02
 
-#define CLOCK_SECONDS 0x08
-#define CLOCK_MINUTES 0x09
-#define CLOCK_HOURS 0x0A
-#define CLOCK_DAYS 0x0B
-#define CLOCK_WKDAYS 0x0C
-#define CLOCK_MONTHS 0x0D
-#define CLOCK_YEARS 0x0E
 
-#define ALARM_SECOND 0x10
-#define ALARM_MINUTE 0x11
-#define ALARM_HOUR 0x12
-#define ALARM_DAY 0x13
-#define ALARM_WKDAY 0x14
-#define ALARM_MONTH 0x15
-#define ALARM_YEAR 0x16
-
-#define TIMER_LOW 0x18
-#define TIMER_HIGH 0x19
-
-#define TEMP 0x20
-
-#define EEPROM_USER1 0x28
-#define EEPROM_USER2 0x29
-
-#define EEPROM_CTRL 0x30
-#define XTAL_OFFSET 0x31
-#define XTAL_COEFF 0x32
-#define XTAL_T0 0x33
-
-#define TEMP_ENABLE 0x00
-#define TEMP_INTERVAL 0x01 // 0 = 1sec, 1 = 16sec
-#define TRICKLE_R80K 0x07
-#define TRICKLE_R20K 0x06
-#define TRICKLE_R5K 0x05
-#define TRICKLE_R1K 0x04
-
-// Not included: USER RAM registers
-
-// Command modes
-#define READ 0x80
-#define WRITE 0x00
-
-uint8_t convertBCD(uint8_t input);
-void rtcWriteRegister(uint16_t registerToWrite, uint16_t valueToWrite);
-uint8_t rtcReadRegister(uint16_t registerToRead);
-uint8_t rtcGetBit(uint16_t registerToRead, uint8_t bitToCheck);
-uint8_t rtcSetBit(uint16_t registerToWrite, uint8_t bitToSet, uint8_t bitValue);
-void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff);
-
-// holds the SPI config (set in rtcInit)
-spiDAT1_t rtc_spiConfig;
-// can be used to offset the epoch from the ground. Default 0. (seconds)
-uint32_t epochOffset;
 // contains the cumulative seconds in months so we can easily calculate epochs
 const uint32_t cumulativeSecondsInMonth[12] = { 0, 2678400, 5097600, 7776000, 10368000, 13046400, 15638400, 18316800,
 		20995200, 23587200, 26265600, 28857600 }; // zero, seconds in january, then seconds in jan + feb, then jan + feb + mar
 // in feb, we add seconds in jan plus the current time in feb to get the seconds since start
 
-unsigned int rtc_epoch_time = 0;
+uint32_t rtc_epoch_time = 0;
 unsigned int het_epoch_time = 0;
 
 unsigned int getCurrentTime() {
@@ -104,6 +40,7 @@ void tempAddSecondToHET() {
 }
 
 void rtcInit() {
+	// must call spiInit before this.
 	rtc_spiConfig.CS_HOLD = RTC_CONFIG_CS_HOLD; //CS false = high during data transfer
 	rtc_spiConfig.WDEL = RTC_CONFIG_WDEL; // wdelay
 	rtc_spiConfig.DFSEL = RTC_CONFIG_DFSEL; // data format
@@ -126,6 +63,7 @@ void rtcInit() {
 		rtcSetBit(CTRL_STATUS, V2F_REG, 0);
 		rtcResetTime();
 	}
+
 	rtcSetBit(EEPROM_CTRL, TRICKLE_R1K, 1); // enable 1.5k ohm trickle charge resistor
 }
 
@@ -227,6 +165,8 @@ uint32_t getCurrentRTCTime() {
 	/*
 	 * Reset HET time.
 	 */
+	xSemaphoreTake( xRTCMutex, pdMS_TO_TICKS(200) );
+	{
 	het_epoch_time = 0;
 
 	/*
@@ -244,6 +184,51 @@ uint32_t getCurrentRTCTime() {
 	//    uint32_t multhours = (rtc_get_hours()*3600);
 	//    uint32_t multmins = (rtc_get_minutes()*60);
 	//    uint32_t secs = (uint32_t)rtc_get_seconds();
+
+	/**
+	 * Upper bound the month received from RTC SPI to 11, just
+	 * in case, since if we index with anything >= 12 we will explode.
+	 * TODO: check if the convertBCD operations in rtc_get_month
+	 * negate the need for this check.
+	 */
+	uint32_t monthIdx = month - 1;
+	monthIdx = monthIdx >= 12 ? 11 : monthIdx;
+    uint32_t nonLeapYear =
+    		  epochOffset
+    		+ (year*31536000)
+			+ (cumulativeSecondsInMonth[monthIdx])
+			+ ((rtc_get_day() -1)*86400)
+			+ (rtc_get_hours()*3600)
+			+ (rtc_get_minutes()*60)
+			+ rtc_get_seconds();
+
+	rtc_epoch_time = nonLeapYear;
+
+	if ((month >= 3 && year == 0) || (year >> 0)) {
+		// normally consider feb as having 28 days. However, RTC does 29-day feb on years divisible by 4, and year 0
+		// so if we're in year 0 or more and past feb, we need to add that leap day.
+		// Also if we're over year 4, past feb, we need to add another one. On feb 29, day will be auto-included because current time is RTC day * seconds per day.
+		rtc_epoch_time += 86400;
+	}
+	}
+	xSemaphoreGive( xRTCMutex );
+	return rtc_epoch_time;
+}
+
+uint32_t no_rtos_test_getCurrentRTCTime() {
+	/*
+	 * Reset HET time.
+	 */
+	// no mutex on this so we can test without the rtos
+	het_epoch_time = 0;
+
+	/*
+	 * Initiate RTC SPI transfers to get current actual rtc_epoch_time.
+	 */
+	// Note: doesn't handle more than 1 leap year!
+	// also assumes we start on jan 1, year 2000 @ RTC power on (which we do)
+	uint8_t year = rtc_get_year(); // save these since we need them multiple times and we don't want them to change between reads
+	uint8_t month = rtc_get_month();
 
 	/**
 	 * Upper bound the month received from RTC SPI to 11, just
@@ -311,8 +296,15 @@ uint8_t rtcGetBit(uint16_t registerToRead, uint8_t bitToCheck) {
 }
 
 uint8_t rtcSetBit(uint16_t registerToWrite, uint8_t bitToSet, uint8_t bitValue) {
+	// bitToSet is zero indexed
 	uint8_t rtcbits = rtcReadRegister(registerToWrite);
-	rtcbits ^= (-bitValue ^ rtcbits) & bitToSet;
+	if(bitValue == 1){
+		rtcbits |= (1 << bitToSet);
+	}
+	else{
+		rtcbits &= ~(1 << bitToSet);
+	}
+//	rtcbits ^= (-bitValue ^ rtcbits) & bitToSet; // this doesn't work correctly!
 	uint16_t sendoff = 0x00ff & rtcbits; // spi handlers like 16-bits, so right align the whole thing
 	rtcWriteRegister(registerToWrite, sendoff);
 

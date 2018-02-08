@@ -1,7 +1,7 @@
 /** @file sys_selftest.h
 *   @brief System Memory Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Efuse Self Test Functions
@@ -84,7 +84,14 @@
 #define CCMSR 			(*(volatile uint32 *)(0xFFFFF600U))
 #define CCMKEYR			(*(volatile uint32 *)(0xFFFFF604U))
 
+#define DMA_PARCR		(*(volatile uint32 *)(0xFFFFF1A8U))
+#define DMA_PARADDR		(*(volatile uint32 *)(0xFFFFF1ACU))
+#define DMARAMLOC		(*(volatile uint32 *)(0xFFF80000U))
+#define DMARAMPARLOC	(*(volatile uint32 *)(0xFFF80A00U))
+
 #define MIBSPI1RAMLOC	(*(volatile uint32 *)(0xFF0E0000U))
+#define MIBSPI3RAMLOC	(*(volatile uint32 *)(0xFF0C0000U))
+#define MIBSPI5RAMLOC	(*(volatile uint32 *)(0xFF0A0000U))
 
 
 #ifndef __PBIST_H__
@@ -208,7 +215,7 @@ void pbistGetConfigValue(pbist_config_reg_t *config_reg, config_value_type_t typ
 /* STC General Definitions */
 
 /* STC Test Intervals supported in the Device */
-#define STC_INTERVAL 26U
+#define STC_INTERVAL 24U
 #define STC_MAX_TIMEOUT 0xFFFFFFFFU
 
 
@@ -419,12 +426,19 @@ void checkB1RAMECC(void);
 void checkFlashECC(void);
 
 void vimParityCheck(void);
+void dmaParityCheck(void);
 void adc1ParityCheck(void);
+void adc2ParityCheck(void);
 void het1ParityCheck(void);
 void htu1ParityCheck(void);
+void het2ParityCheck(void);
+void htu2ParityCheck(void);
 void can1ParityCheck(void);
 void can2ParityCheck(void);
+void can3ParityCheck(void);
 void mibspi1ParityCheck(void);
+void mibspi3ParityCheck(void);
+void mibspi5ParityCheck(void);
 
 void checkRAMECC(void);
 void checkClockMonitor(void);

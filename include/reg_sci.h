@@ -1,7 +1,7 @@
 /** @file reg_sci.h
 *   @brief SCI Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -12,7 +12,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -72,7 +72,7 @@ typedef volatile struct sciBase
 {
     uint32 GCR0;          /**< 0x0000 Global Control Register 0 */
     uint32 GCR1;          /**< 0x0004 Global Control Register 1 */
-    uint32 GCR2;         /**< 0x0008 Global Control Register 2.  */
+    uint32 GCR2;         /**< 0x0008 Global Control Register 2. Note: Applicable only to LIN – SCI Compatibility Mode,Reserved for standalone SCI*/
     uint32 SETINT;       /**< 0x000C Set Interrupt Enable Register */
     uint32 CLEARINT;      /**< 0x0010 Clear Interrupt Enable Register */
     uint32 SETINTLVL;    /**< 0x0014 Set Interrupt Level Register */
@@ -97,6 +97,23 @@ typedef volatile struct sciBase
     uint32 rsdv2[12U];    /**< 0x0060: Reserved                               */
     uint32 IODFTCTRL;     /**< 0x0090: I/O Error Enable Register */
 } sciBASE_t;
+
+
+/** @def sciREG
+*   @brief  Register Frame Pointer
+*
+*   This pointer is used by the SCI driver to access the sci module registers.
+*/
+#define sciREG ((sciBASE_t *)0xFFF7E500U)
+
+
+/** @def sciPORT
+*   @brief SCI GIO Port Register Pointer
+*
+*   Pointer used by the GIO driver to access I/O PORT of SCI
+*   (use the GIO drivers to access the port pins).
+*/
+#define sciPORT ((gioPORT_t *)0xFFF7E540U)
 
 
 /** @def scilinREG

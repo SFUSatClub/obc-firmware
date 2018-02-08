@@ -1,7 +1,7 @@
 /** @file sys_core.h
 *   @brief System Core Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Core Interface Functions
@@ -136,6 +136,11 @@ void _gotoCPUIdle_(void);
 *   @brief Enable Irq offset propagation via Vic controller
 */
 void _coreEnableIrqVicOffset_(void);
+
+/** @fn void _coreEnableVfp_(void)
+*   @brief Enable vector floating point unit
+*/
+void _coreEnableVfp_(void);
 
 /** @fn void _coreEnableEventBusExport_(void)
 *   @brief Enable event bus export for external monitoring modules
@@ -337,6 +342,14 @@ void _esmCcmErrorsClear_(void);
 *   instructions in Auxiliary Control register.
 */
 void _errata_CORTEXR4_66_(void);
+
+/** @fn void _errata_CORTEXR4_57_(void)
+*   @brief Work Around for Errata CORTEX-R4#57
+*
+*   Disable out-of-order single-precision floating point  
+*   multiply-accumulate instruction completion.
+*/
+void _errata_CORTEXR4_57_(void);
 
 #ifdef __cplusplus
 }

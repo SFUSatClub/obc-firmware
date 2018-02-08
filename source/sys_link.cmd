@@ -60,9 +60,9 @@
 MEMORY
 {
     VECTORS (X)  : origin=0x00000000 length=0x00000020
-    FLASH0  (RX) : origin=0x00008020 length=0x00057FE0
+    FLASH0  (RX) : origin=0x00008020 length=0x000B7FE0
     STACKS  (RW) : origin=0x08000000 length=0x00000800
-    RAM     (RW) : origin=0x08000800 length=0x00007800
+    RAM     (RW) : origin=0x08000800 length=0x0001F800
 
 /* USER CODE BEGIN (2) */
     KRAM    (RW) : origin=0x08000800 length=0x00000800
@@ -74,20 +74,20 @@ MEMORY
 
 /* USER CODE END */
 
-
 /*----------------------------------------------------------------------------*/
 /* Section Configuration                                                      */
 
 SECTIONS
 {
     .intvecs : {} > VECTORS
-    .text    : {} > FLASH0
-    .const   : {} > FLASH0
-    .cinit   : {} > FLASH0
-    .pinit   : {} > FLASH0
+    .text    : {} > FLASH0 
+    .const   : {} > FLASH0 
+    .cinit   : {} > FLASH0 
+    .pinit   : {} > FLASH0 
     .bss     : {} > RAM
     .data    : {} > RAM
-	.sysmem  : {} > RAM
+    .sysmem  : {} > RAM
+    
 
 /* USER CODE BEGIN (4) */
 
@@ -137,6 +137,3 @@ SECTIONS
 /* USER CODE BEGIN (6) */
 /* USER CODE END */
 /*----------------------------------------------------------------------------*/
-
-
-

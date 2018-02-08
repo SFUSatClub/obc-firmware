@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SETTINGS>
   <DEVICE>
-    <family>TMS570LS04x</family>
-    <device>TMS570LS0432PZ</device>
-    <dilfile>OBC.dil</dilfile>
+    <family>TMS570LS09x_07x</family>
+    <device>TMS570LS0714PGE</device>
+    <dilfile>OBC_prototype_A.dil</dilfile>
     <tools>ti</tools>
   </DEVICE>
   <VERSION>
     <version>04.06.00</version>
   </VERSION>
-  <HET>
+  <HET1>
     <FILENAME>
       <HET1ASMHDR>
         <NAME/>
@@ -18,27 +18,17 @@
         <NAME/>
       </HET1ASMSRC>
     </FILENAME>
-    <FILENAMES>
-      <STDHDRHET>
-        <PATH>include\std_nhet.h</PATH>
-      </STDHDRHET>
-      <HDRHET_R>
-        <PATH>include\reg_het.h</PATH>
-      </HDRHET_R>
-      <HDRHET>
-        <PATH>include\het.h</PATH>
-      </HDRHET>
-      <HDRHTU_R>
-        <PATH>include\reg_htu.h</PATH>
-      </HDRHTU_R>
-      <HDRHTU>
-        <PATH>include\htu.h</PATH>
-      </HDRHTU>
-      <SRCHET>
-        <PATH/>
-      </SRCHET>
-    </FILENAMES>
-  </HET>
+  </HET1>
+  <HET2>
+    <FILENAME>
+      <HET2ASMHDR>
+        <NAME/>
+      </HET2ASMHDR>
+      <HET2ASMSRC>
+        <NAME/>
+      </HET2ASMSRC>
+    </FILENAME>
+  </HET2>
   <SYSTEM>
     <FILENAMES>
       <HDRHAL>
@@ -81,6 +71,14 @@
         <NAME>reg_pcr.h</NAME>
         <PATH>include\reg_pcr.h</PATH>
       </HDRPCR_R>
+      <HDRPMM_R>
+        <NAME>reg_pmm.h</NAME>
+        <PATH>include\reg_pmm.h</PATH>
+      </HDRPMM_R>
+      <HDRDMA_R>
+        <NAME>reg_dma.h</NAME>
+        <PATH>include\reg_dma.h</PATH>
+      </HDRDMA_R>
       <HDRSYSTEM>
         <NAME>system.h</NAME>
         <PATH>include\system.h</PATH>
@@ -105,6 +103,14 @@
         <NAME>sys_pcr.h</NAME>
         <PATH>include\sys_pcr.h</PATH>
       </HDRPCR>
+      <HDRPMM>
+        <NAME>sys_pmm.h</NAME>
+        <PATH>include\sys_pmm.h</PATH>
+      </HDRPMM>
+      <HDRDMA>
+        <NAME>sys_dma.h</NAME>
+        <PATH>include\sys_dma.h</PATH>
+      </HDRDMA>
       <HDRSLF>
         <NAME>sys_selftest.h</NAME>
         <PATH>include\sys_selftest.h</PATH>
@@ -133,6 +139,14 @@
         <NAME>sys_pcr.c</NAME>
         <PATH>source\sys_pcr.c</PATH>
       </SRCPCR>
+      <SRCPMM>
+        <NAME>sys_pmm.c</NAME>
+        <PATH>source\sys_pmm.c</PATH>
+      </SRCPMM>
+      <SRCDMA>
+        <NAME>sys_dma.c</NAME>
+        <PATH>source\sys_dma.c</PATH>
+      </SRCDMA>
       <SRCSYSTEM>
         <NAME>system.c</NAME>
         <PATH>source\system.c</PATH>
@@ -183,7 +197,9 @@
       <HDRRTI>
         <NAME>rti.h</NAME>
       </HDRRTI>
-      <SRCRTI/>
+      <SRCRTI>
+        <NAME>rti.c</NAME>
+      </SRCRTI>
       <HDRGIO_R>
         <NAME>reg_gio.h</NAME>
       </HDRGIO_R>
@@ -193,13 +209,6 @@
       <SRCGIO>
         <NAME>gio.c</NAME>
       </SRCGIO>
-      <HDRLIN_R>
-        <NAME>reg_lin.h</NAME>
-      </HDRLIN_R>
-      <HDRLIN>
-        <NAME>lin.h</NAME>
-      </HDRLIN>
-      <SRCLIN/>
       <HDRSCI_R>
         <NAME>reg_sci.h</NAME>
       </HDRSCI_R>
@@ -209,13 +218,22 @@
       <SRCSCI>
         <NAME>sci.c</NAME>
       </SRCSCI>
+      <HDRLIN_R>
+        <NAME>reg_lin.h</NAME>
+      </HDRLIN_R>
+      <HDRLIN>
+        <NAME>lin.h</NAME>
+      </HDRLIN>
+      <SRCLIN/>
       <HDRMIBSPI_R>
         <NAME>reg_mibspi.h</NAME>
       </HDRMIBSPI_R>
       <HDRMIBSPI>
         <NAME>mibspi.h</NAME>
       </HDRMIBSPI>
-      <SRCMIBSPI/>
+      <SRCMIBSPI>
+        <NAME>mibspi.c</NAME>
+      </SRCMIBSPI>
       <HDRSPI_R>
         <NAME>reg_spi.h</NAME>
       </HDRSPI_R>
@@ -263,6 +281,12 @@
         <NAME>htu.h</NAME>
       </HDRHTU>
       <SRCHET/>
+      <HET2ASMHDR>
+        <NAME/>
+      </HET2ASMHDR>
+      <HET2ASMSRC>
+        <NAME/>
+      </HET2ASMSRC>
       <HDRESM_R>
         <NAME>reg_esm.h</NAME>
       </HDRESM_R>
@@ -272,6 +296,13 @@
       <SRCESM>
         <NAME>esm.c</NAME>
       </SRCESM>
+      <HDRI2C_R>
+        <NAME>reg_i2c.h</NAME>
+      </HDRI2C_R>
+      <HDRI2C>
+        <NAME>i2c.h</NAME>
+      </HDRI2C>
+      <SRCI2C/>
       <HDRDCC_R>
         <NAME>reg_dcc.h</NAME>
       </HDRDCC_R>
@@ -286,6 +317,20 @@
         <NAME>crc.h</NAME>
       </HDRCRC>
       <SRCCRC/>
+      <HDRETPWM_R>
+        <NAME>reg_etpwm.h</NAME>
+      </HDRETPWM_R>
+      <HDRETPWM>
+        <NAME>etpwm.h</NAME>
+      </HDRETPWM>
+      <SRCETPWM/>
+      <HDRECAP_R>
+        <NAME>reg_ecap.h</NAME>
+      </HDRECAP_R>
+      <HDRECAP>
+        <NAME>ecap.h</NAME>
+      </HDRECAP>
+      <SRCECAP/>
       <HDREQEP_R>
         <NAME>reg_eqep.h</NAME>
       </HDREQEP_R>
@@ -294,7 +339,7 @@
       </HDREQEP>
       <SRCEQEP/>
       <HDR1FEE>
-        <NAME>Device_TMS570LS04.h</NAME>
+        <NAME>Device_TMS570LS07.h</NAME>
       </HDR1FEE>
       <HDR2FEE>
         <NAME>Device_header.h</NAME>
@@ -357,7 +402,7 @@
         <PATH>include\rti.h</PATH>
       </HDRRTI>
       <SRCRTI>
-        <PATH/>
+        <PATH>source\rti.c</PATH>
       </SRCRTI>
     </FILENAMES>
   </RTI>
@@ -374,19 +419,6 @@
       </SRCGIO>
     </FILENAMES>
   </GIO>
-  <LIN>
-    <FILENAMES>
-      <HDRLIN_R>
-        <PATH>include\reg_lin.h</PATH>
-      </HDRLIN_R>
-      <HDRLIN>
-        <PATH>include\lin.h</PATH>
-      </HDRLIN>
-      <SRCLIN>
-        <PATH/>
-      </SRCLIN>
-    </FILENAMES>
-  </LIN>
   <SCI>
     <FILENAMES>
       <HDRSCI_R>
@@ -400,6 +432,19 @@
       </SRCSCI>
     </FILENAMES>
   </SCI>
+  <LIN>
+    <FILENAMES>
+      <HDRLIN_R>
+        <PATH>include\reg_lin.h</PATH>
+      </HDRLIN_R>
+      <HDRLIN>
+        <PATH>include\lin.h</PATH>
+      </HDRLIN>
+      <SRCLIN>
+        <PATH/>
+      </SRCLIN>
+    </FILENAMES>
+  </LIN>
   <MIBSPI>
     <FILENAMES>
       <HDRMIBSPI_R>
@@ -409,7 +454,7 @@
         <PATH>include\mibspi.h</PATH>
       </HDRMIBSPI>
       <SRCMIBSPI>
-        <PATH/>
+        <PATH>source\mibspi.c</PATH>
       </SRCMIBSPI>
     </FILENAMES>
   </MIBSPI>
@@ -452,6 +497,28 @@
       </SRCADC>
     </FILENAMES>
   </ADC>
+  <HET>
+    <FILENAMES>
+      <STDHDRHET>
+        <PATH>include\std_nhet.h</PATH>
+      </STDHDRHET>
+      <HDRHET_R>
+        <PATH>include\reg_het.h</PATH>
+      </HDRHET_R>
+      <HDRHET>
+        <PATH>include\het.h</PATH>
+      </HDRHET>
+      <HDRHTU_R>
+        <PATH>include\reg_htu.h</PATH>
+      </HDRHTU_R>
+      <HDRHTU>
+        <PATH>include\htu.h</PATH>
+      </HDRHTU>
+      <SRCHET>
+        <PATH/>
+      </SRCHET>
+    </FILENAMES>
+  </HET>
   <ESM>
     <FILENAMES>
       <HDRESM_R>
@@ -465,6 +532,19 @@
       </SRCESM>
     </FILENAMES>
   </ESM>
+  <I2C>
+    <FILENAMES>
+      <HDRI2C_R>
+        <PATH>include\reg_i2c.h</PATH>
+      </HDRI2C_R>
+      <HDRI2C>
+        <PATH>include\i2c.h</PATH>
+      </HDRI2C>
+      <SRCI2C>
+        <PATH/>
+      </SRCI2C>
+    </FILENAMES>
+  </I2C>
   <DCC>
     <FILENAMES>
       <HDRDCC_R>
@@ -491,6 +571,32 @@
       </SRCCRC>
     </FILENAMES>
   </CRC>
+  <ETPWM>
+    <FILENAMES>
+      <HDRETPWM_R>
+        <PATH>include\reg_etpwm.h</PATH>
+      </HDRETPWM_R>
+      <HDRETPWM>
+        <PATH>include\etpwm.h</PATH>
+      </HDRETPWM>
+      <SRCETPWM>
+        <PATH/>
+      </SRCETPWM>
+    </FILENAMES>
+  </ETPWM>
+  <ECAP>
+    <FILENAMES>
+      <HDRECAP_R>
+        <PATH>include\reg_ecap.h</PATH>
+      </HDRECAP_R>
+      <HDRECAP>
+        <PATH>include\ecap.h</PATH>
+      </HDRECAP>
+      <SRCECAP>
+        <PATH/>
+      </SRCECAP>
+    </FILENAMES>
+  </ECAP>
   <EQEP>
     <FILENAMES>
       <HDREQEP_R>
@@ -507,7 +613,7 @@
   <FEE>
     <FILENAMES>
       <HDR1FEE>
-        <PATH>include\Device_TMS570LS04.h</PATH>
+        <PATH>include\Device_TMS570LS07.h</PATH>
       </HDR1FEE>
       <HDR2FEE>
         <PATH>include\Device_header.h</PATH>

@@ -1,7 +1,7 @@
 /** @file can.h
 *   @brief CAN Driver Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -627,6 +627,7 @@ typedef struct can_config_reg
     uint32 CONFIG_TIOC;
     uint32 CONFIG_RIOC;
 } can_config_reg_t;
+
 
 
 /** 

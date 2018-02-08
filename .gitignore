@@ -4,3 +4,11 @@ Release/
 .metadata
 .DS_Store
 **/.launch
+
+\.launches/
+
+\.settings/
+
+\.cproject
+
+OBC v0\.3/

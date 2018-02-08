@@ -14,7 +14,7 @@
  *---------------------------------------------------------------------------------------------------------------------
  * Version        Date         Author               Change ID        Description
  *--------------------------------------------------------------------------------------------------------------------- 
- * 01.15.00		  06Jun2014    Vishwanath Reddy 	                 History Added.
+ * 01.17.01		  30Oct2014    Vishwanath Reddy 	SDOCM00113536    Initial Version.
  *********************************************************************************************************************/
 
 /* 
@@ -60,7 +60,7 @@
 #define TI_FEE_DEVICEHEADER_H
  
 /* Uncomment the appropriate include file depending on the device you are using */
-#include "Device_TMS570LS04.h"
+#include "Device_TMS570LS07.h"
 
 /* End of file */
 #endif

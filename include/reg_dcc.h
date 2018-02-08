@@ -1,7 +1,7 @@
 /** @file reg_dcc.h
 *   @brief DCC Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -88,6 +88,13 @@ typedef volatile struct dccBase
 */
 #define dccREG1   ((dccBASE_t *)0xFFFFEC00U)
 
+
+/** @def dccREG2
+*   @brief DCC2 Register Frame Pointer
+*
+*   This pointer is used by the DCC driver to access the dcc2 module registers.
+*/
+#define dccREG2   ((dccBASE_t *)0xFFFFF400U)
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

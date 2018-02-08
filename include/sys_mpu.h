@@ -1,7 +1,7 @@
 /** @file sys_mpu.h
 *   @brief System Mpu Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Mpu Interface Functions
@@ -10,7 +10,7 @@
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -111,6 +111,34 @@ extern "C" {
 *   Alias for Mpu region 8
 */
 #define mpuREGION8 7U
+
+/** @def mpuREGION9
+*   @brief Mpu region 9
+*
+*   Alias for Mpu region 9
+*/
+#define mpuREGION9 8U
+
+/** @def mpuREGION10
+*   @brief Mpu region 10
+*
+*   Alias for Mpu region 10
+*/
+#define mpuREGION10 9U
+
+/** @def mpuREGION11
+*   @brief Mpu region 11
+*
+*   Alias for Mpu region 11
+*/
+#define mpuREGION11 10U
+
+/** @def mpuREGION12
+*   @brief Mpu region 12
+*
+*   Alias for Mpu region 12
+*/
+#define mpuREGION12 11U
 
 /** @def mpuREGION_ENABLE
 *   @brief Enable MPU Region

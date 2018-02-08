@@ -18,6 +18,10 @@ TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
+TaskHandle_t xFlashReadHandle = NULL;
+TaskHandle_t xFlashWriteHandle = NULL;
+TaskHandle_t xADCNewHandle = NULL;
+
 
 void vMainTask(void *pvParameters) {
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS so it can print correctly
@@ -34,6 +38,13 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	xTaskCreate(vStateTask, "state", 300, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 
+	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
+	xTaskCreate(vADCRead, "read adc", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
+
+
+	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCNewHandle);
+
+
 	vTaskSuspend(xRadioTaskHandle);
 
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
@@ -44,19 +55,21 @@ void vMainTask(void *pvParameters) {
 	test_event.action.subcmd_id = CMD_GET_TASKS;
 	addEvent(test_event);
 
-	CMD_t test_schd = {
-		.cmd_id = CMD_SCHED,
-		.subcmd_id = CMD_SCHED_ADD,
-		.cmd_sched_data = (CMD_SCHED_DATA_t){
-			.seconds_from_now = 8,
-			.scheduled_cmd_id = CMD_TASK,
-			.scheduled_subcmd_id = CMD_TASK_SUSPEND,
-			.scheduled_cmd_task_data = {
-				.task_id = TASK_BLINKY
-			},
-		}
-	};
-	addEventFromScheduledCommand(&test_schd);
+
+//	CMD_t test_schd = {
+//			.cmd_id = CMD_SCHED,
+//			.subcmd_id = CMD_SCHED_ADD,
+//			.cmd_sched_data = (CMD_SCHED_DATA_t){
+//				.seconds_from_now = 8,
+//						.scheduled_cmd_id = CMD_TASK,
+//						.scheduled_subcmd_id = CMD_TASK_SUSPEND,
+//						.scheduled_cmd_data = {
+//								0x40,
+//								0x00
+//				}
+//			}
+//	};
+//	addEventFromScheduledCommand(&test_schd);
 
 	showActiveEvents();
 

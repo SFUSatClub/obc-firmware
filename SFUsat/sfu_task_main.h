@@ -16,7 +16,11 @@ void vMainTask(void *pvParameters);
 
 extern TaskHandle_t xSerialTaskHandle;
 extern TaskHandle_t xRadioTaskHandle;
-
 extern TaskHandle_t xBlinkyTaskHandle;
+extern TaskHandle_t xTickleTaskHandle;
+extern TaskHandle_t xADCTaskHandle;
+extern TaskHandle_t xStateTaskHandle;
+extern TaskHandle_t xFlashReadHandle;
+extern TaskHandle_t xFlashWriteHandle;
 
 #endif /* SFUSAT_SFU_TASK_MAIN_H_ */

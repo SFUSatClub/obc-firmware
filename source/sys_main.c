@@ -43,11 +43,13 @@
 
 
 /* USER CODE BEGIN (0) */
+#include "sys_core.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "adc.h"
 #include "gio.h"
+#include "mibspi.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 #include "sys_pmu.h"
 #endif
@@ -61,6 +63,12 @@
 #include "sfu_startup.h"
 
 #include "eric-test.h"
+
+#include "flash_mibspi.h"
+#include "sfu_rtc.h"
+#include "sfu_triumf.h"
+
+#include "unit_tests/unit_tests.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -95,46 +103,54 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 */
 
 /* USER CODE BEGIN (2) */
-
-
 /* USER CODE END */
 
 int main(void)
 {
 /* USER CODE BEGIN (3) */
 	_enable_IRQ(); // global interrupt enable
-
-	// TODO: encapsulate these
-	xQueue = xQueueCreate(5, sizeof(char *));
-	xSerialTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+    _enable_interrupt_();
 
 	serialInit();
-	spi_init();
-	adcInit();
 	gioInit();
+	spiInit();
 
-	printStartupType();
+
+	serialSendln("SFUSat Started!");
+
+    flash_mibspi_init();
+    test_flash();
+
+	watchdog_busywait(3000); // to allow time for serial to connect up to script
+	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+
+	rtcInit();
+
+	uint32_t newtime;
+	newtime = no_rtos_test_getCurrentRTCTime();
+
+
+//    simpleWatchdog();
+    triumf_init();
 
 	stateMachineInit(); // we start in SAFE mode
+	printStartupType();
 
-	xTaskCreate(vMainTask, "main", 300, NULL, MAIN_TASK_PRIORITY, NULL);
+	if(flash_test_JEDEC()){
+		serialSendln("Passed flash JEDEC test!");
+	}
 
+	// TODO: encapsulate these
+////	xQueue = xQueueCreate(5, sizeof(char *));    ----------------
+	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
-	/* Create two instances of the task that will send to the queue. The task
-     parameter is used to pass the value that the task will write to the queue,
-     In this case, a string (character pointer) will be passed to the queue.
-	 */
 
-	xTaskCreate(periodicSenderTask, "FreqPST", 100, (void *) 1000, 1, NULL);
-	xTaskCreate(periodicSenderTask, "InfreqPST", 100, (void *) 5000, 1, NULL);
-	xTaskCreate(tickleWatchDog, "InfreqPST", 100, (void *) 5000, 1, NULL);
-	serialSendQ("created pst");
 
-	/* Create the task that will read from the queue. The task is created with
-     priority 2, so above the priority of the sender tasks. */
-	BaseType_t ret = xTaskCreate(vReceiverTask, "Receiver", 100, NULL, 2, NULL);
-	serialSendQ("created rcvr");
+    xFlashMutex = xSemaphoreCreateMutex();
+    xRTCMutex = xSemaphoreCreateMutex();
+
+	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();
 

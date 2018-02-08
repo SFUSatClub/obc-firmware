@@ -1,7 +1,7 @@
 /** @file reg_flash.h
 *   @brief Flash Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 *   This file contains:
 *   - Definitions

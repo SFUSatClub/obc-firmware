@@ -14,7 +14,7 @@ void spi_init() {
     spiInit();
     // enable loopback for testing
     //spiEnableLoopback(spiREG3, Digital_Lbk);
-    serialSendQ("SFU spi init!");
+//    serialSendQ("SFU spi init!");
     spiDataConfig.CS_HOLD = FALSE;
     spiDataConfig.WDEL = TRUE;
     spiDataConfig.DFSEL = SPI_FMT_0;

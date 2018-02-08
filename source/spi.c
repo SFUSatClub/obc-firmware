@@ -1,11 +1,11 @@
 /** @file spi.c
 *   @brief SPI Driver Implementation File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 */
 
 /* 
-* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
+* Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com 
 * 
 * 
 *  Redistribution and use in source and binary forms, with or without 
@@ -59,7 +59,7 @@ static volatile struct g_spiPacket
     uint16  * rxdata_ptr;
     SpiDataStatus_t tx_data_status;
     SpiDataStatus_t rx_data_status;
-} g_spiPacket_t[3U];
+} g_spiPacket_t[5U];
 
 /** @fn void spiInit(void)
 *   @brief Initializes the SPI Driver
@@ -74,38 +74,43 @@ void spiInit(void)
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
 
-    /** @b initialize @b SPI1 */
+
+
+
+
+
+    /** @b initialize @b SPI4 */
 
     /** bring SPI out of reset */
-    spiREG1->GCR0 = 0U;
-    spiREG1->GCR0 = 1U;
+    spiREG4->GCR0 = 0U;
+    spiREG4->GCR0 = 1U;
 
-    /** SPI1 master mode and clock configuration */
-    spiREG1->GCR1 = (spiREG1->GCR1 & 0xFFFFFFFCU) | ((uint32)((uint32)1U << 1U)  /* CLOKMOD */
+    /** SPI4 master mode and clock configuration */
+    spiREG4->GCR1 = (spiREG4->GCR1 & 0xFFFFFFFCU) | ((uint32)((uint32)1U << 1U)  /* CLOKMOD */
                   | 1U);  /* MASTER */
 
-    /** SPI1 enable pin configuration */
-    spiREG1->INT0 = (spiREG1->INT0 & 0xFEFFFFFFU)| (uint32)((uint32)0U << 24U);  /* ENABLE HIGHZ */
+    /** SPI4 enable pin configuration */
+    spiREG4->INT0 = (spiREG4->INT0 & 0xFEFFFFFFU) | (uint32)((uint32)0U << 24U);  /* ENABLE HIGHZ */
 
     /** - Delays */
-    spiREG1->DELAY = (uint32)((uint32)0U << 24U)  /* C2TDELAY */
+    spiREG4->DELAY = (uint32)((uint32)6U << 24U)  /* C2TDELAY */
                    | (uint32)((uint32)0U << 16U)  /* T2CDELAY */
                    | (uint32)((uint32)0U << 8U)   /* T2EDELAY */
                    | (uint32)((uint32)0U << 0U);  /* C2EDELAY */
 
     /** - Data Format 0 */
-    spiREG1->FMT0 = (uint32)((uint32)0U << 24U)  /* wdelay */
+    spiREG4->FMT0 = (uint32)((uint32)0U << 24U)  /* wdelay */
                   | (uint32)((uint32)0U << 23U)  /* parity Polarity */
                   | (uint32)((uint32)0U << 22U)  /* parity enable */
                   | (uint32)((uint32)0U << 21U)  /* wait on enable */
                   | (uint32)((uint32)0U << 20U)  /* shift direction */
                   | (uint32)((uint32)0U << 17U)  /* clock polarity */
                   | (uint32)((uint32)0U << 16U)  /* clock phase */
-                  | (uint32)((uint32)159U << 8U) /* baudrate prescale */
+                  | (uint32)((uint32)199U << 8U) /* baudrate prescale */
                   | (uint32)((uint32)8U << 0U);  /* data word length */
 
     /** - Data Format 1 */
-    spiREG1->FMT1 = (uint32)((uint32)0U << 24U)  /* wdelay */
+    spiREG4->FMT1 = (uint32)((uint32)0U << 24U)  /* wdelay */
                   | (uint32)((uint32)0U << 23U)  /* parity Polarity */
                   | (uint32)((uint32)0U << 22U)  /* parity enable */
                   | (uint32)((uint32)0U << 21U)  /* wait on enable */
@@ -116,7 +121,7 @@ void spiInit(void)
                   | (uint32)((uint32)16U << 0U);  /* data word length */
 
     /** - Data Format 2 */
-    spiREG1->FMT2 = (uint32)((uint32)0U << 24U)  /* wdelay */
+    spiREG4->FMT2 = (uint32)((uint32)0U << 24U)  /* wdelay */
                   | (uint32)((uint32)0U << 23U)  /* parity Polarity */
                   | (uint32)((uint32)0U << 22U)  /* parity enable */
                   | (uint32)((uint32)0U << 21U)  /* wait on enable */
@@ -127,7 +132,7 @@ void spiInit(void)
                   | (uint32)((uint32)16U << 0U);  /* data word length */
 
     /** - Data Format 3 */
-    spiREG1->FMT3 = (uint32)((uint32)0U << 24U)  /* wdelay */
+    spiREG4->FMT3 = (uint32)((uint32)0U << 24U)  /* wdelay */
                   | (uint32)((uint32)0U << 23U)  /* parity Polarity */
                   | (uint32)((uint32)0U << 22U)  /* parity enable */
                   | (uint32)((uint32)0U << 21U)  /* wait on enable */
@@ -138,7 +143,7 @@ void spiInit(void)
                   | (uint32)((uint32)16U << 0U);  /* data word length */
 
     /** - set interrupt levels */
-    spiREG1->LVL = (uint32)((uint32)0U << 9U)  /* TXINT */
+    spiREG4->LVL = (uint32)((uint32)0U << 9U)  /* TXINT */
                  | (uint32)((uint32)0U << 8U)  /* RXINT */
                  | (uint32)((uint32)0U << 6U)  /* OVRNINT */
                  | (uint32)((uint32)0U << 4U)  /* BITERR */
@@ -148,10 +153,10 @@ void spiInit(void)
                  | (uint32)((uint32)0U << 0U);  /* DLENERR */
 
     /** - clear any pending interrupts */
-    spiREG1->FLG |= 0xFFFFU;
+    spiREG4->FLG |= 0xFFFFU;
 
     /** - enable interrupts */
-    spiREG1->INT0 = (spiREG1->INT0 & 0xFFFF0000U)
+    spiREG4->INT0 = (spiREG4->INT0 & 0xFFFF0000U)
                   | (uint32)((uint32)0U << 9U)  /* TXINT */
                   | (uint32)((uint32)0U << 8U)  /* RXINT */
                   | (uint32)((uint32)0U << 6U)  /* OVRNINT */
@@ -161,231 +166,57 @@ void spiInit(void)
                   | (uint32)((uint32)0U << 1U) /* TIMEOUT */
                   | (uint32)((uint32)0U << 0U);  /* DLENERR */
 
-    /** @b initialize @b SPI1 @b Port */
+    /** @b initialize @b SPI4 @b Port */
 
-    /** - SPI1 Port output values */
-    spiREG1->PC3 =    (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)0U << 8U)  /* ENA */
-                    | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U);  /* SOMI[0] */
-
-    /** - SPI1 Port direction */
-    spiREG1->PC1  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)0U << 8U)  /* ENA */
-                    | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U); /* SOMI[0] */
-
-    /** - SPI1 Port open drain enable */
-    spiREG1->PC6  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)0U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)0U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)0U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)0U << 8U)  /* ENA */
-                    | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U); /* SOMI[0] */
-
-    /** - SPI1 Port pullup / pulldown selection */
-    spiREG1->PC8  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)1U << 8U)  /* ENA */
-                    | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)1U << 11U); /* SOMI[0] */
-
-    /** - SPI1 Port pullup / pulldown enable*/
-    spiREG1->PC7  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)0U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)0U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)0U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)0U << 8U)  /* ENA */
-                    | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)0U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)0U << 11U); /* SOMI[0] */
-
-    /* SPI1 set all pins to functional */
-    spiREG1->PC0  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
-                    | (uint32)((uint32)1U << 8U)  /* ENA */
-                    | (uint32)((uint32)1U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO[0] */
-                    | (uint32)((uint32)1U << 11U); /* SOMI[0] */
-
-    /** - Initialize TX and RX data buffer Status */
-    g_spiPacket_t[0U].tx_data_status  = SPI_READY;
-    g_spiPacket_t[0U].rx_data_status  = SPI_READY;
-
-    /** - Finally start SPI1 */
-    spiREG1->GCR1 = (spiREG1->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
-
-
-
-    /** @b initialize @b SPI3 */
-
-    /** bring SPI out of reset */
-    spiREG3->GCR0 = 0U;
-    spiREG3->GCR0 = 1U;
-
-    /** SPI3 master mode and clock configuration */
-    spiREG3->GCR1 = (spiREG3->GCR1 & 0xFFFFFFFCU) | ((uint32)((uint32)1U << 1U)  /* CLOKMOD */
-                  | 1U);  /* MASTER */
-
-    /** SPI3 enable pin configuration */
-    spiREG3->INT0 = (spiREG3->INT0 & 0xFEFFFFFFU) | (uint32)((uint32)0U << 24U);  /* ENABLE HIGHZ */
-
-    /** - Delays */
-    spiREG3->DELAY = (uint32)((uint32)0U << 24U)  /* C2TDELAY */
-                   | (uint32)((uint32)0U << 16U)  /* T2CDELAY */
-                   | (uint32)((uint32)0U << 8U)   /* T2EDELAY */
-                   | (uint32)((uint32)0U << 0U);  /* C2EDELAY */
-
-    /** - Data Format 0 */
-    spiREG3->FMT0 = (uint32)((uint32)0U << 24U)  /* wdelay */
-                  | (uint32)((uint32)0U << 23U)  /* parity Polarity */
-                  | (uint32)((uint32)0U << 22U)  /* parity enable */
-                  | (uint32)((uint32)0U << 21U)  /* wait on enable */
-                  | (uint32)((uint32)0U << 20U)  /* shift direction */
-                  | (uint32)((uint32)0U << 17U)  /* clock polarity */
-                  | (uint32)((uint32)1U << 16U)  /* clock phase */
-                  | (uint32)((uint32)79U << 8U) /* baudrate prescale */
-                  | (uint32)((uint32)8U << 0U);  /* data word length */
-
-    /** - Data Format 1 */
-    spiREG3->FMT1 = (uint32)((uint32)0U << 24U)  /* wdelay */
-                  | (uint32)((uint32)0U << 23U)  /* parity Polarity */
-                  | (uint32)((uint32)0U << 22U)  /* parity enable */
-                  | (uint32)((uint32)0U << 21U)  /* wait on enable */
-                  | (uint32)((uint32)0U << 20U)  /* shift direction */
-                  | (uint32)((uint32)0U << 17U)  /* clock polarity */
-                  | (uint32)((uint32)0U << 16U)  /* clock phase */
-                  | (uint32)((uint32)79U << 8U) /* baudrate prescale */
-                  | (uint32)((uint32)16U << 0U);  /* data word length */
-
-    /** - Data Format 2 */
-    spiREG3->FMT2 = (uint32)((uint32)0U << 24U)  /* wdelay */
-                  | (uint32)((uint32)0U << 23U)  /* parity Polarity */
-                  | (uint32)((uint32)0U << 22U)  /* parity enable */
-                  | (uint32)((uint32)0U << 21U)  /* wait on enable */
-                  | (uint32)((uint32)0U << 20U)  /* shift direction */
-                  | (uint32)((uint32)0U << 17U)  /* clock polarity */
-                  | (uint32)((uint32)0U << 16U)  /* clock phase */
-                  | (uint32)((uint32)79U << 8U) /* baudrate prescale */
-                  | (uint32)((uint32)16U << 0U);  /* data word length */
-
-    /** - Data Format 3 */
-    spiREG3->FMT3 = (uint32)((uint32)0U << 24U)  /* wdelay */
-                  | (uint32)((uint32)0U << 23U)  /* parity Polarity */
-                  | (uint32)((uint32)0U << 22U)  /* parity enable */
-                  | (uint32)((uint32)0U << 21U)  /* wait on enable */
-                  | (uint32)((uint32)0U << 20U)  /* shift direction */
-                  | (uint32)((uint32)0U << 17U)  /* clock polarity */
-                  | (uint32)((uint32)0U << 16U)  /* clock phase */
-                  | (uint32)((uint32)79U << 8U) /* baudrate prescale */
-                  | (uint32)((uint32)16U << 0U);  /* data word length */
-
-    /** - set interrupt levels */
-    spiREG3->LVL = (uint32)((uint32)0U << 9U)  /* TXINT */
-                 | (uint32)((uint32)0U << 8U)  /* RXINT */
-                 | (uint32)((uint32)0U << 6U)  /* OVRNINT */
-                 | (uint32)((uint32)0U << 4U)  /* BITERR */
-                 | (uint32)((uint32)0U << 3U)  /* DESYNC */
-                 | (uint32)((uint32)0U << 2U)  /* PARERR */
-                 | (uint32)((uint32)0U << 1U) /* TIMEOUT */
-                 | (uint32)((uint32)0U << 0U);  /* DLENERR */
-
-    /** - clear any pending interrupts */
-    spiREG3->FLG |= 0xFFFFU;
-
-    /** - enable interrupts */
-    spiREG3->INT0 = (spiREG3->INT0 & 0xFFFF0000U)
-                  | (uint32)((uint32)0U << 9U)  /* TXINT */
-                  | (uint32)((uint32)0U << 8U)  /* RXINT */
-                  | (uint32)((uint32)0U << 6U)  /* OVRNINT */
-                  | (uint32)((uint32)0U << 4U)  /* BITERR */
-                  | (uint32)((uint32)0U << 3U)  /* DESYNC */
-                  | (uint32)((uint32)0U << 2U)  /* PARERR */
-                  | (uint32)((uint32)0U << 1U) /* TIMEOUT */
-                  | (uint32)((uint32)0U << 0U);  /* DLENERR */
-
-    /** @b initialize @b SPI3 @b Port */
-
-    /** - SPI3 Port output values */
-    spiREG3->PC3 =    (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
+    /** - SPI4 Port output values */
+    spiREG4->PC3 =    (uint32)((uint32)1U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
                     | (uint32)((uint32)0U << 10U)  /* SIMO */
                     | (uint32)((uint32)0U << 11U); /* SOMI */
 
-    /** - SPI3 Port direction */
-    spiREG3->PC1  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
+    /** - SPI4 Port direction */
+    spiREG4->PC1  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
                     | (uint32)((uint32)1U << 10U)  /* SIMO */
                     | (uint32)((uint32)0U << 11U); /* SOMI */
 
-    /** - SPI3 Port open drain enable */
-    spiREG3->PC6  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)0U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)0U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)0U << 3U)  /* SCS[3] */
+    /** - SPI4 Port open drain enable */
+    spiREG4->PC6  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
-                    | (uint32)((uint32)1U << 10U)  /* SIMO */
+                    | (uint32)((uint32)0U << 10U)  /* SIMO */
                     | (uint32)((uint32)0U << 11U); /* SOMI */
 
-    /** - SPI3 Port pullup / pulldown selection */
-    spiREG3->PC8  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
+    /** - SPI4 Port pullup / pulldown selection */
+    spiREG4->PC8  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)1U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
                     | (uint32)((uint32)1U << 10U)  /* SIMO */
                     | (uint32)((uint32)1U << 11U); /* SOMI */
 
-    /** - SPI3 Port pullup / pulldown enable*/
-    spiREG3->PC7  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)0U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)0U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)0U << 3U)  /* SCS[3] */
+    /** - SPI4 Port pullup / pulldown enable*/
+    spiREG4->PC7  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)0U << 8U)  /* ENA */
                     | (uint32)((uint32)0U << 9U)  /* CLK */
                     | (uint32)((uint32)0U << 10U)  /* SIMO */
                     | (uint32)((uint32)0U << 11U); /* SOMI */
 
-    /* SPI3 set all pins to functional */
-    spiREG3->PC0  =   (uint32)((uint32)1U << 0U)  /* SCS[0] */
-                    | (uint32)((uint32)1U << 1U)  /* SCS[1] */
-                    | (uint32)((uint32)1U << 2U)  /* SCS[2] */
-                    | (uint32)((uint32)1U << 3U)  /* SCS[3] */
+    /* SPI4 set all pins to functional */
+    spiREG4->PC0  =   (uint32)((uint32)0U << 0U)  /* SCS[0] */
                     | (uint32)((uint32)1U << 8U)  /* ENA */
                     | (uint32)((uint32)1U << 9U)  /* CLK */
                     | (uint32)((uint32)1U << 10U)  /* SIMO */
                     | (uint32)((uint32)1U << 11U); /* SOMI */
 
     /** - Initialize TX and RX data buffer Status */
-    g_spiPacket_t[2U].tx_data_status  = SPI_READY;
-    g_spiPacket_t[2U].rx_data_status  = SPI_READY;
-    /** - Finally start SPI3 */
-    spiREG3->GCR1 = (spiREG3->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
+    g_spiPacket_t[3U].tx_data_status  = SPI_READY;
+    g_spiPacket_t[3U].rx_data_status  = SPI_READY;
+
+    /** - Finally start SPI4 */
+    spiREG4->GCR1 = (spiREG4->GCR1 & 0xFEFFFFFFU) | 0x01000000U;
+
 
 /* USER CODE BEGIN (3) */
 /* USER CODE END */
@@ -490,7 +321,7 @@ uint32 spiReceiveData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize,
 /* Requirements : HL_SR134 */
 void spiGetData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize, uint16 * destbuff)
 {
-     uint32 index = spi == spiREG1 ? 0U :(spi==spiREG2 ? 1U : 2U);
+     uint32 index = (spi == spiREG1) ? 0U :((spi==spiREG2) ? 1U : ((spi==spiREG3) ? 2U:((spi==spiREG4) ? 3U:4U)));
 
 /* USER CODE BEGIN (8) */
 /* USER CODE END */
@@ -585,7 +416,7 @@ uint32 spiTransmitData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize
 /* Requirements : HL_SR132 */
 void spiSendData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize, uint16 * srcbuff)
 {
-     uint32 index = spi == spiREG1 ? 0U :(spi==spiREG2 ? 1U : 2U);
+        uint32 index = (spi == spiREG1) ? 0U :((spi==spiREG2) ? 1U : ((spi==spiREG3) ? 2U:((spi==spiREG4) ? 3U:4U)));
 
 /* USER CODE BEGIN (12) */
 /* USER CODE END */
@@ -629,7 +460,7 @@ uint32 spiTransmitAndReceiveData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32
 /* USER CODE END */
     while(blocksize != 0U)
     {
-        if((spi->FLG & 0x000000FFU) !=0U)
+        if((spi->FLG & 0x000000FFU) != 0U)
         {
            break;
         }
@@ -688,7 +519,7 @@ void spiSendAndGetData(spiBASE_t *spi, spiDAT1_t *dataconfig_t, uint32 blocksize
 /* USER CODE BEGIN (17) */
 /* USER CODE END */
 
-    uint32 index = spi == spiREG1 ? 0U :(spi==spiREG2 ? 1U : 2U);
+    uint32 index = (spi == spiREG1) ? 0U :((spi==spiREG2) ? 1U : ((spi==spiREG3) ? 2U:((spi==spiREG4) ? 3U:4U)));
 
     g_spiPacket_t[index].tx_length       = blocksize;
     g_spiPacket_t[index].rx_length       = blocksize;
@@ -721,7 +552,7 @@ SpiDataStatus_t SpiTxStatus(spiBASE_t *spi)
 /* USER CODE BEGIN (19) */
 /* USER CODE END */
 
-    uint32 index = spi == spiREG1 ? 0U :(spi==spiREG2 ? 1U : 2U);
+    uint32 index = (spi == spiREG1) ? 0U :((spi==spiREG2) ? 1U : ((spi==spiREG3) ? 2U:((spi==spiREG4) ? 3U:4U)));
     return(g_spiPacket_t[index].tx_data_status);
 }
 
@@ -745,7 +576,7 @@ SpiDataStatus_t SpiRxStatus(spiBASE_t *spi)
 /* USER CODE BEGIN (21) */
 /* USER CODE END */
 
-    uint32 index = spi == spiREG1 ? 0U :(spi==spiREG2 ? 1U : 2U);
+    uint32 index = (spi == spiREG1) ? 0U :((spi==spiREG2) ? 1U : ((spi==spiREG3) ? 2U:((spi==spiREG4) ? 3U:4U)));
     return(g_spiPacket_t[index].rx_data_status);
 }
 
@@ -846,7 +677,10 @@ void spiDisableNotification(spiBASE_t *spi, uint32 flags)
 /* USER CODE END */
 }
 
-/** @fn void spi1GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
+
+
+
+/** @fn void spi4GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
 *   @brief Get the initial or current values of the configuration registers
 *
 *    @param[in] *config_reg: pointer to the struct to which the initial or current
@@ -861,101 +695,50 @@ void spiDisableNotification(spiBASE_t *spi, uint32 flags)
 *   of the configuration registers to the struct pointed by config_reg
 *
 */
-/* SourceId : SPI_SourceId_015 */
+/* SourceId : SPI_SourceId_018 */
 /* DesignId : SPI_DesignId_015 */
 /* Requirements : HL_SR144 */
-void spi1GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
+void spi4GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
 {
     if (type == InitialValue)
     {
-        config_reg->CONFIG_GCR1  = SPI1_GCR1_CONFIGVALUE;
-        config_reg->CONFIG_INT0  = SPI1_INT0_CONFIGVALUE;
-        config_reg->CONFIG_LVL   = SPI1_LVL_CONFIGVALUE;
-        config_reg->CONFIG_PC0   = SPI1_PC0_CONFIGVALUE;
-        config_reg->CONFIG_PC1   = SPI1_PC1_CONFIGVALUE;
-        config_reg->CONFIG_PC6   = SPI1_PC6_CONFIGVALUE;
-        config_reg->CONFIG_PC7   = SPI1_PC7_CONFIGVALUE;
-        config_reg->CONFIG_PC8   = SPI1_PC8_CONFIGVALUE;
-        config_reg->CONFIG_DELAY = SPI1_DELAY_CONFIGVALUE;
-        config_reg->CONFIG_FMT0  = SPI1_FMT0_CONFIGVALUE;
-        config_reg->CONFIG_FMT1  = SPI1_FMT1_CONFIGVALUE;
-        config_reg->CONFIG_FMT2  = SPI1_FMT2_CONFIGVALUE;
-        config_reg->CONFIG_FMT3  = SPI1_FMT3_CONFIGVALUE;
+        config_reg->CONFIG_GCR1  = SPI4_GCR1_CONFIGVALUE;
+        config_reg->CONFIG_INT0  = SPI4_INT0_CONFIGVALUE;
+        config_reg->CONFIG_LVL   = SPI4_LVL_CONFIGVALUE;
+        config_reg->CONFIG_PC0   = SPI4_PC0_CONFIGVALUE;
+        config_reg->CONFIG_PC1   = SPI4_PC1_CONFIGVALUE;
+        config_reg->CONFIG_PC6   = SPI4_PC6_CONFIGVALUE;
+        config_reg->CONFIG_PC7   = SPI4_PC7_CONFIGVALUE;
+        config_reg->CONFIG_PC8   = SPI4_PC8_CONFIGVALUE;
+        config_reg->CONFIG_DELAY = SPI4_DELAY_CONFIGVALUE;
+        config_reg->CONFIG_FMT0  = SPI4_FMT0_CONFIGVALUE;
+        config_reg->CONFIG_FMT1  = SPI4_FMT1_CONFIGVALUE;
+        config_reg->CONFIG_FMT2  = SPI4_FMT2_CONFIGVALUE;
+        config_reg->CONFIG_FMT3  = SPI4_FMT3_CONFIGVALUE;
     }
     else
     {
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-        config_reg->CONFIG_GCR1  = spiREG1->GCR1;
-        config_reg->CONFIG_INT0  = spiREG1->INT0;
-        config_reg->CONFIG_LVL   = spiREG1->LVL;
-        config_reg->CONFIG_PC0   = spiREG1->PC0;
-        config_reg->CONFIG_PC1   = spiREG1->PC1;
-        config_reg->CONFIG_PC6   = spiREG1->PC6;
-        config_reg->CONFIG_PC7   = spiREG1->PC7;
-        config_reg->CONFIG_PC8   = spiREG1->PC8;
-        config_reg->CONFIG_DELAY = spiREG1->DELAY ;
-        config_reg->CONFIG_FMT0  = spiREG1->FMT0;
-        config_reg->CONFIG_FMT1  = spiREG1->FMT1;
-        config_reg->CONFIG_FMT2  = spiREG1->FMT2;
-        config_reg->CONFIG_FMT3  = spiREG1->FMT3;
+        config_reg->CONFIG_GCR1  = spiREG4->GCR1;
+        config_reg->CONFIG_INT0  = spiREG4->INT0;
+        config_reg->CONFIG_LVL   = spiREG4->LVL;
+        config_reg->CONFIG_PC0   = spiREG4->PC0;
+        config_reg->CONFIG_PC1   = spiREG4->PC1;
+        config_reg->CONFIG_PC6   = spiREG4->PC6;
+        config_reg->CONFIG_PC7   = spiREG4->PC7;
+        config_reg->CONFIG_PC8   = spiREG4->PC8;
+        config_reg->CONFIG_DELAY = spiREG4->DELAY ;
+        config_reg->CONFIG_FMT0  = spiREG4->FMT0;
+        config_reg->CONFIG_FMT1  = spiREG4->FMT1;
+        config_reg->CONFIG_FMT2  = spiREG4->FMT2;
+        config_reg->CONFIG_FMT3  = spiREG4->FMT3;
     }
 }
 
 
-/** @fn void spi3GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
-*   @brief Get the initial or current values of the configuration registers
-*
-*    @param[in] *config_reg: pointer to the struct to which the initial or current
-*                           value of the configuration registers need to be stored
-*    @param[in] type:     whether initial or current value of the configuration registers need to be stored
-*                        - InitialValue: initial value of the configuration registers will be stored
-*                                       in the struct pointed by config_reg
-*                        - CurrentValue: initial value of the configuration registers will be stored
-*                                       in the struct pointed by config_reg
-*
-*   This function will copy the initial or current value (depending on the parameter 'type')
-*   of the configuration registers to the struct pointed by config_reg
-*
-*/
-/* SourceId : SPI_SourceId_017 */
-/* DesignId : SPI_DesignId_015 */
-/* Requirements : HL_SR144 */
-void spi3GetConfigValue(spi_config_reg_t *config_reg, config_value_type_t type)
-{
-    if (type == InitialValue)
-    {
-        config_reg->CONFIG_GCR1  = SPI3_GCR1_CONFIGVALUE;
-        config_reg->CONFIG_INT0  = SPI3_INT0_CONFIGVALUE;
-        config_reg->CONFIG_LVL   = SPI3_LVL_CONFIGVALUE;
-        config_reg->CONFIG_PC0   = SPI3_PC0_CONFIGVALUE;
-        config_reg->CONFIG_PC1   = SPI3_PC1_CONFIGVALUE;
-        config_reg->CONFIG_PC6   = SPI3_PC6_CONFIGVALUE;
-        config_reg->CONFIG_PC7   = SPI3_PC7_CONFIGVALUE;
-        config_reg->CONFIG_PC8   = SPI3_PC8_CONFIGVALUE;
-        config_reg->CONFIG_DELAY = SPI3_DELAY_CONFIGVALUE;
-        config_reg->CONFIG_FMT0  = SPI3_FMT0_CONFIGVALUE;
-        config_reg->CONFIG_FMT1  = SPI3_FMT1_CONFIGVALUE;
-        config_reg->CONFIG_FMT2  = SPI3_FMT2_CONFIGVALUE;
-        config_reg->CONFIG_FMT3  = SPI3_FMT3_CONFIGVALUE;
-    }
-    else
-    {
-    /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-        config_reg->CONFIG_GCR1  = spiREG3->GCR1;
-        config_reg->CONFIG_INT0  = spiREG3->INT0;
-        config_reg->CONFIG_LVL   = spiREG3->LVL;
-        config_reg->CONFIG_PC0   = spiREG3->PC0;
-        config_reg->CONFIG_PC1   = spiREG3->PC1;
-        config_reg->CONFIG_PC6   = spiREG3->PC6;
-        config_reg->CONFIG_PC7   = spiREG3->PC7;
-        config_reg->CONFIG_PC8   = spiREG3->PC8;
-        config_reg->CONFIG_DELAY = spiREG3->DELAY ;
-        config_reg->CONFIG_FMT0  = spiREG3->FMT0;
-        config_reg->CONFIG_FMT1  = spiREG3->FMT1;
-        config_reg->CONFIG_FMT2  = spiREG3->FMT2;
-        config_reg->CONFIG_FMT3  = spiREG3->FMT3;
-    }
-}
+
+
+
 
 
 

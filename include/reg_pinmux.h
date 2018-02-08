@@ -1,7 +1,7 @@
 /** @file reg_pinmux.h
 *   @brief PINMUX Register Layer Header File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *   
 *   This file contains:
 *   - Definitions
@@ -91,7 +91,7 @@ typedef volatile struct pinMuxKicker
 /** @struct pinMuxBase
 *   @brief PINMUX Register Definition
 *
-*   This structure is used to access the PINMUX module registers.
+*   This structure is used to access the PINMUX module egisters.
 */
 /** @typedef pinMuxBASE_t
 *   @brief PINMUX Register Frame Type Definition
@@ -108,6 +108,46 @@ typedef volatile struct pinMuxBase
     uint32 PINMMR5;		/**< 0xEB24 Pin Mux 5 register*/
     uint32 PINMMR6;		/**< 0xEB28 Pin Mux 6 register*/
     uint32 PINMMR7;		/**< 0xEB2C Pin Mux 7 register*/
+    uint32 PINMMR8;		/**< 0xEB30 Pin Mux 8 register*/
+    uint32 PINMMR9;		/**< 0xEB34 Pin Mux 9 register*/
+    uint32 PINMMR10;		/**< 0xEB38 Pin Mux 10 register*/
+    uint32 PINMMR11;		/**< 0xEB3C Pin Mux 11 register*/
+    uint32 PINMMR12;		/**< 0xEB40 Pin Mux 12 register*/
+    uint32 PINMMR13;		/**< 0xEB44 Pin Mux 13 register*/
+    uint32 PINMMR14;		/**< 0xEB48 Pin Mux 14 register*/
+    uint32 PINMMR15;		/**< 0xEB4C Pin Mux 15 register*/
+    uint32 PINMMR16;		/**< 0xEB50 Pin Mux 16 register*/
+    uint32 PINMMR17;		/**< 0xEB54 Pin Mux 17 register*/
+    uint32 PINMMR18;		/**< 0xEB58 Pin Mux 18 register*/
+    uint32 PINMMR19;		/**< 0xEB5C Pin Mux 19 register*/
+    uint32 PINMMR20;		/**< 0xEB60 Pin Mux 20 register*/
+    uint32 PINMMR21;		/**< 0xEB64 Pin Mux 21 register*/
+    uint32 PINMMR22;		/**< 0xEB68 Pin Mux 22 register*/
+    uint32 PINMMR23;		/**< 0xEB6C Pin Mux 23 register*/
+    uint32 PINMMR24;		/**< 0xEB70 Pin Mux 24 register*/
+    uint32 PINMMR25;		/**< 0xEB74 Pin Mux 25 register*/
+    uint32 PINMMR26;		/**< 0xEB78 Pin Mux 26 register*/
+    uint32 PINMMR27;		/**< 0xEB7C Pin Mux 27 register*/
+    uint32 PINMMR28;		/**< 0xEB80 Pin Mux 28 register*/
+    uint32 PINMMR29;		/**< 0xEB84 Pin Mux 29 register*/
+    uint32 PINMMR30;		/**< 0xEB88 Pin Mux 30 register*/
+    uint32 PINMMR31;		/**< 0xEB8C Pin Mux 31 register*/
+    uint32 PINMMR32;		/**< 0xEB90 Pin Mux 32 register*/
+    uint32 PINMMR33;		/**< 0xEB94 Pin Mux 33 register*/
+    uint32 PINMMR34;		/**< 0xEB98 Pin Mux 34 register*/
+    uint32 PINMMR35;		/**< 0xEB9C Pin Mux 35 register*/
+    uint32 PINMMR36;          /**< 0xEBA0 Pin Mux 36 register*/
+    uint32 PINMMR37;          /**< 0xEBA4 Pin Mux 37 register*/
+    uint32 PINMMR38;          /**< 0xEBA8 Pin Mux 38 register*/
+    uint32 PINMMR39;          /**< 0xEBAC Pin Mux 39 register*/
+    uint32 PINMMR40;          /**< 0xEBB0 Pin Mux 40 register*/
+    uint32 PINMMR41;          /**< 0xEBB4 Pin Mux 41 register*/
+    uint32 PINMMR42;          /**< 0xEBB8 Pin Mux 42 register*/
+    uint32 PINMMR43;          /**< 0xEBBC Pin Mux 43 register*/
+    uint32 PINMMR44;          /**< 0xEBC0 Pin Mux 44 register*/
+    uint32 PINMMR45;          /**< 0xEBC4 Pin Mux 45 register*/
+    uint32 PINMMR46;          /**< 0xEBC8 Pin Mux 46 register*/
+    uint32 PINMMR47;          /**< 0xEBCC Pin Mux 47 register*/
 }pinMuxBASE_t;
 
 
@@ -121,14 +161,14 @@ typedef volatile struct pinMuxBase
 /** @def kickerReg
 *	@brief Pin Muxing Kicker Register Frame Pointer
 *
-*		This pointer is used to enable and disable muxing across the device.
+*		This pointer is used to enable and disable muxing accross the device.
 */	
 #define kickerReg ((pinMuxKICKER_t *) 0xFFFFEA38U)
 
 /** @def pinMuxReg
 *	@brief Pin Muxing Control Register Frame Pointer
 *
-*		This pointer is used to set the muxing registers across the device.
+*		This pointer is used to set the muxing registers accross the device.
 */	
 #define pinMuxReg ((pinMuxBASE_t *) 0xFFFFEB10U)
 
