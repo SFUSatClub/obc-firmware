@@ -111,7 +111,6 @@ int main(void)
 	serialInit();
 	gioInit();
 	spiInit();
-	init_adc_test();
 
 
 	serialSendln("SFUSat Started!");
