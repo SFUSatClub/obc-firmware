@@ -1,5 +1,8 @@
+build-*/
+
 *.pdf
 **/Debug/
+
 Release/
 .metadata
 .DS_Store
