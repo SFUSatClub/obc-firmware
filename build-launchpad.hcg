@@ -3,7 +3,7 @@
   <DEVICE>
     <family>TMS570LS04x</family>
     <device>TMS570LS0432PZ</device>
-    <dilfile>OBC_launchpad.dil</dilfile>
+    <dilfile>build-launchpad.dil</dilfile>
     <tools>ti</tools>
   </DEVICE>
   <VERSION>

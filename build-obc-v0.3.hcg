@@ -3,7 +3,7 @@
   <DEVICE>
     <family>TMS570LS09x_07x</family>
     <device>TMS570LS0714PGE</device>
-    <dilfile>OBC_prototype_A.dil</dilfile>
+    <dilfile>build-obc-v0.3.dil</dilfile>
     <tools>ti</tools>
   </DEVICE>
   <VERSION>
