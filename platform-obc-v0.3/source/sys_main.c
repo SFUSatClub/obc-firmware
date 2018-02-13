@@ -1,7 +1,7 @@
 /** @file sys_main.c 
 *   @brief Application main file
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 *   This file contains an empty main function,
 *   which can be used for the application.

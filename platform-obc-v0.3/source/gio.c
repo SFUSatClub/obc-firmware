@@ -1,7 +1,7 @@
 /** @file gio.c
 *   @brief GIO Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 
@@ -407,18 +407,18 @@ void gioEnableNotification(gioPORT_t *port, uint32 bit)
 /* USER CODE BEGIN (11) */
 /* USER CODE END */
 
-    if (port == gioPORTA)
-    {
-        gioREG->ENASET = (uint32)1U << bit;
-    }
-    else if (port == gioPORTB)
-    {
-        gioREG->ENASET = (uint32)1U << (bit + 8U);
-    }
-    else
-    {
-        /* Empty */
-    }
+	if (port == gioPORTA)
+	{
+		gioREG->ENASET = (uint32)1U << bit;
+	}
+	else if (port == gioPORTB)
+	{
+		gioREG->ENASET = (uint32)1U << (bit + 8U);
+	}
+	else
+	{
+		/* Empty */
+	}
 }
 
 
@@ -441,29 +441,29 @@ void gioDisableNotification(gioPORT_t *port, uint32 bit)
 /* USER CODE BEGIN (12) */
 /* USER CODE END */
 
-    if (port == gioPORTA)
-    {
-        gioREG->ENACLR = (uint32)1U << bit;
-    }
-    else if (port == gioPORTB)
-    {
-        gioREG->ENACLR = (uint32)1U << (bit + 8U);
-    }
-    else
-    {
-        /* Empty */
-    }
+	if (port == gioPORTA)
+	{
+		gioREG->ENACLR = (uint32)1U << bit;
+	}
+	else if (port == gioPORTB)
+	{
+		gioREG->ENACLR = (uint32)1U << (bit + 8U);
+	}
+	else
+	{
+		/* Empty */
+	}
 }
 
 /** @fn void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
 *   @brief Get the initial or current values of the configuration registers
 *
-*   @param[in] *config_reg: pointer to the struct to which the initial or current
+*	@param[in] *config_reg: pointer to the struct to which the initial or current
 *                           value of the configuration registers need to be stored
-*   @param[in] type:    whether initial or current value of the configuration registers need to be stored
-*                       - InitialValue: initial value of the configuration registers will be stored
+*	@param[in] type: 	whether initial or current value of the configuration registers need to be stored
+*						- InitialValue: initial value of the configuration registers will be stored
 *                                       in the struct pointed by config_reg
-*                       - CurrentValue: initial value of the configuration registers will be stored
+*						- CurrentValue: initial value of the configuration registers will be stored
 *                                       in the struct pointed by config_reg
 *
 *   This function will copy the initial or current value (depending on the parameter 'type')
@@ -475,41 +475,41 @@ void gioDisableNotification(gioPORT_t *port, uint32 bit)
 /* Requirements : HL_SR37 */
 void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
 {
-    if (type == InitialValue)
-    {
-        config_reg->CONFIG_INTDET    = GIO_INTDET_CONFIGVALUE;
+	if (type == InitialValue)
+	{
+	    config_reg->CONFIG_INTDET    = GIO_INTDET_CONFIGVALUE;
         config_reg->CONFIG_POL       = GIO_POL_CONFIGVALUE;
         config_reg->CONFIG_INTENASET = GIO_INTENASET_CONFIGVALUE;
         config_reg->CONFIG_LVLSET    = GIO_LVLSET_CONFIGVALUE;
 
-        config_reg->CONFIG_PORTADIR    = GIO_PORTADIR_CONFIGVALUE;
-        config_reg->CONFIG_PORTAPDR    = GIO_PORTAPDR_CONFIGVALUE;
-        config_reg->CONFIG_PORTAPSL    = GIO_PORTAPSL_CONFIGVALUE;
-        config_reg->CONFIG_PORTAPULDIS = GIO_PORTAPULDIS_CONFIGVALUE;
+	    config_reg->CONFIG_PORTADIR    = GIO_PORTADIR_CONFIGVALUE;
+	    config_reg->CONFIG_PORTAPDR    = GIO_PORTAPDR_CONFIGVALUE;
+	    config_reg->CONFIG_PORTAPSL    = GIO_PORTAPSL_CONFIGVALUE;
+	    config_reg->CONFIG_PORTAPULDIS = GIO_PORTAPULDIS_CONFIGVALUE;
 
-        config_reg->CONFIG_PORTBDIR    = GIO_PORTBDIR_CONFIGVALUE;
-        config_reg->CONFIG_PORTBPDR    = GIO_PORTBPDR_CONFIGVALUE;
-        config_reg->CONFIG_PORTBPSL    = GIO_PORTBPSL_CONFIGVALUE;
-        config_reg->CONFIG_PORTBPULDIS = GIO_PORTBPULDIS_CONFIGVALUE;
-    }
-    else
-    {
-    /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-        config_reg->CONFIG_INTDET    = gioREG->INTDET;
+	    config_reg->CONFIG_PORTBDIR    = GIO_PORTBDIR_CONFIGVALUE;
+	    config_reg->CONFIG_PORTBPDR    = GIO_PORTBPDR_CONFIGVALUE;
+	    config_reg->CONFIG_PORTBPSL    = GIO_PORTBPSL_CONFIGVALUE;
+	    config_reg->CONFIG_PORTBPULDIS = GIO_PORTBPULDIS_CONFIGVALUE;
+	}
+	else
+	{
+	/*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+	    config_reg->CONFIG_INTDET    = gioREG->INTDET;
         config_reg->CONFIG_POL       = gioREG->POL;
         config_reg->CONFIG_INTENASET = gioREG->ENASET;
         config_reg->CONFIG_LVLSET    = gioREG->LVLSET;
 
-        config_reg->CONFIG_PORTADIR    = gioPORTA->DIR;
-        config_reg->CONFIG_PORTAPDR    = gioPORTA->PDR;
-        config_reg->CONFIG_PORTAPSL    = gioPORTA->PSL;
-        config_reg->CONFIG_PORTAPULDIS = gioPORTA->PULDIS;
+	    config_reg->CONFIG_PORTADIR    = gioPORTA->DIR;
+	    config_reg->CONFIG_PORTAPDR    = gioPORTA->PDR;
+	    config_reg->CONFIG_PORTAPSL    = gioPORTA->PSL;
+	    config_reg->CONFIG_PORTAPULDIS = gioPORTA->PULDIS;
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-        config_reg->CONFIG_PORTBDIR    = gioPORTB->DIR;
-        config_reg->CONFIG_PORTBPDR    = gioPORTB->PDR;
-        config_reg->CONFIG_PORTBPSL    = gioPORTB->PULDIS;
-        config_reg->CONFIG_PORTBPULDIS = gioPORTB->PSL;
-    }
+	    config_reg->CONFIG_PORTBDIR    = gioPORTB->DIR;
+	    config_reg->CONFIG_PORTBPDR    = gioPORTB->PDR;
+	    config_reg->CONFIG_PORTBPSL    = gioPORTB->PULDIS;
+	    config_reg->CONFIG_PORTBPULDIS = gioPORTB->PSL;
+	}
 }
 
 

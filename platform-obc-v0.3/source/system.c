@@ -1,7 +1,7 @@
 /** @file system.c
 *   @brief System Driver Source File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 *   This file contains:
 *   - API Functions
@@ -233,12 +233,12 @@ void mapClocks(void)
 
     /** @b Initialize @b Clock @b Tree: */
     /** - Disable / Enable clock domain */
-    systemREG1->CDDIS = (uint32)((uint32)0U << 4U ) /* AVCLK1 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 5U ) /* AVCLK2 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 8U ) /* VCLK3 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 9U ) /* VCLK4 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)1U << 10U) /* AVCLK3 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 11U); /* AVCLK4 , 1 - OFF, 0 - ON */
+    systemREG1->CDDIS = (uint32)((uint32)0U << 4U ) /* AVCLK 1 OFF */
+                      | (uint32)((uint32)0U << 5U ) /* AVCLK 2 OFF */
+                      | (uint32)((uint32)0U << 8U ) /* VCLK3 OFF */
+                      | (uint32)((uint32)0U << 9U ) /* VCLK4 OFF */
+                      | (uint32)((uint32)1U << 10U) /* AVCLK 3 OFF */
+                      | (uint32)((uint32)0U << 11U); /* AVCLK 4 OFF */
 
 
     /* Work Around for Errata SYS#46:

@@ -1,7 +1,7 @@
 /** @file mibspi.c
 *   @brief MIBSPI Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 
@@ -218,7 +218,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -248,7 +248,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -277,7 +277,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -306,7 +306,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -335,7 +335,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -364,7 +364,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -393,7 +393,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
@@ -422,7 +422,7 @@ uint32 i ;
             }
 #endif
             mibspiRAM1->tx[i].control = (uint16)((uint16)4U << 13U)  /* buffer mode */
-                                      | (uint16)((uint16)0U << 12U) /* chip select hold */
+                                      | (uint16)((uint16)0U << 12U) /* chip select hold must be zero for last buffer */
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */

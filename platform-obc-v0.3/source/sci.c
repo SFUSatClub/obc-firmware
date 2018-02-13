@@ -1,7 +1,7 @@
 /** @file sci.c 
 *   @brief SCI Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 

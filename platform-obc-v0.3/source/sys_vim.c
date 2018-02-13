@@ -1,7 +1,7 @@
 /** @file sys_vim.c 
 *   @brief VIM Driver Implementation File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 */
 
@@ -768,10 +768,10 @@ void vimParityErrorHandler(void)
     uint32 error_addr = VIM_ADDERR;
 
     /* Identify the channel number */
-    uint32 error_channel = ((error_addr & 0x1FFU) >> 2U);
+    uint32 error_channel = ((error_addr & 0x1FFU) >> 2U) - 1U;
 
     /* Correct the corrupted location */
-    vimRAM->ISR[error_channel] = s_vim_init[error_channel];
+    vimRAM->ISR[error_channel + 1U] = s_vim_init[error_channel + 1U];
 
     /* Clear Parity Error Flag */
     VIM_PARFLG = 1U;

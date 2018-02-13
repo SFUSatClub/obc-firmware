@@ -1,7 +1,7 @@
 /** @file adc.c 
 *   @brief ADC Driver Source File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 *   This file contains:
 *   - API Functions
@@ -638,7 +638,7 @@ void adcCalibration(adcBASE_t *adc)
 	backup_mode = adc->OPMODECR;
 	
 	/** - Enable 12-BIT ADC  */
-	adc->OPMODECR |= 0x80000000U;
+	adcREG1->OPMODECR |= 0x80000000U;
 
 	/* Disable all channels for conversion */
 	adc->GxSEL[0U]=0x00U;
@@ -742,7 +742,7 @@ uint32 adcMidPointCalibration(adcBASE_t *adc)
 	backup_mode = adc->OPMODECR;
 	
 	/** - Enable 12-BIT ADC  */
-	adc->OPMODECR |= 0x80000000U;
+	adcREG1->OPMODECR |= 0x80000000U;
 
 	/* Disable all channels for conversion */
 	adc->GxSEL[0U]=0x00U;

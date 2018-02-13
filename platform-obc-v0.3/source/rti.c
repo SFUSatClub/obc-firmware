@@ -1,7 +1,7 @@
 /** @file rti.c 
 *   @brief RTI Driver Source File
-*   @date 07-July-2017
-*   @version 04.07.00
+*   @date 05-Oct-2016
+*   @version 04.06.00
 *
 *   This file contains:
 *   - API Functions
@@ -860,6 +860,7 @@ void rtiGetConfigValue(rti_config_reg_t *config_reg, config_value_type_t type)
 /* SourceId : RTI_SourceId_022 */
 /* DesignId : RTI_DesignId_022 */
 /* Requirements : HL_SR95 */
+
 void vPortPreemptiveTick(void)
 {
 /* USER CODE BEGIN (74) */
@@ -873,8 +874,8 @@ void vPortPreemptiveTick(void)
     /* USER CODE END */
 }
 
+#endif // SFUSAT_BOARD
 
-#endif
 
 
 
