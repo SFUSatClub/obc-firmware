@@ -112,7 +112,7 @@ typedef struct {
 #define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47
 #define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 //sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x40 //64 bytes fixed length packet
+#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x3E //62 bytes fixed length packet
 #define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04 //status byte enabled, no address check
 #define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 //fixed packet length, CRC enabled, use FIFO, no whitening
 #define SMARTRF_SETTING_ADDR_VAL_TX             0x00
@@ -122,13 +122,13 @@ typedef struct {
 #define SMARTRF_SETTING_FREQ2_VAL_TX            0x10
 #define SMARTRF_SETTING_FREQ1_VAL_TX            0xBB
 #define SMARTRF_SETTING_FREQ0_VAL_TX            0x13
-#define SMARTRF_SETTING_MDMCFG4_VAL_TX          0xF8
-#define SMARTRF_SETTING_MDMCFG3_VAL_TX          0x83 //300 baud
+#define SMARTRF_SETTING_MDMCFG4_VAL_TX          0xF5
+#define SMARTRF_SETTING_MDMCFG3_VAL_TX          0x83
 #define SMARTRF_SETTING_MDMCFG2_VAL_TX          0x03
 #define SMARTRF_SETTING_MDMCFG1_VAL_TX          0x22
 #define SMARTRF_SETTING_MDMCFG0_VAL_TX          0xF8
-#define SMARTRF_SETTING_DEVIATN_VAL_TX          0x15
-#define SMARTRF_SETTING_MCSM2_VAL_TX            0x07
+#define SMARTRF_SETTING_DEVIATN_VAL_TX          0x13
+#define SMARTRF_SETTING_MCSM2_VAL_TX            0x07 //RX timeout
 #define SMARTRF_SETTING_MCSM1_VAL_TX            0x30 //idle after sending packet
 #define SMARTRF_SETTING_MCSM0_VAL_TX            0x18 //autocal when going from IDLE to TX
 #define SMARTRF_SETTING_FOCCFG_VAL_TX           0x16
