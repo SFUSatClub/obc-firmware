@@ -129,7 +129,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * State mask:
  * 		- mask out the status byte first using mask STATE before using STATE_X to check for equality.
  * 		- eg, to check if in STATE_RX:
- * 			- if ( (statusByte & STATE) == STATE_RX ) { // in STATE_RX }
+ * 			- if ( (statusByte & STATE) == (STATE_RX << 4)) { // in STATE_RX }
  */
 #define CHIP_RDY				(0b1000 << 4)	// Bits 7   Stays high until power and crystal have stabilized. Should always be low when using the SPI interface.
 #define STATE					(0b0111 << 4)	// Bits 6:4 Indicates the current main state machine mode.
@@ -410,9 +410,11 @@ BaseType_t initRadio() {
     char buffer[30];
 
     //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
-    	uint8 packetLen  = 60;
+    	uint8 packetLen  = 64;
         uint8 test[100] = { 0 };
-        int i = 0;
+        int i = 2;
+        test[0] = packetLen;
+        test[1] = 0x10;
         while (i < packetLen) {
         	test[i] = i;
         	i++;
@@ -446,7 +448,13 @@ BaseType_t initRadio() {
     	//snprintf(buffer, 30, "Write to TX FIFO");
     	//serialSendln(buffer);
     	//strobe(STX); //idle to TX state transition time is 799us with calibration
+
     	strobe(SNOP);
+
+    	/*commenting out FIFO write causes infinite preamble write
+    	 * the modulation does not look like what was captured under the control of smartRF
+    	 */
+
         switch(writeToTxFIFO(test, packetLen)){
         	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
         			serialSendln(buffer);
@@ -454,14 +462,22 @@ BaseType_t initRadio() {
         	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
             		serialSendln(buffer);
             		break;
+        	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+    				serialSendln(buffer);
         }
+
         strobe(STX);
 
         strobe(SNOP);
-        //while(statusByte && 0x70 != STATE_TX << 4){strobe(SNOP);}
-        while(statusByte && 0x70 == STATE_TX << 4){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
-        snprintf(buffer, 30, "Transmission Complete");
-        serialSendln(buffer);
+        /*
+        while((statusByte & STATE) == (STATE_TX << 4)){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
+        if(readRegister(TXBYTES) == 0){
+        	snprintf(buffer, 30, "Transmission Complete");
+        }else{
+        	snprintf(buffer, 30, "TX Error");
+        }
+        	serialSendln(buffer);
+        	*/
         //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
 
