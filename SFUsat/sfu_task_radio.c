@@ -13,6 +13,7 @@
 typedef enum {
 	IOCFG0,
 	IOCFG1,
+	IOCFG2,
 	FIFOTHR,
 	SYNC1,
 	SYNC0,
@@ -51,6 +52,7 @@ typedef enum {
 const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_ADDR,
 	[IOCFG1] = SMARTRF_SETTING_IOCFG1_ADDR,
+	[IOCFG2] = SMARTRF_SETTING_IOCFG2_ADDR,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_ADDR,
 	[PKTLEN] = SMARTRF_SETTING_PKTLEN_ADDR,
 	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_ADDR,
@@ -97,6 +99,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 	[TEST2] = SMARTRF_SETTING_TEST2_VAL_TX,
 	[TEST1] = SMARTRF_SETTING_TEST1_VAL_TX,
 	[TEST0] = SMARTRF_SETTING_TEST0_VAL_TX,
+	[IOCFG2] = SMARTRF_SETTING_IOCFG2_VAL_TX,
 	[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_TX,
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
 	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_TX,
@@ -176,7 +179,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * FIFO_RX is read-only.
  * Both are accessed through the 0x3F address with appropriate read/write bits set.
  */
-#define PA_TABLE (0x3E)
+#define PA_TABLE_ADDR (0x3E)
 #define PA_TABLE_SETTING (0x60)
 #define FIFO_TX (0x3F)
 #define FIFO_RX (0x3F)
@@ -385,6 +388,12 @@ static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	return 0;
 }
 
+static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+    writeAllConfigRegisters(SMARTRF_VALS_TX);
+    writeRegister(PA_TABLE_ADDR, PA_TABLE);
+    return checkConfig(SMARTRF_VALS_TX)
+}
+
 BaseType_t initRadio() {
 	//what task should SPI initialization occure in?
 	spiDataConfig.CS_HOLD = TRUE;
@@ -423,28 +432,13 @@ BaseType_t initRadio() {
 				stat[10], stat[11], stat[12], stat[13]);
     serialSendln(buffer);
 
-
-    writeAllConfigRegisters(SMARTRF_VALS_TX);
-    if(checkConfig(SMARTRF_VALS_TX)){
+    if(configureRadio(SMARTRF_VALS_TX, PA_TABLE_SETTING)){
     	snprintf(buffer, 30, "radio registers do not match!");
     	serialSendln(buffer);
     }
-    writeRegister(PA_TABLE, PA_TABLE_SETTING);
-
-    /**
-     * R/W bit was previously set to 0 (WRITE) from the above strobe; status byte will have FIFO_BYTES_AVAILABLE for TX FIFO, so no need for another strobe to update our status byte.
-     */
-
-
-    	//snprintf(buffer, 30, "Write to TX FIFO");
-    	//serialSendln(buffer);
-    	//strobe(STX); //idle to TX state transition time is 799us with calibration
 
     	strobe(SNOP);
 
-    	/*commenting out FIFO write causes infinite preamble write
-    	 * the modulation does not look like what was captured under the control of smartRF
-    	 */
 
         switch(writeToTxFIFO(test, packetLen)){
         	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
