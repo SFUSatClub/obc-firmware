@@ -8,7 +8,7 @@
 #include "sfu_spi.h"
 #include "sfu_uart.h"
 
-spiDAT1_t spiDataConfig;
+static spiDAT1_t spiDataConfig;
 
 void spi_init() {
     spiInit();

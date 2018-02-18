@@ -12,8 +12,6 @@
 #include "rtos_task.h"
 #include "rtos_queue.h"
 
-#include "sfu_spi.h"
-
 void vRadioTask( void *pvParameters );
 BaseType_t initRadio();
 

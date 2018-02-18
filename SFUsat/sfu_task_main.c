@@ -41,11 +41,11 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
 	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
 
-	//  xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
 	//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
-	// TODO: radio task
 	// TODO: ADC task implemented properly with two sample groups
 	// TODO: tasks take in the system state and maybe perform differently (ADC will definitely do this)
 	// TODO: appropriate task for filesystem flash
@@ -54,7 +54,7 @@ void vMainTask(void *pvParameters) {
 // --------------------------- OTHER TESTING STUFF ---------------------------
 	// Right when we spin up the main task, get the heap (example of a command we can issue)
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
-	Event_t test_event = {.seconds_from_now = 3, .action=test_cmd};
+	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};
 	addEvent(test_event);
 
 	// Example of scheduling a task
@@ -81,9 +81,9 @@ void vMainTask(void *pvParameters) {
 
 	serialSendln("main tasks created");
 
-	while (1) { // This main task loop will run repeatedly too
-
+	while (1) {
 		serialSendQ("main");
+
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};

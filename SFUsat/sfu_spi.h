@@ -13,11 +13,7 @@
 
 #include "spi.h"
 
-extern spiDAT1_t spiDataConfig;
-
 void spi_init();
 void spi_transfer();
-
-
 
 #endif /* SFUSAT_SFU_SPI_H_ */
