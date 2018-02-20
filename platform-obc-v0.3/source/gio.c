@@ -1,7 +1,7 @@
 /** @file gio.c
 *   @brief GIO Driver Implementation File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 */
 
@@ -183,12 +183,12 @@ void gioInit(void)
                 | (uint32)((uint32)0U << 2U)   /* Bit 2 */
                 | (uint32)((uint32)0U << 3U)   /* Bit 3 */
                 | (uint32)((uint32)0U << 4U)   /* Bit 4 */
-                | (uint32)((uint32)0U << 5U)   /* Bit 5 */
+                | (uint32)((uint32)1U << 5U)   /* Bit 5 */
                 | (uint32)((uint32)0U << 6U)   /* Bit 6 */
                 | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                 | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                 | (uint32)((uint32)0U << 9U)   /* Bit 9  */
-                | (uint32)((uint32)0U << 10U)  /* Bit 10 */
+                | (uint32)((uint32)1U << 10U)  /* Bit 10 */
                 | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                 | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                 | (uint32)((uint32)0U << 13U)  /* Bit 13 */
@@ -207,7 +207,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                    | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                    | (uint32)((uint32)0U << 9U)   /* Bit 9  */
-                   | (uint32)((uint32)0U << 10U)  /* Bit 10 */
+                   | (uint32)((uint32)1U << 10U)  /* Bit 10 */
                    | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                    | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                    | (uint32)((uint32)0U << 13U)  /* Bit 13 */
@@ -231,7 +231,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 7U)   /* Bit 7 */
                    | (uint32)((uint32)0U << 8U)   /* Bit 8  */
                    | (uint32)((uint32)0U << 9U)   /* Bit 9  */
-                   | (uint32)((uint32)0U << 10U)  /* Bit 10 */
+                   | (uint32)((uint32)1U << 10U)  /* Bit 10 */
                    | (uint32)((uint32)0U << 11U)  /* Bit 11 */
                    | (uint32)((uint32)0U << 12U)  /* Bit 12 */
                    | (uint32)((uint32)0U << 13U)  /* Bit 13 */
@@ -407,18 +407,18 @@ void gioEnableNotification(gioPORT_t *port, uint32 bit)
 /* USER CODE BEGIN (11) */
 /* USER CODE END */
 
-	if (port == gioPORTA)
-	{
-		gioREG->ENASET = (uint32)1U << bit;
-	}
-	else if (port == gioPORTB)
-	{
-		gioREG->ENASET = (uint32)1U << (bit + 8U);
-	}
-	else
-	{
-		/* Empty */
-	}
+    if (port == gioPORTA)
+    {
+        gioREG->ENASET = (uint32)1U << bit;
+    }
+    else if (port == gioPORTB)
+    {
+        gioREG->ENASET = (uint32)1U << (bit + 8U);
+    }
+    else
+    {
+        /* Empty */
+    }
 }
 
 
@@ -441,29 +441,29 @@ void gioDisableNotification(gioPORT_t *port, uint32 bit)
 /* USER CODE BEGIN (12) */
 /* USER CODE END */
 
-	if (port == gioPORTA)
-	{
-		gioREG->ENACLR = (uint32)1U << bit;
-	}
-	else if (port == gioPORTB)
-	{
-		gioREG->ENACLR = (uint32)1U << (bit + 8U);
-	}
-	else
-	{
-		/* Empty */
-	}
+    if (port == gioPORTA)
+    {
+        gioREG->ENACLR = (uint32)1U << bit;
+    }
+    else if (port == gioPORTB)
+    {
+        gioREG->ENACLR = (uint32)1U << (bit + 8U);
+    }
+    else
+    {
+        /* Empty */
+    }
 }
 
 /** @fn void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
 *   @brief Get the initial or current values of the configuration registers
 *
-*	@param[in] *config_reg: pointer to the struct to which the initial or current
+*   @param[in] *config_reg: pointer to the struct to which the initial or current
 *                           value of the configuration registers need to be stored
-*	@param[in] type: 	whether initial or current value of the configuration registers need to be stored
-*						- InitialValue: initial value of the configuration registers will be stored
+*   @param[in] type:    whether initial or current value of the configuration registers need to be stored
+*                       - InitialValue: initial value of the configuration registers will be stored
 *                                       in the struct pointed by config_reg
-*						- CurrentValue: initial value of the configuration registers will be stored
+*                       - CurrentValue: initial value of the configuration registers will be stored
 *                                       in the struct pointed by config_reg
 *
 *   This function will copy the initial or current value (depending on the parameter 'type')
@@ -475,43 +475,81 @@ void gioDisableNotification(gioPORT_t *port, uint32 bit)
 /* Requirements : HL_SR37 */
 void gioGetConfigValue(gio_config_reg_t *config_reg, config_value_type_t type)
 {
-	if (type == InitialValue)
-	{
-	    config_reg->CONFIG_INTDET    = GIO_INTDET_CONFIGVALUE;
+    if (type == InitialValue)
+    {
+        config_reg->CONFIG_INTDET    = GIO_INTDET_CONFIGVALUE;
         config_reg->CONFIG_POL       = GIO_POL_CONFIGVALUE;
         config_reg->CONFIG_INTENASET = GIO_INTENASET_CONFIGVALUE;
         config_reg->CONFIG_LVLSET    = GIO_LVLSET_CONFIGVALUE;
 
-	    config_reg->CONFIG_PORTADIR    = GIO_PORTADIR_CONFIGVALUE;
-	    config_reg->CONFIG_PORTAPDR    = GIO_PORTAPDR_CONFIGVALUE;
-	    config_reg->CONFIG_PORTAPSL    = GIO_PORTAPSL_CONFIGVALUE;
-	    config_reg->CONFIG_PORTAPULDIS = GIO_PORTAPULDIS_CONFIGVALUE;
+        config_reg->CONFIG_PORTADIR    = GIO_PORTADIR_CONFIGVALUE;
+        config_reg->CONFIG_PORTAPDR    = GIO_PORTAPDR_CONFIGVALUE;
+        config_reg->CONFIG_PORTAPSL    = GIO_PORTAPSL_CONFIGVALUE;
+        config_reg->CONFIG_PORTAPULDIS = GIO_PORTAPULDIS_CONFIGVALUE;
 
-	    config_reg->CONFIG_PORTBDIR    = GIO_PORTBDIR_CONFIGVALUE;
-	    config_reg->CONFIG_PORTBPDR    = GIO_PORTBPDR_CONFIGVALUE;
-	    config_reg->CONFIG_PORTBPSL    = GIO_PORTBPSL_CONFIGVALUE;
-	    config_reg->CONFIG_PORTBPULDIS = GIO_PORTBPULDIS_CONFIGVALUE;
-	}
-	else
-	{
-	/*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-	    config_reg->CONFIG_INTDET    = gioREG->INTDET;
+        config_reg->CONFIG_PORTBDIR    = GIO_PORTBDIR_CONFIGVALUE;
+        config_reg->CONFIG_PORTBPDR    = GIO_PORTBPDR_CONFIGVALUE;
+        config_reg->CONFIG_PORTBPSL    = GIO_PORTBPSL_CONFIGVALUE;
+        config_reg->CONFIG_PORTBPULDIS = GIO_PORTBPULDIS_CONFIGVALUE;
+    }
+    else
+    {
+    /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
+        config_reg->CONFIG_INTDET    = gioREG->INTDET;
         config_reg->CONFIG_POL       = gioREG->POL;
         config_reg->CONFIG_INTENASET = gioREG->ENASET;
         config_reg->CONFIG_LVLSET    = gioREG->LVLSET;
 
-	    config_reg->CONFIG_PORTADIR    = gioPORTA->DIR;
-	    config_reg->CONFIG_PORTAPDR    = gioPORTA->PDR;
-	    config_reg->CONFIG_PORTAPSL    = gioPORTA->PSL;
-	    config_reg->CONFIG_PORTAPULDIS = gioPORTA->PULDIS;
+        config_reg->CONFIG_PORTADIR    = gioPORTA->DIR;
+        config_reg->CONFIG_PORTAPDR    = gioPORTA->PDR;
+        config_reg->CONFIG_PORTAPSL    = gioPORTA->PSL;
+        config_reg->CONFIG_PORTAPULDIS = gioPORTA->PULDIS;
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "LDRA Tool issue" */
-	    config_reg->CONFIG_PORTBDIR    = gioPORTB->DIR;
-	    config_reg->CONFIG_PORTBPDR    = gioPORTB->PDR;
-	    config_reg->CONFIG_PORTBPSL    = gioPORTB->PULDIS;
-	    config_reg->CONFIG_PORTBPULDIS = gioPORTB->PSL;
-	}
+        config_reg->CONFIG_PORTBDIR    = gioPORTB->DIR;
+        config_reg->CONFIG_PORTBPDR    = gioPORTB->PDR;
+        config_reg->CONFIG_PORTBPSL    = gioPORTB->PULDIS;
+        config_reg->CONFIG_PORTBPULDIS = gioPORTB->PSL;
+    }
 }
 
+/* USER CODE BEGIN (13) */
+/* USER CODE END */
+
+/** @fn void gioHighLevelInterrupt(void)
+*   @brief GIO Interrupt Handler
+*
+*   High Level Interrupt handler for GIO pin interrupt
+*
+*/
+#pragma CODE_STATE(gioHighLevelInterrupt, 32)
+#pragma INTERRUPT(gioHighLevelInterrupt, IRQ)
+
+/* SourceId : GIO_SourceId_011 */
+/* DesignId : GIO_DesignId_011 */
+/* Requirements : HL_SR35, HL_SR36 */
+void gioHighLevelInterrupt(void)
+{
+    uint32 offset = gioREG->OFF1;
+
+/* USER CODE BEGIN (14) */
+/* USER CODE END */
+    
+    if (offset != 0U)
+    {
+        offset = offset - 1U;
+        if (offset >= 8U)
+        {
+            gioNotification(gioPORTB, offset - 8U);
+        }
+        else
+        {
+            gioNotification(gioPORTA, offset);
+        }
+    }
+/* USER CODE BEGIN (15) */
+/* USER CODE END */
+
+}
 
 
 /* USER CODE BEGIN (19) */

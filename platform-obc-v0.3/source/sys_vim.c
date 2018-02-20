@@ -1,7 +1,7 @@
 /** @file sys_vim.c 
 *   @brief VIM Driver Implementation File
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 */
 
@@ -78,7 +78,7 @@ static const t_isrFuncPTR s_vim_init[128U] =
     &phantomInterrupt,            /* Channel 6 */
     &phantomInterrupt,            /* Channel 7 */
     &phantomInterrupt,            /* Channel 8 */
-    &phantomInterrupt,            /* Channel 9 */
+    &gioHighLevelInterrupt,            /* Channel 9 */
     &phantomInterrupt,            /* Channel 10 */
     &phantomInterrupt,            /* Channel 11 */
     &mibspi1HighLevelInterrupt,            /* Channel 12 */
@@ -371,7 +371,7 @@ void vimInit(void)
                         | (uint32)((uint32)0U << 6U)
                         | (uint32)((uint32)0U << 7U)
                         | (uint32)((uint32)0U << 8U)
-                        | (uint32)((uint32)0U << 9U)
+                        | (uint32)((uint32)1U << 9U)
                         | (uint32)((uint32)0U << 10U)
                         | (uint32)((uint32)0U << 11U)
                         | (uint32)((uint32)1U << 12U)
@@ -768,10 +768,10 @@ void vimParityErrorHandler(void)
     uint32 error_addr = VIM_ADDERR;
 
     /* Identify the channel number */
-    uint32 error_channel = ((error_addr & 0x1FFU) >> 2U) - 1U;
+    uint32 error_channel = ((error_addr & 0x1FFU) >> 2U);
 
     /* Correct the corrupted location */
-    vimRAM->ISR[error_channel + 1U] = s_vim_init[error_channel + 1U];
+    vimRAM->ISR[error_channel] = s_vim_init[error_channel];
 
     /* Clear Parity Error Flag */
     VIM_PARFLG = 1U;

@@ -1,7 +1,7 @@
 /** @file sys_main.c 
 *   @brief Application main file
-*   @date 05-Oct-2016
-*   @version 04.06.00
+*   @date 07-July-2017
+*   @version 04.07.00
 *
 *   This file contains an empty main function,
 *   which can be used for the application.
@@ -141,6 +141,8 @@ int main(void)
 	if(flash_test_JEDEC()){ // kind of redundant now
 		serialSendln("Passed flash JEDEC test!");
 	}
+
+	gio_interrupt_example_rtos_init();
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these

@@ -50,7 +50,12 @@
 #define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
 #define FLASH_TWENTY 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 1 // 0 = SST26, 1 = IS25LP016D
+
+// ---------------- RF IRQ ------------------
+#define RF_IRQ_PIN FILL_ME_IN!
+#define RF_IRQ_PORT FILL_ME_IN!
 #endif
+
 
 // =======================  SETTINGS FOR v0.3 =======================
 #if SFUSAT_BOARD == 1
@@ -76,6 +81,9 @@
 
 #define UART_PORT sciREG
 
+// ---------------- RF IRQ ------------------
+#define RF_IRQ_PIN 2
+#define RF_IRQ_PORT gioPORTB
 
 // ----------------- Radio -------------------------
 #define TASK_RADIO_REG spiREG3

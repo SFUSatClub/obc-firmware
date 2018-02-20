@@ -340,28 +340,4 @@ void mibspi_receive(uint8_t transfer_group,uint16_t * RX_DATA){
     mibspiGetData(FLASH_MIBSPI_REG,transfer_group,RX_DATA);
 }
 
-void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group){
-    /* This is the callback from the ISR. We use it to signal that a transfer has completed.
-     *
-     */
 
-    switch (group){
-    case 0 :
-        /* Enable TG1 to start, SW Trigger */
-        //            mibspiTransfer(mibspiREG1,1);
-        TG0_IS_Complete = 0xA5;
-        break;
-    case 1:
-        TG1_IS_Complete = 0xA5;
-        break;
-    case 2:
-        TG2_IS_Complete = 0xA5;
-        break;
-    case 3:
-        TG3_IS_Complete = 0xA5;
-        break;
-    default :
-        while(1);
-        break;
-    }
-}
