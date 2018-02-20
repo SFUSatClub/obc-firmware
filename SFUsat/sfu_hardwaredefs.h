@@ -42,6 +42,10 @@
 // ----------------- Radio -------------------------
 #define TASK_RADIO_REG spiREG3
 
+// ---------------- RF IRQ ------------------
+#define RF_IRQ_PIN FILL_ME_IN!
+#define RF_IRQ_PORT FILL_ME_IN!
+
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
 #define FLASH_DATA_FORMAT 0
@@ -51,9 +55,6 @@
 #define FLASH_TWENTY 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 1 // 0 = SST26, 1 = IS25LP016D
 
-// ---------------- RF IRQ ------------------
-#define RF_IRQ_PIN FILL_ME_IN!
-#define RF_IRQ_PORT FILL_ME_IN!
 #endif
 
 
@@ -81,12 +82,12 @@
 
 #define UART_PORT sciREG
 
+// ----------------- Radio -------------------------
+#define TASK_RADIO_REG spiREG3
+
 // ---------------- RF IRQ ------------------
 #define RF_IRQ_PIN 2
 #define RF_IRQ_PORT gioPORTB
-
-// ----------------- Radio -------------------------
-#define TASK_RADIO_REG spiREG3
 
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
@@ -124,6 +125,10 @@
 
 // ----------------- Radio -------------------------
 #define TASK_RADIO_REG spiREG3
+
+// ---------------- RF IRQ ------------------
+#define RF_IRQ_PIN define_me_here
+#define RF_IRQ_PORT define_me_here
 
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1

@@ -131,16 +131,16 @@ int main(void)
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 	printStartupType();
 
-// ---------- INIT TESTS ----------
+// ---------- INIT TESTS & Examples ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	test_flash();
 	init_adc_test();
     triumf_init();
 
-	if(flash_test_JEDEC()){ // kind of redundant now
-		serialSendln("Passed flash JEDEC test!");
-	}
+//	if(flash_test_JEDEC()){ // kind of redundant now
+//		serialSendln("Passed flash JEDEC test!");
+//	}
 
 	gio_interrupt_example_rtos_init();
 
@@ -155,7 +155,7 @@ int main(void)
     xRTCMutex = xSemaphoreCreateMutex();
 
 // ---------- SETUP/START RTOS ----------
-    // vMainTask starts up all of the top level tasks. From those, other tasks are spawned as necessary.
+    // vMainTask starts up all of the top level tasks (except tests and examples). From those, other tasks are spawned as necessary.
 	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();

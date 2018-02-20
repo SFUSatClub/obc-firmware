@@ -9,17 +9,10 @@
 #include "flash_mibspi.h"
 #include "sfu_hardwaredefs.h"
 #include "unit_tests/unit_tests.h"
-//#include "unit_tests/unit_tests.h"
+#include "examples/sfusat_examples.h"
 
 void gioNotification(gioPORT_t *port, uint32 bit){
-	gio_notification_example(port, bit);
-//	gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
-
-	//	uint32_t thang;
-//	thang = 0;
-//	if(bit == 5){
-//		thang++;
-//	}
+	gio_notification_example(port, bit); // for example
 }
 
 void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group){

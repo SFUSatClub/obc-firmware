@@ -24,17 +24,6 @@ uint32_t test_flash(void);
 bool check16(uint32_t address, uint8_t *matchBuf);
 bool checkArbitrary(uint32_t start_address, uint32_t size, uint8_t *matchBuf);
 
-// GPIO Interrupt Example
-void gio_int_test(void);
-void gio_interrupt_example_rtos_init(void);
-void gio_notification_example(gioPORT_t *port, uint32 bit);
-TaskHandle_t xGioInterruptTaskHandle;
-void vGioInterruptTask(void *pvParameters);
-SemaphoreHandle_t gioExampleSem;
-
-
-
-
 
 
 #endif /* SFUSAT_UNIT_TESTS_UNIT_TESTS_H_ */
