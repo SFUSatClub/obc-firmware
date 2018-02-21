@@ -19,8 +19,8 @@
 void gio_interrupt_example_rtos_init(void); // standalone initializer for tasks and semaphore
 void gio_notification_example(gioPORT_t *port, uint32 bit); // called in gionotification, raises semaphore to start the task
 void vGioInterruptTask(void *pvParameters); // Task that runs when the interrupt fires
-SemaphoreHandle_t gioExampleSem;
-TaskHandle_t xGioInterruptTaskHandle;
+extern SemaphoreHandle_t gioExampleSem;
+extern TaskHandle_t xGioInterruptTaskHandle;
 
 
 

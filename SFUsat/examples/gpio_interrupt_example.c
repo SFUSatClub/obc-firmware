@@ -37,6 +37,9 @@
  * - On the rising edge, the task will fire and print something out over the UART. The blinky LED will also toggle.
  */
 
+SemaphoreHandle_t gioExampleSem;
+TaskHandle_t xGioInterruptTaskHandle;
+
 void gio_interrupt_example_rtos_init(void){
 	// Standalone setup of the task and semaphore so the example can be run easily.
 	// Create the semaphore and the task handle. Task handle creation normally in task_main.c
@@ -70,7 +73,6 @@ void gio_notification_example(gioPORT_t *port, uint32 bit){
 		xSemaphoreGiveFromISR(gioExampleSem, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
-
 }
 
 

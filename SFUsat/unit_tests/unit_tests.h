@@ -8,11 +8,6 @@
 #ifndef SFUSAT_UNIT_TESTS_UNIT_TESTS_H_
 #define SFUSAT_UNIT_TESTS_UNIT_TESTS_H_
 #include "sys_common.h"
-#include "freeRTOS.h"
-#include "rtos_task.h"
-#include "rtos_queue.h"
-#include "rtos_semphr.h"
-#include "rtos_portmacro.h"
 #include "gio.h"
 
 // ADC Tests
