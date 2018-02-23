@@ -63,10 +63,14 @@
 #include "mibspi.h"
 
 /* USER CODE BEGIN (1) */
+#include "sfu_startup.h"
+
+
 /* USER CODE END */
 
 
 /* USER CODE BEGIN (2) */
+
 /* USER CODE END */
 
 
@@ -99,19 +103,19 @@ void _c_int00(void)
 {
     
 /* USER CODE BEGIN (5) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Initialize Core Registers to avoid CCM Error */
     _coreInitRegisters_();
 
 /* USER CODE BEGIN (6) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Initialize Stack Pointers */
     _coreInitStackPointer_();
 
 /* USER CODE BEGIN (7) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Enable CPU Event Export */
     /* This allows the CPU to signal any single-bit or double-bit errors detected
@@ -120,7 +124,9 @@ void _c_int00(void)
     _coreEnableEventBusExport_();
 
 /* USER CODE BEGIN (11) */
-/* USER CODE END */
+#if SFUSAT_STARTUP_METHOD != 1
+
+	/* USER CODE END */
 
         /* Workaround for Errata CORTEXR4 66 */
         _errata_CORTEXR4_66_();
@@ -137,17 +143,17 @@ void _c_int00(void)
     if ((SYS_EXCEPTION & POWERON_RESET) != 0U)
     {
 /* USER CODE BEGIN (12) */
-/* USER CODE END */
+		/* USER CODE END */
         
         /* clear all reset status flags */
         SYS_EXCEPTION = 0xFFFFU;
 
 /* USER CODE BEGIN (13) */
-/* USER CODE END */
+		/* USER CODE END */
 /* USER CODE BEGIN (14) */
-/* USER CODE END */
+		/* USER CODE END */
 /* USER CODE BEGIN (15) */
-/* USER CODE END */
+		/* USER CODE END */
       /* continue with normal start-up sequence */
     }
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
@@ -157,7 +163,7 @@ void _c_int00(void)
         Add user code here to handle oscillator failure */
 
 /* USER CODE BEGIN (16) */
-/* USER CODE END */
+		/* USER CODE END */
     }
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
     else if ((SYS_EXCEPTION & WATCHDOG_RESET) !=0U)
@@ -171,20 +177,20 @@ void _c_int00(void)
         {
             /* Add user code here to handle watchdog violation. */ 
 /* USER CODE BEGIN (17) */
-/* USER CODE END */
+			/* USER CODE END */
 
             /* Clear the Watchdog reset flag in Exception Status register */ 
             SYS_EXCEPTION = WATCHDOG_RESET;
         
 /* USER CODE BEGIN (18) */
-/* USER CODE END */
+			/* USER CODE END */
         }
         else
         {
             /* Clear the ICEPICK reset flag in Exception Status register */ 
             SYS_EXCEPTION = ICEPICK_RESET;
 /* USER CODE BEGIN (19) */
-/* USER CODE END */
+			/* USER CODE END */
         }
     }
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
@@ -195,13 +201,13 @@ void _c_int00(void)
         by toggling the "CPU RESET" bit of the CPU Reset Control Register. */
 
 /* USER CODE BEGIN (20) */
-/* USER CODE END */
+		/* USER CODE END */
 
         /* clear all reset status flags */
         SYS_EXCEPTION = CPU_RESET;
 
 /* USER CODE BEGIN (21) */
-/* USER CODE END */
+		/* USER CODE END */
 
     }
     /*SAFETYMCUSW 139 S MR:13.7 <APPROVED> "Hardware status bit read check" */
@@ -211,7 +217,7 @@ void _c_int00(void)
         Add user code to handle software reset. */
 
 /* USER CODE BEGIN (22) */
-/* USER CODE END */
+		/* USER CODE END */
     }
     else
     {
@@ -219,7 +225,7 @@ void _c_int00(void)
         Add user code to handle external reset. */
 
 /* USER CODE BEGIN (23) */
-/* USER CODE END */
+		/* USER CODE END */
     }
 
     /* Check if there were ESM group3 errors during power-up.
@@ -233,7 +239,7 @@ void _c_int00(void)
     if ((esmREG->SR1[2]) != 0U)
     {
 /* USER CODE BEGIN (24) */
-/* USER CODE END */
+		/* USER CODE END */
     /*SAFETYMCUSW 5 C MR:NA <APPROVED> "for(;;) can be removed by adding "# if 0" and "# endif" in the user codes above and below" */
     /*SAFETYMCUSW 26 S MR:NA <APPROVED> "for(;;) can be removed by adding "# if 0" and "# endif" in the user codes above and below" */
     /*SAFETYMCUSW 28 D MR:NA <APPROVED> "for(;;) can be removed by adding "# if 0" and "# endif" in the user codes above and below" */
@@ -241,11 +247,13 @@ void _c_int00(void)
         { 
         }/* Wait */                 
 /* USER CODE BEGIN (25) */
-/* USER CODE END */
+		/* USER CODE END */
     }
 
 /* USER CODE BEGIN (26) */
-/* USER CODE END */
+#endif // SFUSat
+
+	/* USER CODE END */
 
     /* Initialize System - Clock, Flash settings with Efuse self check */
     systemInit();
@@ -310,10 +318,10 @@ void _c_int00(void)
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();	
 /* USER CODE BEGIN (29) */
-/* USER CODE END */
+	/* USER CODE END */
 
 /* USER CODE BEGIN (31) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Disable RAM ECC before doing PBIST for Main RAM */
     _coreDisableRamEcc_();
@@ -327,7 +335,7 @@ void _c_int00(void)
              (uint32)PBIST_March13N_SP);
 
 /* USER CODE BEGIN (32) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Wait for PBIST for CPU RAM to be completed */
     /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
@@ -337,7 +345,7 @@ void _c_int00(void)
     
 
 /* USER CODE BEGIN (33) */
-/* USER CODE END */
+	/* USER CODE END */
     
     /* Check if CPU RAM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
@@ -347,23 +355,23 @@ void _c_int00(void)
          * and to take the appropriate next step.
          */
 /* USER CODE BEGIN (34) */
-/* USER CODE END */
+		/* USER CODE END */
          
         pbistFail();
         
 /* USER CODE BEGIN (35) */
-/* USER CODE END */
+		/* USER CODE END */
     }
 
 /* USER CODE BEGIN (36) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();
 
     
 /* USER CODE BEGIN (37) */
-/* USER CODE END */
+	/* USER CODE END */
 
 
     /* Initialize CPU RAM.
@@ -375,7 +383,7 @@ void _c_int00(void)
     memoryInit(0x1U);
 
 /* USER CODE BEGIN (38) */
-/* USER CODE END */
+	/* USER CODE END */
     
     /* Enable ECC checking for TCRAM accesses.
      * This function enables the CPU's ECC logic for accesses to B0TCM and B1TCM.
@@ -383,7 +391,7 @@ void _c_int00(void)
     _coreEnableRamEcc_();
 
 /* USER CODE BEGIN (39) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Start PBIST on all dual-port memories */
     /* NOTE : Please Refer DEVICE DATASHEET for the list of Supported Dual port Memories.
@@ -410,7 +418,7 @@ void _c_int00(void)
              ,(uint32) PBIST_March13N_DP);
 
 /* USER CODE BEGIN (40) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Test the CPU ECC mechanism for RAM accesses.
      * The checkBxRAMECC functions cause deliberate single-bit and double-bit errors in TCRAM accesses
@@ -422,9 +430,9 @@ void _c_int00(void)
     checkRAMECC();
 
 /* USER CODE BEGIN (41) */
-/* USER CODE END */
+	/* USER CODE END */
 /* USER CODE BEGIN (43) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Wait for PBIST for CPU RAM to be completed */
     /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
@@ -434,36 +442,37 @@ void _c_int00(void)
     
 
 /* USER CODE BEGIN (44) */
-/* USER CODE END */
+
+	/* USER CODE END */
 
     /* Check if CPU RAM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
 
 /* USER CODE BEGIN (45) */
-/* USER CODE END */
+		/* USER CODE END */
 
         /* CPU RAM failed the self-test.
          * Need custom handler to check the memory failure
          * and to take the appropriate next step.
          */
 /* USER CODE BEGIN (46) */
-/* USER CODE END */
+		/* USER CODE END */
          
         pbistFail();
         
 /* USER CODE BEGIN (47) */
-/* USER CODE END */
+		/* USER CODE END */
     }
 
 /* USER CODE BEGIN (48) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();
     
 /* USER CODE BEGIN (55) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Release the MibSPI1 modules from local reset.
      * This will cause the MibSPI1 RAMs to get initialized along with the parity memory.
@@ -481,7 +490,7 @@ void _c_int00(void)
     mibspiREG5->GCR0 = 0x1U;
     
 /* USER CODE BEGIN (56) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Enable parity on selected RAMs */
     enableParity();
@@ -517,12 +526,12 @@ void _c_int00(void)
     */
 
 /* USER CODE BEGIN (57) */
-/* USER CODE END */
+	/* USER CODE END */
      
     het1ParityCheck();
     
 /* USER CODE BEGIN (58) */
-/* USER CODE END */
+	/* USER CODE END */
 
     htu1ParityCheck();
     
@@ -537,7 +546,7 @@ void _c_int00(void)
     htu2ParityCheck();
     
 /* USER CODE BEGIN (61) */
-/* USER CODE END */
+	/* USER CODE END */
 
     adc1ParityCheck();
     
@@ -547,12 +556,12 @@ void _c_int00(void)
     adc2ParityCheck();
     
 /* USER CODE BEGIN (63) */
-/* USER CODE END */
+	/* USER CODE END */
 
     can1ParityCheck();
     
 /* USER CODE BEGIN (64) */
-/* USER CODE END */
+	/* USER CODE END */
 
     can2ParityCheck();
     
@@ -562,7 +571,7 @@ void _c_int00(void)
     can3ParityCheck();
     
 /* USER CODE BEGIN (66) */
-/* USER CODE END */
+	/* USER CODE END */
 
     vimParityCheck();
     
@@ -573,7 +582,7 @@ void _c_int00(void)
 
 
 /* USER CODE BEGIN (68) */
-/* USER CODE END */
+	/* USER CODE END */
 
 /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
     while ((mibspiREG1->FLG & 0x01000000U) == 0x01000000U)
@@ -592,7 +601,7 @@ void _c_int00(void)
     /* wait for MibSPI5 RAM to complete initialization */
 
 /* USER CODE BEGIN (69) */
-/* USER CODE END */
+	/* USER CODE END */
 
     mibspi1ParityCheck();
     
@@ -608,20 +617,20 @@ void _c_int00(void)
     
 
 /* USER CODE BEGIN (72) */
-/* USER CODE END */
+	/* USER CODE END */
     
     /* Enable IRQ offset via Vic controller */
     _coreEnableIrqVicOffset_();
     
 
 /* USER CODE BEGIN (73) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Initialize VIM table */
     vimInit();    
 
 /* USER CODE BEGIN (74) */
-/* USER CODE END */
+	/* USER CODE END */
 
     /* Configure system response to error conditions signaled to the ESM group1 */
     /* This function can be configured from the ESM tab of HALCoGen */
@@ -629,7 +638,13 @@ void _c_int00(void)
     /* initialize copy table */
     __TI_auto_init();
 /* USER CODE BEGIN (75) */
-/* USER CODE END */
+
+	//----------------------------- SFUSAT
+#if 	SFUSAT_STARTUP_METHOD == 1
+	startupInit(); // RA
+	startupCheck(); // RA
+#endif
+	/* USER CODE END */
     
     /* call the application */
 /*SAFETYMCUSW 296 S MR:8.6 <APPROVED> "Startup code(library functions at block scope)" */
@@ -638,12 +653,12 @@ void _c_int00(void)
     main();
 
 /* USER CODE BEGIN (76) */
-/* USER CODE END */
+	/* USER CODE END */
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
     exit(0);
 
 /* USER CODE BEGIN (77) */
-/* USER CODE END */
+	/* USER CODE END */
 }
 
 /* USER CODE BEGIN (78) */
