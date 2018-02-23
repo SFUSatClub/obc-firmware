@@ -18,10 +18,10 @@
 #if SFUSAT_BOARD == 2
 //  ---------------  RTC Defines --------------------
 // Todo: confirm this works. Convert to MIBSPI like for flash section
-//#define RTC_CS_PORT mibspiREG5
+#define RTC_CS_PORT spiPORT5
 #define RTC_CS_PIN 0
-//#define RTC_SPI_REG spiREG5
-// RTC SPI Config (set in rtcInit())
+#define RTC_SPI_REG spiREG5
+//RTC SPI Config (set in rtcInit())
 #define RTC_CONFIG_CS_HOLD 0 //CS false = high during data transfer
 #define RTC_CONFIG_WDEL 1 // wdelay
 #define RTC_CONFIG_DFSEL SPI_FMT_0 // data format

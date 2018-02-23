@@ -51,6 +51,9 @@ extern "C" {
 #endif
 
 /* USER CODE BEGIN (0) */
+#include "FreeRTOS.h"
+#include "rtos_task.h"
+#include "rtos_queue.h"
 /* USER CODE END */
 
 /** @enum sciIntFlags
@@ -194,6 +197,7 @@ void sciGetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type);
 void sciNotification(sciBASE_t *sci, uint32 flags);
 
 /* USER CODE BEGIN (1) */
+// Queue Handles
 /* USER CODE END */
 /**@}*/
 #ifdef __cplusplus
