@@ -43,8 +43,9 @@
 #define TASK_RADIO_REG spiREG3
 
 // ---------------- RF IRQ ------------------
-#define RF_IRQ_PIN FILL_ME_IN!
-#define RF_IRQ_PORT FILL_ME_IN!
+// Todo: fix this
+#define RF_IRQ_PIN 2
+#define RF_IRQ_PORT gioPORTB
 
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
@@ -52,6 +53,7 @@
 #define FLASH0_TRANSFER_GROUP 0
 #define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
 #define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
+#define FLASH_QUAD_TRANSFER 4 // transfer group with 4 byte length
 #define FLASH_TWENTY 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 1 // 0 = SST26, 1 = IS25LP016D
 
