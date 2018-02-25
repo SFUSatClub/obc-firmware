@@ -391,7 +391,7 @@ static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
 static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
     writeAllConfigRegisters(SMARTRF_VALS_TX);
     writeRegister(PA_TABLE_ADDR, PA_TABLE);
-    return checkConfig(SMARTRF_VALS_TX)
+    return checkConfig(SMARTRF_VALS_TX);
 }
 
 BaseType_t initRadio() {
@@ -439,6 +439,7 @@ BaseType_t initRadio() {
 
     	strobe(SNOP);
 
+    	if(0){
 
         switch(writeToTxFIFO(test, packetLen)){
         	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
@@ -453,6 +454,8 @@ BaseType_t initRadio() {
 
         strobe(STX);
 
+    	}
+
         strobe(SNOP);
         /*
         while((statusByte & STATE) == (STATE_TX << 4)){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
@@ -465,10 +468,11 @@ BaseType_t initRadio() {
         	*/
         //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
-
-
-    //readRegister(RXBYTES);
-    //readFromRxFIFO(test, 5);
+        if(readRegister(RXBYTES) != 0){
+        	readFromRxFIFO(test, 5);
+        	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
+        	serialSendln(buffer);
+        }
 
 	return pdPASS;
 }
