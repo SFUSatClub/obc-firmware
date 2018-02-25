@@ -287,6 +287,7 @@ void flash_mibspi_init(){
     mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_6_BYTE_GROUP,FLASH_DATA_FORMAT);
     mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_1_BYTE_GROUP,FLASH_DATA_FORMAT);
     mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_2_BYTE_GROUP,FLASH_DATA_FORMAT);
+    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_4_BYTE_GROUP,FLASH_DATA_FORMAT);
     mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_20_BYTE_GROUP,FLASH_DATA_FORMAT);
 
     TG0_IS_Complete = 0xA5; // start as complete
@@ -315,7 +316,7 @@ void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){
         TG3_IS_Complete = 0x0000;
         break;
     case 4:
-        TG3_IS_Complete = 0x0000;
+        TG4_IS_Complete = 0x0000;
         break;
     }
 
