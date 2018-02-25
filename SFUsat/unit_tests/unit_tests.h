@@ -18,7 +18,7 @@ uint32_t test_adc(uint8_t channel);
 uint32_t test_flash(void);
 bool check16(uint32_t address, uint8_t *matchBuf);
 bool checkArbitrary(uint32_t start_address, uint32_t size, uint8_t *matchBuf);
-
-
+void flash_write_sequence(uint32_t address,uint32_t *testCount, uint32_t testDataSize, uint8_t *testData, uint32_t passFail); // writes data then checks it
+void flash_check_sequence(uint32_t address,uint32_t *testCount, uint32_t testDataSize, uint8_t *testData, uint32_t passFail); // just checks data
 
 #endif /* SFUSAT_UNIT_TESTS_UNIT_TESTS_H_ */

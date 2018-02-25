@@ -7,14 +7,19 @@
  *      Flash driver for SST26 flash memory.
  *      In HALCoGEN, 4 transfer groups were created. This is somewhat efficient, as we don't waste time sending a ton of
  *      dummy bytes when we just need to send a single byte command, as we would with only 1 large transfer group.
+ *
  *      TG number	Number of bytes
  *      0			6
  *      1			1
  *      2			2
  *      3			20
+ *      4			4
  *
  *      Keep in mind that ERASED flash is all 1's. So don't fill space with 0's if you will want to use it later, since erasing
  *      is slow.
+ *
+ *      Flash addresses are always the BYTE number. Address 0 = byte 0. Address 349 = byte 349. Sectors are 4 kbytes, so bytes (addresses) 0-4095 are on the same sector.
+ *      Byte 4096 is on a different sector.
  */
 
 #ifndef SFUSAT_FLASH_MIBSPI_H_
@@ -91,7 +96,7 @@ void mibspi_write_two(uint16_t arg1, uint16_t arg2);
 #define RDJDID 0x009F
 #define ULBPR 0x0098 // global write unlock
 #define CHIP_ERASE 0x00c7
-#define SECTOR_ERASE 0x0020
+#define SECTOR_ERASE 0x00D7
 
 // status register
 #define STATUS_WIP 0x01 // WIP bit of status register

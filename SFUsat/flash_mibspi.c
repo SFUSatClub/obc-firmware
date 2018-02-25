@@ -65,6 +65,8 @@ void flash_erase_sector(uint32_t address){
 	    sendOut[1] = (address & 0xFF0000) >> 16;
 	    sendOut[2] = (address & 0xFF00) >> 8;
 	    sendOut[3] = (address) & 0xFF;
+//	    sendOut[4] = 0x00;
+//	    sendOut[5] = 0x00;
 
 	    mibspi_write_byte(WRITE_ENABLE);
 	    mibspi_send(FLASH_4_BYTE_GROUP, sendOut);

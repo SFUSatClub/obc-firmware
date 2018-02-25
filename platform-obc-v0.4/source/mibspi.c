@@ -329,7 +329,7 @@ uint32 i ;
                                           | (uint16)((uint16)0U << 11U)  /* lock transmission */
                                           | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
-                                          | ((uint16)(~((uint16)0xFFU ^ (uint16)CS_4)) & (uint16)0x00FFU);  /* chip select */
+                                          | ((uint16)(~((uint16)0xFFU ^ (uint16)CS_0)) & (uint16)0x00FFU);  /* chip select */
 
                 i++;
             }
@@ -339,7 +339,7 @@ uint32 i ;
                                       | (uint16)((uint16)0U << 10U)  /* enable WDELAY */
                                       | (uint16)((uint16)0U << 8U)  /* data format */
 										  /*SAFETYMCUSW 334 S MR:10.5 <APPROVED> "LDRA Tool issue" */
-                                      | ((uint16)(~((uint16)0xFFU ^ (uint16)CS_4)) & (uint16)0x00FFU);  /* chip select */
+                                      | ((uint16)(~((uint16)0xFFU ^ (uint16)CS_0)) & (uint16)0x00FFU);  /* chip select */
 
             i++;
         }

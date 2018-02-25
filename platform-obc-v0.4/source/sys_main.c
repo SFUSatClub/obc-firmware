@@ -137,8 +137,8 @@ int main(void)
 	test_flash();
 	init_adc_test();
     triumf_init();
-    uint32_t time;
-    time = no_rtos_test_getCurrentRTCTime();
+//    uint32_t time;
+//    time = no_rtos_test_getCurrentRTCTime();
 
 	if(flash_test_JEDEC()){ // kind of redundant now
 		serialSendln("Passed flash JEDEC test!");

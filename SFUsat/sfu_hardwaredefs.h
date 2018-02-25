@@ -43,7 +43,6 @@
 #define TASK_RADIO_REG spiREG3
 
 // ---------------- RF IRQ ------------------
-// Todo: fix this
 #define RF_IRQ_PIN 2
 #define RF_IRQ_PORT gioPORTB
 
