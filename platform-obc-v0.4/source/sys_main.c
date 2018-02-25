@@ -72,6 +72,9 @@
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
+#include "sfusat_spiffs.h"
+
+
 /* USER CODE END */
 
 /* Include Files */
@@ -137,12 +140,11 @@ int main(void)
 	test_flash();
 	init_adc_test();
     triumf_init();
-//    uint32_t time;
-//    time = no_rtos_test_getCurrentRTCTime();
 
-	if(flash_test_JEDEC()){ // kind of redundant now
-		serialSendln("Passed flash JEDEC test!");
-	}
+    flash_erase_chip();
+    my_spiffs_mount();
+    test_spiffs();
+
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these

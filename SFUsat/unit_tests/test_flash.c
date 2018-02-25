@@ -65,6 +65,10 @@ uint32_t test_flash(void){
 	flash_check_sequence(0, &resultCount, 48, test_bytes_48, 0); // should read 1's since the sector was erased
 	flash_check_sequence(4097, &resultCount, 48, test_bytes_48, 1); // should correctly read second set of bytes which are on the next sector
 
+	flash_write_sequence(34959, &resultCount, 48, test_bytes_48, 1);
+
+	flash_write_sequence(2097151-9, &resultCount, 48, test_bytes_48, 1);
+
 	// Test read arbitrary
 	// RA: Manually confirm results - it's too late to write a checker :D
 	// If tests are passing, this works fine and we don't need to run this code.
@@ -73,7 +77,7 @@ uint32_t test_flash(void){
 	//   flash_read_arbitrary(128, 4, readBuf);
 	//   flash_read_arbitrary(64, 16, readBuf);
 
-	if(resultCount == 11){
+	if(resultCount == 13){
 		return true; // passed!
 	}
 	return false;
