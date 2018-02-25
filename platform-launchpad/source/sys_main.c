@@ -111,6 +111,13 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 int main(void)
 {
 /* USER CODE BEGIN (3) */
+//	Notes for launchpad config:
+//	- RA: disabled pretty much anything that deals with the RTC.
+//		- If the RTC is not connected, its assertion will fail, so we don't want it hanging up on that. '
+//	- Re-introduced previous mod to the linker command file.
+//	- Disabled several of the tasks that currently use the RTC and other HW that won't be connected'
+
+
 // ---------- SETUP/INIT HARDWARE ----------
 	_enable_IRQ(); // global interrupt enable
     _enable_interrupt_();
@@ -121,29 +128,23 @@ int main(void)
     flash_mibspi_init();
 
 // ---------- SFUSat INIT ----------
-	rtcInit();
+//	rtcInit();
 	stateMachineInit(); // we start in SAFE mode
 
 // ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
 
-	watchdog_busywait(3000); // to allow time for serial to connect up to script
+//	watchdog_busywait(3000); // to allow time for serial to connect up to script
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 	printStartupType();
 
 // ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
-	init_adc_test();
-    triumf_init();
-    uint32_t time;
-    time = 0x00;
-    time = no_rtos_test_getCurrentRTCTime();
+//	test_flash();
+//	init_adc_test();
+//    triumf_init();
 
-	if(flash_test_JEDEC()){ // kind of redundant now
-		serialSendln("Passed flash JEDEC test!");
-	}
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
