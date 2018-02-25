@@ -129,8 +129,8 @@
 #define TASK_RADIO_REG spiREG3
 
 // ---------------- RF IRQ ------------------
-#define RF_IRQ_PIN define_me_here
-#define RF_IRQ_PORT define_me_here
+#define RF_IRQ_PIN 0
+#define RF_IRQ_PORT gioPORTA
 
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1

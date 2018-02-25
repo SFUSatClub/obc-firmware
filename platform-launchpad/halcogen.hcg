@@ -3,10 +3,10 @@
   <DEVICE>
     <family>TMS570LS04x</family>
     <device>TMS570LS0432PZ</device>
-    <dilfile>build-launchpad.dil</dilfile>
+    <dilfile>halcogen.dil</dilfile>
     <tools>ti</tools>
   </DEVICE>
-  <VERSION>
+ <VERSION>
     <version>04.06.00</version>
   </VERSION>
   <HET>
@@ -583,3 +583,4 @@
     </FILENAMES>
   </FEE>
 </SETTINGS>
+ 

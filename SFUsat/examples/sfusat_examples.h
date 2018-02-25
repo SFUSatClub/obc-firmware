@@ -7,7 +7,7 @@
 
 #ifndef SFUSAT_EXAMPLES_SFUSAT_EXAMPLES_H_
 #define SFUSAT_EXAMPLES_SFUSAT_EXAMPLES_H_
-#include "freeRTOS.h"
+#include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "rtos_semphr.h"

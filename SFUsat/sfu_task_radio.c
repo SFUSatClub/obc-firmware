@@ -12,6 +12,8 @@
 
 typedef enum {
 	IOCFG0,
+	IOCFG1,
+	IOCFG2,
 	FIFOTHR,
 	SYNC1,
 	SYNC0,
@@ -26,6 +28,7 @@ typedef enum {
 	MDMCFG3,
 	MDMCFG2,
 	MDMCFG1,
+	MDMCFG0,
 	DEVIATN,
 	MCSM1,
 	MCSM0,
@@ -48,11 +51,10 @@ typedef enum {
  */
 const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[IOCFG0] = SMARTRF_SETTING_IOCFG0_ADDR,
+	[IOCFG1] = SMARTRF_SETTING_IOCFG1_ADDR,
+	[IOCFG2] = SMARTRF_SETTING_IOCFG2_ADDR,
 	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_ADDR,
-	[SYNC1] = SMARTRF_SETTING_SYNC1_ADDR,
-	[SYNC0] = SMARTRF_SETTING_SYNC0_ADDR,
 	[PKTLEN] = SMARTRF_SETTING_PKTLEN_ADDR,
-	[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_ADDR,
 	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_ADDR,
 	[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_ADDR,
 	[FREQ2] = SMARTRF_SETTING_FREQ2_ADDR,
@@ -62,12 +64,10 @@ const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_ADDR,
 	[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_ADDR,
 	[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_ADDR,
+	[MDMCFG0] = SMARTRF_SETTING_MDMCFG0_ADDR,
 	[DEVIATN] = SMARTRF_SETTING_DEVIATN_ADDR,
-	[MCSM1] = SMARTRF_SETTING_MCSM1_ADDR,
 	[MCSM0] = SMARTRF_SETTING_MCSM0_ADDR,
 	[FOCCFG] = SMARTRF_SETTING_FOCCFG_ADDR,
-	[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_ADDR,
-	[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_ADDR,
 	[WORCTRL] = SMARTRF_SETTING_WORCTRL_ADDR,
 	[FSCAL3] = SMARTRF_SETTING_FSCAL3_ADDR,
 	[FSCAL2] = SMARTRF_SETTING_FSCAL2_ADDR,
@@ -78,46 +78,8 @@ const uint16 SMARTRF_ADDRS[NUM_CONFIG_REGISTERS] = {
 	[TEST0] = SMARTRF_SETTING_TEST0_ADDR
 };
 
-const uint16 SMARTRF_VALS_RX[NUM_CONFIG_REGISTERS] = {
-	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_RX,
-	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_RX,
-	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_RX,
-	[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_RX,
-	[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_RX,
-	[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_VAL_RX,
-	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_RX,
-	[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_VAL_RX,
-	[FREQ2] = SMARTRF_SETTING_FREQ2_VAL_RX,
-	[FREQ1] = SMARTRF_SETTING_FREQ1_VAL_RX,
-	[FREQ0] = SMARTRF_SETTING_FREQ0_VAL_RX,
-	[MDMCFG4] = SMARTRF_SETTING_MDMCFG4_VAL_RX,
-	[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_VAL_RX,
-	[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_VAL_RX,
-	[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_VAL_RX,
-	[DEVIATN] = SMARTRF_SETTING_DEVIATN_VAL_RX,
-	[MCSM1] = SMARTRF_SETTING_MCSM1_VAL_RX,
-	[MCSM0] = SMARTRF_SETTING_MCSM0_VAL_RX,
-	[FOCCFG] = SMARTRF_SETTING_FOCCFG_VAL_RX,
-	[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_VAL_RX,
-	[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_VAL_RX,
-	[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_RX,
-	[FSCAL3] = SMARTRF_SETTING_FSCAL3_VAL_RX,
-	[FSCAL2] = SMARTRF_SETTING_FSCAL2_VAL_RX,
-	[FSCAL1] = SMARTRF_SETTING_FSCAL1_VAL_RX,
-	[FSCAL0] = SMARTRF_SETTING_FSCAL0_VAL_RX,
-	[TEST2] = SMARTRF_SETTING_TEST2_VAL_RX,
-	[TEST1] = SMARTRF_SETTING_TEST1_VAL_RX,
-	[TEST0] = SMARTRF_SETTING_TEST0_VAL_RX
-};
 
 const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
-	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
-	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_TX,
-	[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_TX,
-	[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_TX,
-	[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_TX,
-	[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_VAL_TX,
-	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_TX,
 	[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_VAL_TX,
 	[FREQ2] = SMARTRF_SETTING_FREQ2_VAL_TX,
 	[FREQ1] = SMARTRF_SETTING_FREQ1_VAL_TX,
@@ -126,20 +88,24 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 	[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_VAL_TX,
 	[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_VAL_TX,
 	[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_VAL_TX,
+	[MDMCFG0] = SMARTRF_SETTING_MDMCFG0_VAL_TX,
 	[DEVIATN] = SMARTRF_SETTING_DEVIATN_VAL_TX,
-	[MCSM1] = SMARTRF_SETTING_MCSM1_VAL_TX,
 	[MCSM0] = SMARTRF_SETTING_MCSM0_VAL_TX,
 	[FOCCFG] = SMARTRF_SETTING_FOCCFG_VAL_TX,
-	[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_VAL_TX,
-	[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_VAL_TX,
-	[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_TX,
 	[FSCAL3] = SMARTRF_SETTING_FSCAL3_VAL_TX,
 	[FSCAL2] = SMARTRF_SETTING_FSCAL2_VAL_TX,
 	[FSCAL1] = SMARTRF_SETTING_FSCAL1_VAL_TX,
 	[FSCAL0] = SMARTRF_SETTING_FSCAL0_VAL_TX,
 	[TEST2] = SMARTRF_SETTING_TEST2_VAL_TX,
 	[TEST1] = SMARTRF_SETTING_TEST1_VAL_TX,
-	[TEST0] = SMARTRF_SETTING_TEST0_VAL_TX
+	[TEST0] = SMARTRF_SETTING_TEST0_VAL_TX,
+	[IOCFG2] = SMARTRF_SETTING_IOCFG2_VAL_TX,
+	[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_TX,
+	[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_TX,
+	[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_TX,
+	[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_TX,
+	[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_TX,
+	[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_TX
 };
 
 
@@ -157,7 +123,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * State mask:
  * 		- mask out the status byte first using mask STATE before using STATE_X to check for equality.
  * 		- eg, to check if in STATE_RX:
- * 			- if ( (statusByte & STATE) == STATE_RX ) { // in STATE_RX }
+ * 			- if ( (statusByte & STATE) == (STATE_RX << 4)) { // in STATE_RX }
  */
 #define CHIP_RDY				(0b1000 << 4)	// Bits 7   Stays high until power and crystal have stabilized. Should always be low when using the SPI interface.
 #define STATE					(0b0111 << 4)	// Bits 6:4 Indicates the current main state machine mode.
@@ -213,13 +179,18 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * FIFO_RX is read-only.
  * Both are accessed through the 0x3F address with appropriate read/write bits set.
  */
+#define PA_TABLE_ADDR (0x3E)
+#define PA_TABLE_SETTING (0x60)
 #define FIFO_TX (0x3F)
 #define FIFO_RX (0x3F)
+
+#define FIFO_LENGTH (64)
 
 static spiDAT1_t spiDataConfig;
 
 QueueHandle_t xRadioTXQueue;
 QueueHandle_t xRadioRXQueue;
+QueueHandle_t xRadioCHIMEQueue;
 
 static uint8 statusByte;
 
@@ -235,14 +206,60 @@ void vRadioTask(void *pvParameters) {
 	}
 }
 
+// TX task
+void vRadioTX(void *pvParameters) {
+	struct RadioDAT Radio_container;
+	Radio_container.srcsz = 100;
+	uint8 idx = 0;
+	for (idx = 0; idx < Radio_container.srcsz; idx++){
+		Radio_container.srcdat[idx] = idx;
+	}
+
+	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	//initialize radio herehello
+
+
+
+	if (!writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz)){
+		//error
+	}
+
+
+	//writeToTxFIFO(*(Radio_container*)pvParameters.srcdat, *(Radio_container*)pvParameters.srcsz);
+
+
+	// how does pvparameters work?
+
+	uint8 txsize = 10;
+	uint8 txsrc[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	writeToTxFIFO(txsrc, txsize);
+	strobe(STX);
+	//TODO: check last packet was transmitted
+
+}
+
+// RX task
+void vRadioRX(void *pvParameters){
+	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	initRadio(); // required?
+}
+
+// CHIME task
+void vRadioCHIME(void *pvParameters){
+	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));
+	initRadio(); // required?
+}
+
+
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
-	statusByte = dest[0] & 0xff;
-	char buffer[30];
+	statusByte = dest[0] & 0xff; //table 23 of CC1101 Datasheet
+	/*char buffer[30];
 	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, statusByte, dest[1]);
 	serialSendln(buffer);
+	*/
 	return (dest[1] & 0xff);
 }
 
@@ -251,9 +268,6 @@ static void writeRegister(uint8 addr, uint8 val) {
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff;
-	char buffer[30];
-	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], statusByte, dest[1]);
-	serialSendln(buffer);
 }
 
 /**
@@ -286,9 +300,9 @@ static void strobe(uint8 addr) {
  * @return 1 on successful write, 0 on failure
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
-	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	uint8 numBytesInFIFO = FIFO_LENGTH;
 	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
-	if (size > numBytesInFIFO || size == 0) { return 0; }
+	if (size > numBytesInFIFO || size == 0) { return 1; }
 	/*
 	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
 	 * or update this continuously with the radio's count of FIFO_BYTES_AVAILABLE via most recent statusByte.
@@ -296,10 +310,11 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	 */
 	uint8 idx = 0;
 	while (numBytesInFIFO >= 1 && idx + 1 <= size) {
-		writeRegister(FIFO_TX, src[idx++]);
+		writeRegister(FIFO_TX, src[idx++]); //FIFO_TX single byte access
 		numBytesInFIFO--;
 	}
-	return 1;
+	if(readRegister(TXBYTES) != size) {return 2;} //check that TX_FIFO is filled with the correct amount of data
+	return 0; //TODO: Is this the best practice for returning error codes? should >0 be for nominal and <0 for errors?
 }
 
 /**
@@ -324,10 +339,10 @@ static int readFromRxFIFO(uint8 *dest, uint8 size) {
 	return (numBytesInFIFO == 0 && idx >= 1);
 }
 
-static void writeAllConfigRegisters() {
+static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		writeRegister(SMARTRF_ADDRS[i], SMARTRF_VALS_RX[i]);
+		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
 		i++;
 	}
 }
@@ -339,24 +354,48 @@ static void readAllConfigRegisters() {
 	}
 }
 
-static void readAllStatusRegisters() {
-	readRegister(PARTNUM);
-	readRegister(VERSION);
-	readRegister(FREQEST);
-	readRegister(LQI);
-	readRegister(RSSI);
-	readRegister(MARCSTATE);
-	readRegister(WORTIME1);
-	readRegister(WORTIME0);
-	readRegister(PKTSTATUS);
-	readRegister(VCO_VC_DAC);
-	readRegister(TXBYTES);
-	readRegister(RXBYTES);
-	readRegister(RCCTRL1_STATUS);
-	readRegister(RCCTRL0_STATUS);
+static uint8 * readAllStatusRegisters() {
+	static uint8 contents[14];
+	contents[0] = readRegister(PARTNUM);
+	contents[1] = readRegister(VERSION);
+	contents[2] = readRegister(FREQEST);
+	contents[3] = readRegister(LQI);
+	contents[4] = readRegister(RSSI);
+	contents[5] = readRegister(MARCSTATE);
+	contents[6] = readRegister(WORTIME1);
+	contents[7] = readRegister(WORTIME0);
+	contents[8] = readRegister(PKTSTATUS);
+	contents[9] = readRegister(VCO_VC_DAC);
+	contents[10] = readRegister(TXBYTES);
+	contents[11] = readRegister(RXBYTES);
+	contents[12] = readRegister(RCCTRL1_STATUS);
+	contents[13] = readRegister(RCCTRL0_STATUS);
+	return contents;
+}
+
+static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		if(config[i] != regVal){
+			char buffer[30];
+			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
+			serialSendln(buffer);
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+    writeAllConfigRegisters(SMARTRF_VALS_TX);
+    writeRegister(PA_TABLE_ADDR, PA_TABLE);
+    return checkConfig(SMARTRF_VALS_TX);
 }
 
 BaseType_t initRadio() {
+	//what task should SPI initialization occure in?
 	spiDataConfig.CS_HOLD = TRUE;
 	spiDataConfig.WDEL = TRUE;
     spiDataConfig.DFSEL = SPI_FMT_0;
@@ -367,28 +406,73 @@ BaseType_t initRadio() {
      */
     spiDataConfig.CSNR = SPI_CS_0;
 
-    strobe(SNOP);
-    readAllStatusRegisters();
-    readAllConfigRegisters();
-    writeAllConfigRegisters();
-    readAllConfigRegisters();
-    strobe(SIDLE);
+    uint8 *stat = readAllStatusRegisters();
+    char buffer[30];
 
-    uint8 test[] = {0, 3, 9, 27, 14};
-    /**
-     * R/W bit was previously set to 0 (WRITE) from the above strobe; status byte will have FIFO_BYTES_AVAILABLE for TX FIFO, so no need for another strobe to update our status byte.
-     */
-    int i = 0;
-    for (i = 0; i < 11; i++) {
-        writeToTxFIFO(test, 5);
-        readRegister(TXBYTES);
+    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
+    	uint8 packetLen  = 64;
+        uint8 test[100] = { 0 };
+        int i = 2;
+        test[0] = packetLen;
+        test[1] = 0x10;
+        while (i < packetLen) {
+        	test[i] = i;
+        	i++;
+        }
+
+
+
+    strobe(SRES);
+    strobe(SNOP);
+
+    snprintf(buffer, 30, "Radio Status Registers:");
+    serialSendln(buffer);
+    snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+    			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
+				stat[10], stat[11], stat[12], stat[13]);
+    serialSendln(buffer);
+
+    if(configureRadio(SMARTRF_VALS_TX, PA_TABLE_SETTING)){
+    	snprintf(buffer, 30, "radio registers do not match!");
+    	serialSendln(buffer);
     }
-    /**
-     * Set R/W bit to 1 (READ) to get FIFO_BYTES_AVAILABLE of RX FIFO in status byte.
-     */
-    strobe(SNOP | READ_BIT);
-    readRegister(RXBYTES);
-    readFromRxFIFO(test, 5);
+
+    	strobe(SNOP);
+
+    	if(0){
+
+        switch(writeToTxFIFO(test, packetLen)){
+        	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
+        			serialSendln(buffer);
+        			break;
+        	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
+            		serialSendln(buffer);
+            		break;
+        	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+    				serialSendln(buffer);
+        }
+
+        strobe(STX);
+
+    	}
+
+        strobe(SNOP);
+        /*
+        while((statusByte & STATE) == (STATE_TX << 4)){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
+        if(readRegister(TXBYTES) == 0){
+        	snprintf(buffer, 30, "Transmission Complete");
+        }else{
+        	snprintf(buffer, 30, "TX Error");
+        }
+        	serialSendln(buffer);
+        	*/
+        //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
+
+        if(readRegister(RXBYTES) != 0){
+        	readFromRxFIFO(test, 5);
+        	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
+        	serialSendln(buffer);
+        }
 
 	return pdPASS;
 }
