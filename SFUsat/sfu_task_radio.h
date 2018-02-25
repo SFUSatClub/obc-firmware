@@ -13,9 +13,24 @@
 #include "rtos_queue.h"
 
 void vRadioTask( void *pvParameters );
+
+void vRadioRX(void *pvParameters);
+void vRadioTX(void *pvParameters);
+void vRadioCHIME(void *pvParameters);
+
 BaseType_t initRadio();
+static int writeToTxFIFO(const uint8 *src, uint8 size);
 
 extern QueueHandle_t xRadioTXQueue;
 extern QueueHandle_t xRadioRXQueue;
+
+uint8 hello;
+
+//typedef struct RadioDAT RadioDAT_1;
+
+extern struct RadioDAT{
+	uint8 srcsz;
+	uint8 srcdat[100];
+};
 
 #endif /* SFUSAT_SFU_TASK_RADIO_H_ */

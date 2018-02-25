@@ -12,6 +12,9 @@
 #include "sfu_rtc.h"
 #include "sfu_state.h"
 
+
+
+
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -21,6 +24,10 @@ TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFlashReadHandle = NULL;
 TaskHandle_t xFlashWriteHandle = NULL;
 
+
+TaskHandle_t xRadioRXHandle = NULL;
+TaskHandle_t xRadioTXHandle = NULL;
+TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
