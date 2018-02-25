@@ -134,7 +134,7 @@ int main(void)
 // ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-//	test_flash();
+	test_flash();
 	init_adc_test();
     triumf_init();
     uint32_t time;

@@ -50,11 +50,11 @@
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
 #define FLASH_DATA_FORMAT 0
-#define FLASH0_TRANSFER_GROUP 0
-#define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
-#define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
-#define FLASH_QUAD_TRANSFER 4 // transfer group with 4 byte length
-#define FLASH_TWENTY 3 // TG 20 byte length
+#define FLASH_6_BYTE_GROUP 0
+#define FLASH_1_BYTE_GROUP 1 // transfer group with 1 byte length
+#define FLASH_2_BYTE_GROUP 2 // transfer group with 2 byte length
+#define FLASH_4_BYTE_GROUP 4 // transfer group with 4 byte length
+#define FLASH_20_BYTE_GROUP 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 1 // 0 = SST26, 1 = IS25LP016D
 
 #endif
@@ -94,10 +94,10 @@
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
 #define FLASH_DATA_FORMAT 0
-#define FLASH0_TRANSFER_GROUP 0
-#define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
-#define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
-#define FLASH_TWENTY 3 // TG 20 byte length
+#define FLASH_6_BYTE_GROUP 0
+#define FLASH_1_BYTE_GROUP 1 // transfer group with 1 byte length
+#define FLASH_2_BYTE_GROUP 2 // transfer group with 2 byte length
+#define FLASH_20_BYTE_GROUP 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 1 // 0 = SST26, 1 = IS25LP016D
 #endif
 
@@ -135,10 +135,10 @@
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1
 #define FLASH_DATA_FORMAT 0
-#define FLASH0_TRANSFER_GROUP 0
-#define FLASH_SINGLE_TRANSFER 1 // transfer group with 1 byte length
-#define FLASH_DOUBLE_TRANSFER 2 // transfer group with 2 byte length
-#define FLASH_TWENTY 3 // TG 20 byte length
+#define FLASH_6_BYTE_GROUP 0
+#define FLASH_1_BYTE_GROUP 1 // transfer group with 1 byte length
+#define FLASH_2_BYTE_GROUP 2 // transfer group with 2 byte length
+#define FLASH_20_BYTE_GROUP 3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 0 // 0 = SST26, 1 = IS25LP016D
 
 #endif

@@ -19,12 +19,12 @@
 
 void mibspi_write_byte(uint16_t toWrite){
     while (TG1_IS_Complete != 0xA5){} // wait for other transfers to complete
-    mibspi_send(FLASH_SINGLE_TRANSFER, &toWrite);
+    mibspi_send(FLASH_1_BYTE_GROUP, &toWrite);
 }
 
 void mibspi_write_two(uint16_t arg1, uint16_t arg2){
     uint16_t dataIn[2] = {arg1, arg2};
-    mibspi_send(FLASH_DOUBLE_TRANSFER, dataIn);
+    mibspi_send(FLASH_2_BYTE_GROUP, dataIn);
 }
 
 void flash_erase_chip(){
@@ -38,24 +38,37 @@ void flash_busy_erasing_chip(){
     uint16_t buf[2] = {0};
 
     mibspi_write_two(READ_REG_STATUS,0x0000);
-    mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
+    mibspi_receive(FLASH_2_BYTE_GROUP,buf);
 
     while(buf[1] == 0x0003 && buf[0] == 0x00ff){ // reports 131 while still erasing. Takes ~45ms to do a chip erase
         mibspi_write_two(READ_REG_STATUS,0x0000);
-        mibspi_receive(FLASH_DOUBLE_TRANSFER,buf);
+        mibspi_receive(FLASH_2_BYTE_GROUP,buf);
     }
 }
 
 void flash_set_burst_64(){
     mibspi_write_two(0x00c0, 0x0003);
     uint16 TG1_RX[1] = {0x0000};
-    mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+    mibspi_receive(FLASH_2_BYTE_GROUP,TG1_RX);
 }
 
 void flash_write_enable(){
     mibspi_write_byte(WRITE_ENABLE);
 }
 
+void flash_erase_sector(uint32_t address){
+	 uint16_t sendOut[4] = { 0 };
+
+	 // packet size = data bytes + command (1) + address (3) bytes
+	    // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB first)
+	    sendOut[0] = SECTOR_ERASE;
+	    sendOut[1] = (address & 0xFF0000) >> 16;
+	    sendOut[2] = (address & 0xFF00) >> 8;
+	    sendOut[3] = (address) & 0xFF;
+
+	    mibspi_write_byte(WRITE_ENABLE);
+	    mibspi_send(FLASH_4_BYTE_GROUP, sendOut);
+}
 
 void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packet, uint16_t databytes){
     uint16_t sendOut[6] = { 0 };
@@ -76,12 +89,12 @@ void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packe
         mibspi_write_byte(WRITE_ENABLE);
     }
 
-    mibspi_send(FLASH0_TRANSFER_GROUP, sendOut);
+    mibspi_send(FLASH_6_BYTE_GROUP, sendOut);
 }
 
 void flash_read_16(uint32_t address, uint16_t *outBuffer){
     construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
-    mibspi_receive(FLASH_TWENTY,TG3_RX);
+    mibspi_receive(FLASH_20_BYTE_GROUP,TG3_RX);
 
     // strip off the first 4 bytes of the receive, since those are the responses to the command and address
     int i = 0;
@@ -95,7 +108,7 @@ void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
 	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
 	{
 		construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
-		mibspi_receive(FLASH_TWENTY,TG3_RX);
+		mibspi_receive(FLASH_20_BYTE_GROUP,TG3_RX);
 
 		// strip off the first 4 bytes of the receive, since those are the responses to the command and address
 		int i = 0;
@@ -140,7 +153,7 @@ boolean rw16_test(uint32_t address){
 
 uint16_t flash_status(){
     mibspi_write_two(READ_REG_STATUS,0x0000);
-    mibspi_receive(FLASH_DOUBLE_TRANSFER,TG1_RX);
+    mibspi_receive(FLASH_2_BYTE_GROUP,TG1_RX);
 
     return TG1_RX[1];
 }
@@ -163,7 +176,7 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t *pack
     if(command == FLASH_WRITE){ // before write, need to write enable
         mibspi_write_byte(WRITE_ENABLE);
     }
-    mibspi_send(FLASH_TWENTY, sendOut);
+    mibspi_send(FLASH_20_BYTE_GROUP, sendOut);
 }
 
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
@@ -228,8 +241,8 @@ boolean flash_test_JEDEC(void){
     uint16_t rmdid[6] = {0x009F,0x0000,0x0000,0x0000,0x0000,0x0000};
     uint16_t TG0_RX[6] = {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
-    mibspi_send(FLASH0_TRANSFER_GROUP, rmdid);
-    mibspi_receive(FLASH0_TRANSFER_GROUP,TG0_RX);
+    mibspi_send(FLASH_6_BYTE_GROUP, rmdid);
+    mibspi_receive(FLASH_6_BYTE_GROUP,TG0_RX);
 
 #if FLASH_CHIP_TYPE == 1 // 1 = IS25LP016D
     if(TG0_RX[1] == 157 && TG0_RX[2] == 96 && TG0_RX[3] == 21){
@@ -271,15 +284,16 @@ uint32_t getEmptySector(){
 void flash_mibspi_init(){
     // NOTE: call _enable_interrupt_(); before this function
     mibspiInit();
-    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH0_TRANSFER_GROUP,FLASH_DATA_FORMAT);
-    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_SINGLE_TRANSFER,FLASH_DATA_FORMAT);
-    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_DOUBLE_TRANSFER,FLASH_DATA_FORMAT);
-    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_TWENTY,FLASH_DATA_FORMAT);
+    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_6_BYTE_GROUP,FLASH_DATA_FORMAT);
+    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_1_BYTE_GROUP,FLASH_DATA_FORMAT);
+    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_2_BYTE_GROUP,FLASH_DATA_FORMAT);
+    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_20_BYTE_GROUP,FLASH_DATA_FORMAT);
 
     TG0_IS_Complete = 0xA5; // start as complete
     TG1_IS_Complete = 0xA5; // start as complete
     TG2_IS_Complete = 0xA5; // start as complete
     TG3_IS_Complete = 0xA5; // start as complete
+    TG4_IS_Complete = 0xA5;
 
     // Init by write enable and global unlock
     flash_write_enable();
@@ -300,8 +314,10 @@ void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){
     case 3:
         TG3_IS_Complete = 0x0000;
         break;
+    case 4:
+        TG3_IS_Complete = 0x0000;
+        break;
     }
-
 
     mibspiSetData(FLASH_MIBSPI_REG,transfer_group, TX_DATA);
     mibspiTransfer(FLASH_MIBSPI_REG,transfer_group);
@@ -333,6 +349,11 @@ void mibspi_receive(uint8_t transfer_group,uint16_t * RX_DATA){
         break;
     case 3:
         while(TG3_IS_Complete != 0xA5){
+            // wait for the transfer to finish up
+        }
+        break;
+    case 4:
+        while(TG4_IS_Complete != 0xA5){
             // wait for the transfer to finish up
         }
         break;

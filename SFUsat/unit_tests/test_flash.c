@@ -89,11 +89,11 @@ uint32_t test_flash(void){
 	}
 	result = checkArbitrary(test_address, 48, test_bytes_48);
 	if (result == TRUE){ resultCount++; } // this should pass
-
-	flash_erase_sector(0); // erase sector 0
+	flash_status();
+	flash_erase_sector(1); // erase sector 0
 	test_address = 0;
-//	while(flash_status() != 0){ // wait for the write to complete
-//	}
+	while(flash_status() != 0){ // wait for the write to complete
+	}
 
 	result = checkArbitrary(test_address, 48, test_bytes_48); // did not erase
 	if (result == FALSE){ resultCount++; } // this should be false

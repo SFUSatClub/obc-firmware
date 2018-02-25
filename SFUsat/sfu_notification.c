@@ -33,6 +33,9 @@ void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group){
     case 3:
         TG3_IS_Complete = 0xA5;
         break;
+    case 4:
+        TG4_IS_Complete = 0xA5;
+        break;
     default :
         while(1);
         break;

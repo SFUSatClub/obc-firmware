@@ -15,9 +15,6 @@
  *
  *      Keep in mind that ERASED flash is all 1's. So don't fill space with 0's if you will want to use it later, since erasing
  *      is slow.
- *
- *
- *
  */
 
 #ifndef SFUSAT_FLASH_MIBSPI_H_
@@ -33,8 +30,10 @@ uint32_t TG0_IS_Complete;
 uint32_t TG1_IS_Complete;
 uint32_t TG2_IS_Complete;
 uint32_t TG3_IS_Complete;
+uint32_t TG4_IS_Complete;
 
 // Various buffers
+uint16_t TG4_RX[4];
 uint16_t TG3_RX[20]; // transfer group RX buffers must have same number of elements as the transfer group
 uint16 TG1_RX[2];
 uint16_t dummyBytes_16[16];
@@ -45,11 +44,11 @@ SemaphoreHandle_t xFlashMutex;
 
 volatile uint32_t address; // stores flash address to write to
 
-
 // Flash Specific
 void flash_mibspi_init();
 void flash_erase_chip();
 void flash_set_burst_64();
+void flash_erase_sector(uint32_t address);
 uint16_t flash_status();
 void flash_busy_erasing_chip();
 void flash_read_16(uint32_t address, uint16_t *inBuffer);
@@ -92,6 +91,7 @@ void mibspi_write_two(uint16_t arg1, uint16_t arg2);
 #define RDJDID 0x009F
 #define ULBPR 0x0098 // global write unlock
 #define CHIP_ERASE 0x00c7
+#define SECTOR_ERASE 0x0020
 
 // status register
 #define STATUS_WIP 0x01 // WIP bit of status register
