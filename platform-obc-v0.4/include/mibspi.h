@@ -200,7 +200,7 @@ typedef struct mibspi_config_reg
 
 #define MIBSPI1_DELAY_CONFIGVALUE    ((uint32)((uint32)14U << 24U) | (uint32)((uint32)15U << 16U) | (uint32)((uint32)0U << 8U) | (uint32)((uint32)0U << 0U))
 
-#define MIBSPI1_FMT0_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)1U << 16U) | (uint32)((uint32)26U << 8U) | (uint32)((uint32)8U << 0U))
+#define MIBSPI1_FMT0_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)1U << 16U) | (uint32)((uint32)15U << 8U) | (uint32)((uint32)8U << 0U))
 #define MIBSPI1_FMT1_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
 #define MIBSPI1_FMT2_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
 #define MIBSPI1_FMT3_CONFIGVALUE     ((uint32)((uint32)0U << 24U) | (uint32)((uint32)0U << 23U) | (uint32)((uint32)0U << 22U) | (uint32)((uint32)0U << 21U) | (uint32)((uint32)0U << 20U) | (uint32)((uint32)0U << 17U) | (uint32)((uint32)0U << 16U) | (uint32)((uint32)79U << 8U) | (uint32)((uint32)16U << 0U))
