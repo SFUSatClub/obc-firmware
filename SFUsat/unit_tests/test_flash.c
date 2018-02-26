@@ -67,7 +67,7 @@ uint32_t test_flash(void){
 
 	flash_write_sequence(34959, &resultCount, 48, test_bytes_48, 1);
 
-	flash_write_sequence(2097151-9, &resultCount, 48, test_bytes_48, 1);
+	flash_write_sequence(2097151-48, &resultCount, 48, test_bytes_48, 1);
 
 	// Test read arbitrary
 	// RA: Manually confirm results - it's too late to write a checker :D

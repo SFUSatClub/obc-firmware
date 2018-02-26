@@ -11,9 +11,9 @@
 
  void my_spiffs_mount() {
     spiffs_config cfg;
-    cfg.phys_size = 2*1024*1024; // use all spi flash
+    cfg.phys_size = 2*1024*1024; // use all spi flash (bytes?)
     cfg.phys_addr = 0; // start spiffs at start of spi flash
-    cfg.phys_erase_block = 32768; // according to datasheet
+    cfg.phys_erase_block = 4096; // according to datasheet
     cfg.log_block_size = 65536; // let us not complicate things
     cfg.log_page_size = LOG_PAGE_SIZE; // as we said
 
@@ -39,6 +39,8 @@
 
  static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
 	 flash_write_arbitrary(addr, size, src);
+		while(flash_status() != 0){ // wait for the write to complete
+		}
    return SPIFFS_OK;
  }
 
