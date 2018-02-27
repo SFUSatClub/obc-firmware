@@ -101,3 +101,49 @@
 //	my_spiffs_erase(0, 8192);
 //	my_spiffs_erase(0, 9830);
  }
+
+ void read_write_example(){
+	 char buf[12];
+
+	   // create a file, delete previous if it already exists, and open it for reading and writing
+	   spiffs_file fd = SPIFFS_open(&fs, "new_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
+	   if (fd < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+	   // write to it
+	   if (SPIFFS_write(&fs, fd, (u8_t *)"RICHARD", 12) < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+	   // close it
+	   if (SPIFFS_close(&fs, fd) < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+
+	   // introduce some errors into buf so we know if read is successful
+	   buf[0] = 0x00;
+	   buf[1] = 0x00;
+	   buf[5] = 0x00;
+
+	   // open it
+	   fd = SPIFFS_open(&fs, "new_file", SPIFFS_RDWR, 0);
+	   if (fd < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+
+	   // read it
+	   if (SPIFFS_read(&fs, fd, (u8_t *)buf, 12) < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+	   // close it
+	   if (SPIFFS_close(&fs, fd) < 0) {
+	     printf("errno %i\n", SPIFFS_errno(&fs));
+	     return;
+	   }
+
+	   // check it
+ }

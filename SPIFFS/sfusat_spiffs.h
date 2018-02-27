@@ -27,5 +27,6 @@ static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src);
 static s32_t my_spiffs_erase(u32_t addr, u32_t size);
 
 void test_spiffs();
+void read_write_example();
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */

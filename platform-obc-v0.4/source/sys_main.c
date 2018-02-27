@@ -144,6 +144,7 @@ int main(void)
     flash_erase_chip();
     my_spiffs_mount();
     test_spiffs();
+    read_write_example();
 
 
 // ---------- INIT RTOS FEATURES ----------
