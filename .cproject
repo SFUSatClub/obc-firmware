@@ -223,6 +223,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH.1705846847" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS/test}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/printf}"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/SFUsat}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/platform-obc-v0.4/include}&quot;"/>
@@ -277,7 +278,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="platform-launchpad|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="printf|platform-launchpad|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
