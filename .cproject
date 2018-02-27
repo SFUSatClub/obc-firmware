@@ -179,9 +179,9 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="platform-obc-v0.4" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="platform-obc-v0.4/include/include"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="platform-obc-v0.4/source/source"/>
+						<entry excluding="platform-launchpad|platform-obc-v0.4" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
