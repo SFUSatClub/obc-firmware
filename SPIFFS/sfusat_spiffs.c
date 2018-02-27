@@ -8,9 +8,10 @@
 #include "spiffs_config.h"
 #include "flash_mibspi.h"
 #include "sfu_uart.h"
+#include <assert.h>
 
  void my_spiffs_mount() {
-    spiffs_config cfg;
+//    spiffs_config cfg;
     cfg.phys_size = 2*1024*1024; // use all spi flash (bytes?)
     cfg.phys_addr = 0; // start spiffs at start of spi flash
     cfg.phys_erase_block = 4096; // according to datasheet
@@ -45,8 +46,23 @@
  }
 
  static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
-//   my_spi_erase(addr, size);
-	 flash_erase_sector(addr);
+	 /* We erase pages - 4096 bytes
+	  * Logical block size = 65536 bytes
+	  *
+	  * Spiffs may want to erase various sizes of section - so we must ensure that it is a multiple of the page size.
+	  * More evaluation needs to be done to make sure this is all safe and no data is lost. It's hard to trust the usage
+	  * of these functions since the SPIFFS docs are awkwardly worded.
+	  *
+	  * It's also not clear whether SPIFFS handles this loop or not.
+	  */
+
+	 assert(size % cfg.phys_erase_block == 0); // make sure size is a multiple of our erase page size
+
+	 uint32_t num_runs;
+	 for(num_runs = size / cfg.phys_erase_block; num_runs > 0; num_runs--){ // erase however many times we need
+	 	 flash_erase_sector(addr);
+	 	 addr = addr + cfg.phys_erase_block;
+	 }
 	 return SPIFFS_OK;
  }
 
@@ -79,4 +95,9 @@
    SPIFFS_close(&fs, fd);
 
 	serialSendln("we good");
+
+	// Inline test to make sure that erase function works
+//	my_spiffs_erase(0, 4096);
+//	my_spiffs_erase(0, 8192);
+//	my_spiffs_erase(0, 9830);
  }

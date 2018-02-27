@@ -12,6 +12,8 @@
 #include "spiffs.h"
 
 static spiffs fs;
+spiffs_config cfg;
+
 #define LOG_PAGE_SIZE       256
 
 static u8_t spiffs_work_buf[LOG_PAGE_SIZE*2];
