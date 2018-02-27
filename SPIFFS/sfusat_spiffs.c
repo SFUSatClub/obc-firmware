@@ -51,30 +51,32 @@
  }
 
  void test_spiffs() {
+	 // Spiffs must be mounted before running this
+
    char buf[12];
-   int32_t thang;
-   thang = 0;
-   thang = SPIFFS_errno(&fs);
-   // Surely, I've mounted spiffs before entering here
+   int32_t errNo;
+   errNo = 0;
+   errNo = SPIFFS_errno(&fs);
 
-   thang = SPIFFS_buffer_bytes_for_filedescs(&fs, 10);
-//   SPIFFS_buffer_bytes_for_cache(&fs);
-
+   errNo = SPIFFS_buffer_bytes_for_filedescs(&fs, 10);
+//   SPIFFS_buffer_bytes_for_cache(&fs); // result of this was 480 bytes
 
    spiffs_file fd = SPIFFS_open(&fs, "my_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
-   thang = SPIFFS_errno(&fs);
+   errNo = SPIFFS_errno(&fs);
    if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 12) < 0){
-	  thang = SPIFFS_errno(&fs);
+	   errNo = SPIFFS_errno(&fs);
+	  serialSendln("Error on spiffs write");
    }
+
    SPIFFS_close(&fs, fd);
 
    fd = SPIFFS_open(&fs, "my_file", SPIFFS_RDWR, 0);
    if (SPIFFS_read(&fs, fd, (u8_t *)buf, 12) < 0){
-	   thang = SPIFFS_errno(&fs);
+	   errNo = SPIFFS_errno(&fs);
+	   serialSendln("Error on spiffs read");
    }
+
    SPIFFS_close(&fs, fd);
 
 	serialSendln("we good");
-
-//   printf("--> %s <--\n", buf);
  }

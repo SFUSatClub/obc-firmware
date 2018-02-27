@@ -130,14 +130,14 @@ int main(void)
 // ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
 
-	watchdog_busywait(3000); // to allow time for serial to connect up to script
+//	watchdog_busywait(3000); // to allow time for serial to connect up to script
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 	printStartupType();
 
 // ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
+//	test_flash();
 	init_adc_test();
     triumf_init();
 
