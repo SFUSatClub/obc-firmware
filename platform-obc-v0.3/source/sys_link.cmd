@@ -84,7 +84,6 @@ SECTIONS
     .kernelHEAP   : {} > RAM
     .bss          : {} > RAM
     .data         : {} > RAM
-    .sysmem  : {} > RAM // RA: added to get rid of warning. If we run into issues, investigate what this does
 
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
