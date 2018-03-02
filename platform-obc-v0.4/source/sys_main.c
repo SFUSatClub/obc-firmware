@@ -73,6 +73,7 @@
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "sfusat_spiffs.h"
+#include "printf.h"
 
 
 /* USER CODE END */
@@ -140,11 +141,14 @@ int main(void)
 	test_flash();
 	init_adc_test();
     triumf_init();
+    uint32_t thanf;
+    thanf = 43;
+    printf("suh, %d",thanf);
 
-    flash_erase_chip();
-    my_spiffs_mount();
-    test_spiffs();
-    read_write_example();
+//    flash_erase_chip();
+//    my_spiffs_mount();
+//    test_spiffs();
+//    read_write_example();
 
 
 // ---------- INIT RTOS FEATURES ----------

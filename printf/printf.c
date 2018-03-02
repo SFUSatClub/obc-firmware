@@ -157,7 +157,8 @@ static size_t _ntoa_format(char* buffer, char* buf, size_t len, bool negative, u
   }
 
   // reverse string
-  for (size_t i = 0U; (i < len) && (i < maxlen); ++i) {
+  size_t i;
+  for (i = 0U; (i < len) && (i < maxlen); ++i) {
     buffer[i] = buf[len - i - 1U];
   }
 
@@ -331,7 +332,8 @@ static size_t _ftoa(double value, char* buffer, size_t maxlen, unsigned int prec
   }
 
   // reverse string
-  for (size_t i = 0U; (i < len) && (i < maxlen); ++i) {
+  size_t i;
+  for (i = 0U; (i < len) && (i < maxlen); ++i) {
     buffer[i] = buf[len - i - 1];
   }
 
@@ -588,8 +590,9 @@ int printf(const char* format, ...)
   char buffer[PRINTF_BUFFER_SIZE];
   size_t ret = _vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, va);
   va_end(va);
-  for (size_t i = 0U; i < ret; ++i) {
-    _putchar(buffer[i]);
+  size_t i;
+  for (i = 0U; i < ret; ++i) {
+    sfu_putchar(buffer[i]);
   }
   return (int)ret;
 }
