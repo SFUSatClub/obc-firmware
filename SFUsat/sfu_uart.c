@@ -9,7 +9,7 @@
 #include "sfu_uart.h"
 #include "sfu_task_radio.h"
 #include "sfu_hardwaredefs.h"
-
+#include "printf/printf.h"
 unsigned char currChar = '\0';
 
 void serialInit(){
@@ -55,4 +55,6 @@ void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt h
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
 }
-
+void _putchar(char character){
+	serialSend(character);
+}
