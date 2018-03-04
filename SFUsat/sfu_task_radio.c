@@ -194,6 +194,19 @@ QueueHandle_t xRadioCHIMEQueue;
 
 static uint8 statusByte;
 
+typedef struct RadioDAT {
+	uint8 srcsz;
+	uint8 srcdat[100];
+} RadioDAT_t;
+
+
+/**
+ * Forward declarations
+ */
+static uint8 readRegister(uint8 addr);
+static int readFromRxFIFO(uint8 *dest, uint8 size);
+static void strobe(uint8 addr);
+
 void vRadioTask(void *pvParameters) {
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
@@ -253,7 +266,7 @@ void vRadioTask(void *pvParameters) {
 
 // TX task
 void vRadioTX(void *pvParameters) {
-	struct RadioDAT Radio_container;
+	RadioDAT_t Radio_container;
 	Radio_container.srcsz = 100;
 	uint8 idx = 0;
 	for (idx = 0; idx < Radio_container.srcsz; idx++){
