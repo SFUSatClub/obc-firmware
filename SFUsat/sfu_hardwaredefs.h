@@ -131,6 +131,9 @@
 // ---------------- RF IRQ ------------------
 #define RF_IRQ_PIN 0
 #define RF_IRQ_PORT gioPORTA
+// ---------------- GIO IRQ ------------------
+#define GIO_IRQ_PIN 7
+#define GIO_IRQ_PORT gioPORTA
 
 //----------------- FLASH --------------------
 #define FLASH_MIBSPI_REG mibspiREG1

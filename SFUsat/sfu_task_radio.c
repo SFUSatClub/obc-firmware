@@ -438,8 +438,8 @@ BaseType_t initRadio() {
     }
 
     	strobe(SNOP);
-
-    	if(0){
+//attach irq
+    	if(1){
 
         switch(writeToTxFIFO(test, packetLen)){
         	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
@@ -451,7 +451,7 @@ BaseType_t initRadio() {
         	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
     				serialSendln(buffer);
         }
-
+//
         strobe(STX);
 
     	}
