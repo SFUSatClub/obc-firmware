@@ -199,10 +199,55 @@ void vRadioTask(void *pvParameters) {
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
 	initRadio();
+
+	strobe(SRX);
+
 	while (1) {
 		serialSendln("radio task");
-		vTaskDelay(pdMS_TO_TICKS(5000));
-		initRadio();
+
+	    char buffer[30];
+
+	    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
+	    	uint8 packetLen  = 64;
+	        uint8 test[100] = { 0 };
+	        int i = 2;
+	        test[0] = packetLen;
+	        test[1] = 0x10;
+	        while (i < packetLen) {
+	        	test[i] = i;
+	        	i++;
+	        }
+
+
+		if(0){ //1 for tx
+
+	    switch(writeToTxFIFO(test, packetLen)){
+	    	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
+	    			serialSendln(buffer);
+	    			break;
+	    	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
+	        		serialSendln(buffer);
+	        		break;
+	    	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+					serialSendln(buffer);
+	    }
+	//
+	        strobe(STX);
+
+		}
+
+	    strobe(SNOP);
+
+	    //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
+
+	    if(readRegister(RXBYTES) != 0){
+	    	readFromRxFIFO(test, 5);
+	    	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
+	    	serialSendln(buffer);
+	    }
+
+
+		vTaskDelay(pdMS_TO_TICKS(5000)); // do we need this?
 	}
 }
 
@@ -409,16 +454,6 @@ BaseType_t initRadio() {
     uint8 *stat = readAllStatusRegisters();
     char buffer[30];
 
-    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
-    	uint8 packetLen  = 64;
-        uint8 test[100] = { 0 };
-        int i = 2;
-        test[0] = packetLen;
-        test[1] = 0x10;
-        while (i < packetLen) {
-        	test[i] = i;
-        	i++;
-        }
 
 
 
@@ -439,41 +474,11 @@ BaseType_t initRadio() {
 
     	strobe(SNOP);
 //attach irq
-    	if(1){
 
-        switch(writeToTxFIFO(test, packetLen)){
-        	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
-        			serialSendln(buffer);
-        			break;
-        	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
-            		serialSendln(buffer);
-            		break;
-        	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
-    				serialSendln(buffer);
-        }
-//
-        strobe(STX);
+    	strobe(SRX);
+//move here ##
 
-    	}
-
-        strobe(SNOP);
-        /*
-        while((statusByte & STATE) == (STATE_TX << 4)){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
-        if(readRegister(TXBYTES) == 0){
-        	snprintf(buffer, 30, "Transmission Complete");
-        }else{
-        	snprintf(buffer, 30, "TX Error");
-        }
-        	serialSendln(buffer);
-        	*/
-        //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
-
-        if(readRegister(RXBYTES) != 0){
-        	readFromRxFIFO(test, 5);
-        	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
-        	serialSendln(buffer);
-        }
-
+//Move ##
 	return pdPASS;
 }
 
