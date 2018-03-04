@@ -284,23 +284,26 @@ uint32_t getEmptySector(){
 }
 
 void flash_mibspi_init(){
-    // NOTE: call _enable_interrupt_(); before this function
-//    mibspiInit();
-//    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_6_BYTE_GROUP,FLASH_DATA_FORMAT);
-//    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_1_BYTE_GROUP,FLASH_DATA_FORMAT);
-//    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_2_BYTE_GROUP,FLASH_DATA_FORMAT);
-//    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_4_BYTE_GROUP,FLASH_DATA_FORMAT);
-//    mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_20_BYTE_GROUP,FLASH_DATA_FORMAT);
-//
-//    TG0_IS_Complete = 0xA5; // start as complete
-//    TG1_IS_Complete = 0xA5; // start as complete
-//    TG2_IS_Complete = 0xA5; // start as complete
-//    TG3_IS_Complete = 0xA5; // start as complete
-//    TG4_IS_Complete = 0xA5;
-//
-//    // Init by write enable and global unlock
-//    flash_write_enable();
-//    mibspi_write_byte(ULBPR);
+	// NOTE: call _enable_interrupt_(); before this function
+	// The launchpad does not have the flash chips we're using, so no need to do this stuff
+#ifndef PLATFORM_LAUNCHPAD
+	mibspiInit();
+	mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_6_BYTE_GROUP,FLASH_DATA_FORMAT);
+	mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_1_BYTE_GROUP,FLASH_DATA_FORMAT);
+	mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_2_BYTE_GROUP,FLASH_DATA_FORMAT);
+	mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_4_BYTE_GROUP,FLASH_DATA_FORMAT);
+	mibspiEnableGroupNotification(FLASH_MIBSPI_REG,FLASH_20_BYTE_GROUP,FLASH_DATA_FORMAT);
+
+	TG0_IS_Complete = 0xA5; // start as complete
+	TG1_IS_Complete = 0xA5; // start as complete
+	TG2_IS_Complete = 0xA5; // start as complete
+	TG3_IS_Complete = 0xA5; // start as complete
+	TG4_IS_Complete = 0xA5;
+
+	// Init by write enable and global unlock
+	flash_write_enable();
+	mibspi_write_byte(ULBPR);
+#endif /* PLATFORM_LAUNCHPAD */
 }
 
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA){

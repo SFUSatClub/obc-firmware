@@ -47,7 +47,7 @@
 /**
  * Radio
  */
-#define TASK_RADIO_REG 			spiREG3
+#define TASK_RADIO_REG 			mibspiREG3
 
 /**
  * IRQs
@@ -103,7 +103,7 @@
 /**
  * Radio
  */
-#define TASK_RADIO_REG 			spiREG3
+#define TASK_RADIO_REG 			mibspiREG3
 
 /**
  * IRQs
