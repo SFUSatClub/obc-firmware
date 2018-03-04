@@ -50,9 +50,10 @@ void do_LOWPOWER_to_READY(InstanceData_t *data);
 
 void stateMachineInit(void);
 void printStateInfo(State_t currstate, InstanceData_t *data);
-void setStateRTOS_mode(InstanceData_t *data);
+void setStateRTOS_mode();
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
+bool getStateRTOS_mode();
 
 extern State_t cur_state;
 extern InstanceData_t state_persistent_data;

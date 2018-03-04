@@ -8,7 +8,7 @@
 #include "sfu_rtc.h"
 #include "sfu_utils.h"
 #include "unit_tests/unit_tests.h"
-
+#include "printf.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -97,25 +97,17 @@ void vADCRead(void *pvParameters) {
 	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
 
 	uint32_t value;
-	char buffer[10];
-	unsigned int numChars, send_value; //Declare variables
 
 	while (1) {
 		// start conversion (it's inside test_adc)
-
 		// take a semaphore here
-	value = test_adc(2);
 
-	// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
+		value = test_adc(2);
 
-	numChars = ltoa(value,(char *)buffer);
-	buffer[numChars]=':';
+		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-	// 12 bit adc; value takes 4 bytes max
-	ltoa(send_value,(char *)buffer + numChars + 1);
-	serialSendQ(buffer);
-
-	vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
+		printf("ADC Value: %d", value);
+		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
 

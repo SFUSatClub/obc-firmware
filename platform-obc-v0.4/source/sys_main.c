@@ -129,7 +129,7 @@ int main(void)
 	stateMachineInit(); // we start in SAFE mode
 
 // ---------- BRINGUP/PRELIMINARY PHASE ----------
-	serialSendln("SFUSat Started!");
+	printf("SFUSat Started!");
 
 //	watchdog_busywait(3000); // to allow time for serial to connect up to script
 	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
@@ -141,9 +141,6 @@ int main(void)
 	test_flash();
 	init_adc_test();
     triumf_init();
-    uint32_t thanf;
-    thanf = 43;
-    printf("suh, %d",thanf);
 
 //    flash_erase_chip();
 //    my_spiffs_mount();

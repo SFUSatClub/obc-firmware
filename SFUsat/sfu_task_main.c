@@ -11,6 +11,7 @@
 #include "sfu_scheduler.h"
 #include "sfu_rtc.h"
 #include "sfu_state.h"
+#include "printf.h"
 
 
 
@@ -30,7 +31,7 @@ TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
-	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
+	setStateRTOS_mode(); // tell state machine we're in RTOS control so it can print correctly
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run

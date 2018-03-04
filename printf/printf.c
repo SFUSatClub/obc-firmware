@@ -34,36 +34,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "printf.h"
+#include "sfu_state.h"
+#include "sfu_uart.h"
 
 
-// buffer size used for printf (created on stack)
-#define PRINTF_BUFFER_SIZE    128U
-
-// ntoa conversion buffer size, this must be big enough to hold one converted numeric number (created on stack)
-#define NTOA_BUFFER_SIZE      32U
-
-// ftoa conversion buffer size, this must be big enough to hold one converted float number (created on stack)
-#define FTOA_BUFFER_SIZE      32U
-
-// define this to support floating point (%f)
-#define PRINTF_FLOAT_SUPPORT
-
-// define this to support long long types (%llu or %p)
-#define PRINTF_LONG_LONG_SUPPORT
-
-///////////////////////////////////////////////////////////////////////////////
-
-// internal flag definitions
-#define FLAGS_ZEROPAD   (1U << 0U)
-#define FLAGS_LEFT      (1U << 1U)
-#define FLAGS_PLUS      (1U << 2U)
-#define FLAGS_SPACE     (1U << 3U)
-#define FLAGS_HASH      (1U << 4U)
-#define FLAGS_UPPERCASE (1U << 5U)
-#define FLAGS_LONG      (1U << 6U)
-#define FLAGS_LONG_LONG (1U << 7U)
-#define FLAGS_PRECISION (1U << 8U)
-#define FLAGS_WIDTH     (1U << 9U)
 
 
 // internal strlen
@@ -591,9 +565,17 @@ int printf(const char* format, ...)
   size_t ret = _vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, va);
   va_end(va);
   size_t i;
-  for (i = 0U; i < ret; ++i) {
-    sfu_putchar(buffer[i]);
+
+  // SFUSat Mods
+  if(getStateRTOS_mode()){ // RTOS: send to queue
+	serialSendQ(buffer);
   }
+  else{ // no RTOS: use standard function
+	  for (i = 0U; i < ret; ++i) {
+	    sfu_putchar(buffer[i]);
+	  }
+  }
+
   return (int)ret;
 }
 

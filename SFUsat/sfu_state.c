@@ -113,9 +113,12 @@ void stateMachineInit(){
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
 
-void setStateRTOS_mode(InstanceData_t *data){
-	data->in_RTOS = 1;
+void setStateRTOS_mode(){
+	state_persistent_data.in_RTOS = 1;
 	serialSendQ("RTOS ON");
+}
+bool getStateRTOS_mode(){
+	return state_persistent_data.in_RTOS;
 }
 
 void printStateInfo(State_t currstate, InstanceData_t *data){
