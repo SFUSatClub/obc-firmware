@@ -10,9 +10,18 @@
 #ifndef SPIFFS_SFUSAT_SPIFFS_H_
 #define SPIFFS_SFUSAT_SPIFFS_H_
 #include "spiffs.h"
+#include "FreeRTOS.h"
+#include "rtos_semphr.h"
 
 static spiffs fs;
 spiffs_config cfg;
+
+// RTOS things
+SemaphoreHandle_t xSpiffsMutex;
+//#define SFUSAT_SPIFFS_ENTER_MUTEX xSemaphoreTake( xSpiffsMutex, pdMS_TO_TICKS(60) );
+//#define SFUSAT_SPIFFS_EXIT_MUTEX xSemaphoreGive( xSpiffsMutex );
+
+
 
 #define LOG_PAGE_SIZE       256
 
@@ -28,5 +37,7 @@ static s32_t my_spiffs_erase(u32_t addr, u32_t size);
 
 void test_spiffs();
 void read_write_example();
+
+void sfusat_spiffs_init();
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */

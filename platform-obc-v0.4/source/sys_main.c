@@ -138,13 +138,16 @@ int main(void)
 // ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
-	init_adc_test();
-    triumf_init();
+//	test_flash();
+//	init_adc_test();
+//    triumf_init();
 
-//    flash_erase_chip();
-//    my_spiffs_mount();
-//    test_spiffs();
+    flash_erase_chip();
+//    sfusat_spiffs_init();
+   my_spiffs_mount();
+       xSpiffsMutex = xSemaphoreCreateMutex();
+
+   test_spiffs();
 //    read_write_example();
 
 
@@ -152,7 +155,7 @@ int main(void)
 	// TODO: encapsulate these
 //  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xSerialRXQueue = xQueueCreate(30, sizeof(portCHAR));
 	serialSendQ("created queue");
 
     xFlashMutex = xSemaphoreCreateMutex();

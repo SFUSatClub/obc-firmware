@@ -24,6 +24,10 @@
 
 // --------- SFUSat --------------------
 #include "sys_common.h"
+#include "FreeRTOS.h"
+#include "rtos_semphr.h"
+//#include "sfusat_spiffs.h"
+
 // RA: redefine so SPIFFS is happy
 typedef uint16_t u16_t;
 typedef int16_t s16_t;
@@ -101,7 +105,7 @@ typedef uint8_t u8_t;
 // Enables/disable memory read caching of nucleus file system operations.
 // If enabled, memory area must be provided for cache in SPIFFS_mount.
 #ifndef  SPIFFS_CACHE
-#define SPIFFS_CACHE                    0 // RA
+#define SPIFFS_CACHE                    1 // RA
 #endif
 #if SPIFFS_CACHE
 // Enables memory write caching for file descriptors in hydrogen
@@ -205,18 +209,18 @@ typedef uint8_t u8_t;
 
 // define this to enter a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_LOCK
-#define SPIFFS_LOCK(fs)
+#define SPIFFS_LOCK(fs) //xSemaphoreTake( xSpiffsMutex, pdMS_TO_TICKS(60) ); // RA
 #endif
 // define this to exit a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_UNLOCK
-#define SPIFFS_UNLOCK(fs)
+#define SPIFFS_UNLOCK(fs) //xSemaphoreGive( xSpiffsMutex ); // RA
 #endif
 
 // Enable if only one spiffs instance with constant configuration will exist
 // on the target. This will reduce calculations, flash and memory accesses.
 // Parts of configuration must be defined below instead of at time of mount.
 #ifndef SPIFFS_SINGLETON
-#define SPIFFS_SINGLETON 0
+#define SPIFFS_SINGLETON 1
 #endif
 
 #if SPIFFS_SINGLETON
@@ -226,7 +230,7 @@ typedef uint8_t u8_t;
 #define SPIFFS_CFG_PHYS_SZ(ignore)        (1024*1024*2)
 #endif
 #ifndef SPIFFS_CFG_PHYS_ERASE_SZ
-#define SPIFFS_CFG_PHYS_ERASE_SZ(ignore)  (32768) // RA: 4096 * 8 (1 sector)
+#define SPIFFS_CFG_PHYS_ERASE_SZ(ignore)  (4096) // RA: 4096 * 8 (1 sector)
 #endif
 #ifndef SPIFFS_CFG_PHYS_ADDR
 #define SPIFFS_CFG_PHYS_ADDR(ignore)      (0)
@@ -235,7 +239,7 @@ typedef uint8_t u8_t;
 #define SPIFFS_CFG_LOG_PAGE_SZ(ignore)    (256)
 #endif
 #ifndef SPIFFS_CFG_LOG_BLOCK_SZ
-#define SPIFFS_CFG_LOG_BLOCK_SZ(ignore)   (65536)
+#define SPIFFS_CFG_LOG_BLOCK_SZ(ignore)   (32768)
 #endif
 #endif
 

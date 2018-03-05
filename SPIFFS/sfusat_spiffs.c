@@ -4,19 +4,29 @@
  *  Created on: Feb 25, 2018
  *      Author: Richard
  */
-#include "sfusat_spiffs.h"
+#include "spiffs.h"
 #include "spiffs_config.h"
+#include "sfusat_spiffs.h"
 #include "flash_mibspi.h"
 #include "sfu_uart.h"
 #include <assert.h>
+#include "FreeRTOS.h"
+#include "rtos_task.h"
+#include "rtos_queue.h"
+#include "rtos_semphr.h"
+
+void sfusat_spiffs_init(){
+	xSpiffsMutex = xSemaphoreCreateMutex();
+	my_spiffs_mount();
+}
 
  void my_spiffs_mount() {
 //    spiffs_config cfg;
-    cfg.phys_size = 2*1024*1024; // use all spi flash (bytes?)
-    cfg.phys_addr = 0; // start spiffs at start of spi flash
-    cfg.phys_erase_block = 4096; // according to datasheet
-    cfg.log_block_size = 65536; // let us not complicate things
-    cfg.log_page_size = LOG_PAGE_SIZE; // as we said
+//    cfg.phys_size = 2*1024*1024; // use all spi flash (bytes?)
+//    cfg.phys_addr = 0; // start spiffs at start of spi flash
+//    cfg.phys_erase_block = 4096; // according to datasheet
+//    cfg.log_block_size = 65536; // let us not complicate things
+//    cfg.log_page_size = LOG_PAGE_SIZE; // as we said
 
     cfg.hal_read_f = my_spiffs_read;
     cfg.hal_write_f = my_spiffs_write;
@@ -30,7 +40,7 @@
       spiffs_cache_buf,
       sizeof(spiffs_cache_buf),
       0);
-//    printf("mount res: %i\n", res);
+    printf("mount res: %i\n", res);
   }
 
  static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
@@ -56,12 +66,14 @@
 	  * It's also not clear whether SPIFFS handles this loop or not.
 	  */
 
-	 assert(size % cfg.phys_erase_block == 0); // make sure size is a multiple of our erase page size
+
+//	 assert(size % cfg.phys_erase_block == 0); // make sure size is a multiple of our erase page size
+	 assert(size % SPIFFS_CFG_PHYS_ERASE_SZ(fs) == 0); // make sure size is a multiple of our erase page size
 
 	 uint32_t num_runs;
-	 for(num_runs = size / cfg.phys_erase_block; num_runs > 0; num_runs--){ // erase however many times we need
+	 for(num_runs = size / SPIFFS_CFG_PHYS_ERASE_SZ(fs); num_runs > 0; num_runs--){ // erase however many times we need
 	 	 flash_erase_sector(addr);
-	 	 addr = addr + cfg.phys_erase_block;
+	 	 addr = addr + SPIFFS_CFG_PHYS_ERASE_SZ(fs);
 	 }
 	 return SPIFFS_OK;
  }
@@ -69,32 +81,30 @@
  void test_spiffs() {
 	 // Spiffs must be mounted before running this
 
-   char buf[12];
-   int32_t errNo;
-   errNo = 0;
-   errNo = SPIFFS_errno(&fs);
+   char buf[20];
 
-   errNo = SPIFFS_buffer_bytes_for_filedescs(&fs, 10);
-//   SPIFFS_buffer_bytes_for_cache(&fs); // result of this was 480 bytes
+   printf("Buffer bytes: %i \r\n",SPIFFS_buffer_bytes_for_filedescs(&fs, 10));
+  printf("Cache size: %i \r\n", SPIFFS_buffer_bytes_for_cache(&fs, 8192)); // result of this was 480 bytes
 
    spiffs_file fd = SPIFFS_open(&fs, "my_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
-   errNo = SPIFFS_errno(&fs);
-   if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 12) < 0){
-	   errNo = SPIFFS_errno(&fs);
-	  serialSendln("Error on spiffs write");
+   if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 20) < 0){
+	   printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
    }
 
+   // Errors so we know if read succeeds
+   buf[0] = 0;
+   buf[3] = 0;
    SPIFFS_close(&fs, fd);
 
    fd = SPIFFS_open(&fs, "my_file", SPIFFS_RDWR, 0);
    if (SPIFFS_read(&fs, fd, (u8_t *)buf, 12) < 0){
-	   errNo = SPIFFS_errno(&fs);
-	   serialSendln("Error on spiffs read");
+	   printf("Error on SPIFFS Read, %i\r\n", SPIFFS_errno(&fs));
    }
+   serialSendln(buf);
 
    SPIFFS_close(&fs, fd);
 
-	serialSendln("we good");
+	printf("SPIFFS test complete.\r\n");
 
 	// Inline test to make sure that erase function works
 //	my_spiffs_erase(0, 4096);
@@ -112,7 +122,7 @@
 	     return;
 	   }
 	   // write to it
-	   if (SPIFFS_write(&fs, fd, (u8_t *)"RICHARD", 12) < 0) {
+	   if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 12) < 0) {
 	     printf("errno %i\n", SPIFFS_errno(&fs));
 	     return;
 	   }
@@ -139,6 +149,7 @@
 	     printf("errno %i\n", SPIFFS_errno(&fs));
 	     return;
 	   }
+	   printf(buf);
 	   // close it
 	   if (SPIFFS_close(&fs, fd) < 0) {
 	     printf("errno %i\n", SPIFFS_errno(&fs));

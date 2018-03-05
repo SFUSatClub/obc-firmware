@@ -13,6 +13,7 @@
 #include "unit_tests.h"
 #include "flash_mibspi.h"
 #include "sfu_uart.h"
+#include "printf.h"
 
 uint32_t test_flash(void){
 	/* Pre: flash_mibspi_init();
@@ -78,8 +79,10 @@ uint32_t test_flash(void){
 	//   flash_read_arbitrary(64, 16, readBuf);
 
 	if(resultCount == 13){
+		printf("All flash tests passed!");
 		return true; // passed!
 	}
+	printf("Flash test: %d/13 tests passed.", resultCount);
 	return false;
 }
 
