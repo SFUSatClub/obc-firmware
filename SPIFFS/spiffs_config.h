@@ -209,11 +209,11 @@ typedef uint8_t u8_t;
 
 // define this to enter a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_LOCK
-#define SPIFFS_LOCK(fs) //xSemaphoreTake( xSpiffsMutex, pdMS_TO_TICKS(60) ); // RA
+#define SPIFFS_LOCK(fs)
 #endif
 // define this to exit a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_UNLOCK
-#define SPIFFS_UNLOCK(fs) //xSemaphoreGive( xSpiffsMutex ); // RA
+#define SPIFFS_UNLOCK(fs)
 #endif
 
 // Enable if only one spiffs instance with constant configuration will exist

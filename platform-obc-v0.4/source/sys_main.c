@@ -70,7 +70,6 @@
 #include "sfu_rtc.h"
 
 //  ---------- SFUSat Tests (optional) ----------
-#include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "sfusat_spiffs.h"
 #include "printf.h"
@@ -139,17 +138,14 @@ int main(void)
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 //	test_flash();
-//	init_adc_test();
+	init_adc_test();
 //    triumf_init();
-
     flash_erase_chip();
 //    sfusat_spiffs_init();
-   my_spiffs_mount();
-       xSpiffsMutex = xSemaphoreCreateMutex();
-
-   test_spiffs();
+//
+////	my_spiffs_mount();
+//   test_spiffs();
 //    read_write_example();
-
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
@@ -158,7 +154,7 @@ int main(void)
 	xSerialRXQueue = xQueueCreate(30, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-    xFlashMutex = xSemaphoreCreateMutex();
+//    xFlashMutex = xSemaphoreCreateMutex();
     xRTCMutex = xSemaphoreCreateMutex();
 
 // ---------- SETUP/START RTOS ----------

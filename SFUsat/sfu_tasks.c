@@ -23,67 +23,6 @@ void blinky(void *pvParameters) { // blinks LED at 10Hz
 	}
 }
 
-void vFlashRead(void *pvParameters) {
-	char printBuffer[16];
-	uint16_t memBuffer[16];
-	uint32_t i;
-	uint32_t j;
-
-	while (1) {
-		if((addressWritten > 16) && ((addressWritten-16) % 256 == 0)){ // need to be over 16 since 16 - 16 % 256 = 0
-			for(j = (addressWritten - 16 - 256); j < addressWritten - 16; j += 16){
-				flash_read_16_rtos(j, memBuffer);
-				for(i = 0; i < 16 ; i++){
-					printBuffer[i] = (char)(memBuffer[i]);
-
-				}
-				serialSendQ(printBuffer);
-			}
-			vTaskDelay(pdMS_TO_TICKS(3000));
-		}
-		vTaskDelay(pdMS_TO_TICKS(300));
-	}
-}
-
-void vFlashRead2(void *pvParameters) {
-	char printBuffer[16];
-	uint16_t memBuffer[16];
-	uint32_t i;
-	while (1) {
-		if((lastRead != addressWritten)){ // if we have a new one to read
-				flash_read_16_rtos((addressWritten-16), memBuffer);
-				for(i = 0; i < 16 ; i++){
-					printBuffer[i] = (char)(memBuffer[i]);
-				}
-				serialSendQ(printBuffer);
-		}
-		lastRead = addressWritten;
-		vTaskDelay(pdMS_TO_TICKS(300));
-	}
-}
-
-void vFlashWrite(void *pvParameters) {
-	uint32_t localEpoch;
-	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 32, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
-	char thing[10];
-	while (1) {
-//		serialSendQ("RTC");
-		localEpoch = no_rtos_test_getCurrentRTCTime();
-
-		itoa2(localEpoch, thing, 10, 0);
-		writeBuffer[7] = (uint16_t)thing[0];
-		writeBuffer[8] =(uint16_t)thing[1];
-		writeBuffer[9] = (uint16_t)thing[2];
-		writeBuffer[10] =(uint16_t)thing[3];
-		writeBuffer[11] =(uint16_t)thing[4];
-
-		flash_write_16_rtos(addressWritten, writeBuffer);
-
-		addressWritten += 16;
-		vTaskDelay(pdMS_TO_TICKS(1000));
-	}
-}
-
 
 void vADCRead(void *pvParameters) {
 	// TODO: this task should start a conversion of group 1 (will read ADC channel 2 for starters)

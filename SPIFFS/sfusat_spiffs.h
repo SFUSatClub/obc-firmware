@@ -16,8 +16,8 @@
 static spiffs fs;
 spiffs_config cfg;
 
+SemaphoreHandle_t newMutex;
 // RTOS things
-SemaphoreHandle_t xSpiffsMutex;
 //#define SFUSAT_SPIFFS_ENTER_MUTEX xSemaphoreTake( xSpiffsMutex, pdMS_TO_TICKS(60) );
 //#define SFUSAT_SPIFFS_EXIT_MUTEX xSemaphoreGive( xSpiffsMutex );
 
@@ -39,5 +39,6 @@ void test_spiffs();
 void read_write_example();
 
 void sfusat_spiffs_init();
+
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */

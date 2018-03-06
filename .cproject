@@ -278,7 +278,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="platform-launchpad|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="SFUsat/sfu_triumf.c|platform-launchpad|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

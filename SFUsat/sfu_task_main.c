@@ -12,7 +12,8 @@
 #include "sfu_rtc.h"
 #include "sfu_state.h"
 #include "printf.h"
-
+#include "unit_tests/test_spiffs.h"
+#include "sfusat_spiffs.h"
 
 
 
@@ -22,9 +23,7 @@ TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
-TaskHandle_t xFlashReadHandle = NULL;
-TaskHandle_t xFlashWriteHandle = NULL;
-
+TaskHandle_t xSPIFFSHandle = NULL; // RA
 
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
@@ -32,6 +31,13 @@ TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
 	setStateRTOS_mode(); // tell state machine we're in RTOS control so it can print correctly
+
+
+	 sfusat_spiffs_init();
+
+	//	my_spiffs_mount();
+	   test_spiffs();
+
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run
@@ -45,13 +51,12 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCTaskHandle);
+	xTaskCreate(spiffs_write_task, "write spiffs", 600, NULL, 2, &xSPIFFSHandle);
 
-//	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
-//	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
 
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
-	//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+		xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups

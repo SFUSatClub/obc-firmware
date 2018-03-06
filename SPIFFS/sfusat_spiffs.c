@@ -15,8 +15,10 @@
 #include "rtos_queue.h"
 #include "rtos_semphr.h"
 
+
+
 void sfusat_spiffs_init(){
-	xSpiffsMutex = xSemaphoreCreateMutex();
+	newMutex = xSemaphoreCreateMutex();
 	my_spiffs_mount();
 }
 
@@ -44,18 +46,32 @@ void sfusat_spiffs_init(){
   }
 
  static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
-	 flash_read_arbitrary(addr, size, dst);
+	 if( xSemaphoreTake( newMutex, ( TickType_t ) 500 ) == pdTRUE ){
+		 flash_read_arbitrary(addr, size, dst);
+		 xSemaphoreGive( newMutex );
+	 }
+	 else{
+		 printf("Read, can't get mutex");
+	 }
    return SPIFFS_OK;
  }
 
  static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
-	 flash_write_arbitrary(addr, size, src);
-		while(flash_status() != 0){ // wait for the write to complete
-		}
+	 if( xSemaphoreTake( newMutex, ( TickType_t ) 500 ) == pdTRUE ){
+		 flash_write_arbitrary(addr, size, src);
+			while(flash_status() != 0){ // wait for the write to complete
+			}
+			 xSemaphoreGive( newMutex );
+	 }
+	 else{
+		 printf("Write can't get mutex");
+	 }
+
    return SPIFFS_OK;
  }
 
  static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
+	 if( xSemaphoreTake( newMutex, ( TickType_t ) 500 ) == pdTRUE ){
 	 /* We erase pages - 4096 bytes
 	  * Logical block size = 65536 bytes
 	  *
@@ -75,6 +91,11 @@ void sfusat_spiffs_init(){
 	 	 flash_erase_sector(addr);
 	 	 addr = addr + SPIFFS_CFG_PHYS_ERASE_SZ(fs);
 	 }
+	 xSemaphoreGive( newMutex );
+	 }
+	 else{
+		 printf("Erase can't get mutex");
+	 }
 	 return SPIFFS_OK;
  }
 
@@ -83,8 +104,8 @@ void sfusat_spiffs_init(){
 
    char buf[20];
 
-   printf("Buffer bytes: %i \r\n",SPIFFS_buffer_bytes_for_filedescs(&fs, 10));
-  printf("Cache size: %i \r\n", SPIFFS_buffer_bytes_for_cache(&fs, 8192)); // result of this was 480 bytes
+//   printf("Buffer bytes: %i \r\n",SPIFFS_buffer_bytes_for_filedescs(&fs, 10));
+//  printf("Cache size: %i \r\n", SPIFFS_buffer_bytes_for_cache(&fs, 8192)); // result of this was 480 bytes
 
    spiffs_file fd = SPIFFS_open(&fs, "my_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
    if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 20) < 0){
