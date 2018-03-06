@@ -12,7 +12,6 @@
 #include "sfu_rtc.h"
 #include "sfu_state.h"
 #include "printf.h"
-#include "unit_tests/test_spiffs.h"
 #include "sfusat_spiffs.h"
 
 
