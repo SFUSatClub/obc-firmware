@@ -13,7 +13,7 @@
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
 
-static spiffs fs;
+static spiffs fs; // Note: this was static but that prevented access from task
 spiffs_config cfg;
 
 SemaphoreHandle_t newMutex;
@@ -39,6 +39,6 @@ void test_spiffs();
 void read_write_example();
 
 void sfusat_spiffs_init();
-
+void spiffs_write_task(void *pvParameters);
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */
