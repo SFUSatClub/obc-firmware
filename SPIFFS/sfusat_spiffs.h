@@ -16,11 +16,7 @@
 static spiffs fs; // Note: this was static but that prevented access from task
 spiffs_config cfg;
 
-SemaphoreHandle_t newMutex;
-// RTOS things
-//#define SFUSAT_SPIFFS_ENTER_MUTEX xSemaphoreTake( xSpiffsMutex, pdMS_TO_TICKS(60) );
-//#define SFUSAT_SPIFFS_EXIT_MUTEX xSemaphoreGive( xSpiffsMutex );
-
+SemaphoreHandle_t spiffsMutex;
 
 
 #define LOG_PAGE_SIZE       256
@@ -39,7 +35,7 @@ void test_spiffs();
 void read_write_example();
 
 void sfusat_spiffs_init();
-void spiffs_write_task(void *pvParameters);
+void spiffs_write_check_test(void *pvParameters);
 void spiffs_check_task(void *pvParameters);
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */

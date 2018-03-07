@@ -160,7 +160,7 @@ int main(void)
 
 // ---------- SETUP/START RTOS ----------
     // vMainTask starts up all of the top level tasks. From those, other tasks are spawned as necessary.
-	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
+	xTaskCreate(vMainTask, "main", 1000, NULL, MAIN_TASK_PRIORITY, NULL);
 
 	vTaskStartScheduler();
 
