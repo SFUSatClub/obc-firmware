@@ -40,5 +40,6 @@ void read_write_example();
 
 void sfusat_spiffs_init();
 void spiffs_write_task(void *pvParameters);
+void spiffs_check_task(void *pvParameters);
 
 #endif /* SPIFFS_SFUSAT_SPIFFS_H_ */

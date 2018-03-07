@@ -20,16 +20,41 @@ void spiffs_write_task(void *pvParameters){
 	char buf[20];
 
 	while(1){
-		snprintf(buf, 20, "hello");
+		snprintf(buf, 20, "hello, %d", counter);
 	    my_spiffs_mount();
+		spiffs_stat s;
 
-		 spiffs_file fd = SPIFFS_open(&fs, "my_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
+		 spiffs_file fd = SPIFFS_open(&fs, "suh", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0);
 
-		 if (SPIFFS_write(&fs, fd, buf, 20) < 0){
+		 if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0){
 			   printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
 		   }
 		   counter++;
+
+//		   SPIFFS_close(&fs, fd);
+
+				if(SPIFFS_fstat(&fs, fd, &s) < 0){
+					printf("Spiffs check error %d", SPIFFS_errno(&fs));
+				}
+				printf("FILE LENGTH: %d", s.size);
+//				printf("FILE NAME: %s", s.name);
+
+				SPIFFS_close(&fs, fd);
 			vTaskDelay(pdMS_TO_TICKS(3000));
+	}
+}
+
+void spiffs_check_task(void *pvParameters){
+	int32_t res;
+	spiffs_stat s;
+	while(1){
+	    my_spiffs_mount();
+		res = SPIFFS_stat(&fs, "my_file", &s);
+		if(res < 0){
+			printf("Spiffs check error");
+		}
+		printf("FILE LENGTH: %d", s.size);
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 

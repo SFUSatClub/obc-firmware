@@ -23,6 +23,7 @@ TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xSPIFFSHandle = NULL; // RA
+TaskHandle_t xSPIFFSCheck = NULL; // RA
 
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
@@ -45,13 +46,13 @@ void vMainTask(void *pvParameters) {
 	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vADCRead, "read ADC", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCTaskHandle);
-	xTaskCreate(spiffs_write_task, "write spiffs", 600, NULL, 6, &xSPIFFSHandle);
-
-
-	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	vTaskSuspend(xRadioTaskHandle);
-		xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+//	xTaskCreate(vADCRead, "read ADC", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCTaskHandle);
+	xTaskCreate(spiffs_write_task, "write spiffs", 800, NULL, 3, &xSPIFFSHandle);
+//	xTaskCreate(spiffs_check_task, "check spiffs", 800, NULL, 4, &xSPIFFSCheck);
+//
+//	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+//	vTaskSuspend(xRadioTaskHandle);
+//		xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
