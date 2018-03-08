@@ -151,8 +151,8 @@ int main(void)
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
 //  xQueue = xQueueCreate(5, sizeof(char *));
-	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(30, sizeof(portCHAR));
+	xSerialTXQueue = xQueueCreate(40, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(40, sizeof(portCHAR));
 	serialSendQ("created queue");
 
 //    xFlashMutex = xSemaphoreCreateMutex();

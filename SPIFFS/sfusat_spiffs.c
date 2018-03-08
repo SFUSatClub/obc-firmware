@@ -53,7 +53,8 @@ void spiffs_check_task(void *pvParameters) {
 		if (SPIFFS_fstat(&fs, fd, &s) < 0) {
 			printf("Spiffs check error %d", SPIFFS_errno(&fs));
 		}
-		printf("FILE LENGTH: %d", s.size);
+//		printf("LENGTH: %d", s.size);
+		printf("N: %s: %d", s.name, s.size);
 
 		SPIFFS_close(&fs, fd);
 		vTaskDelay(pdMS_TO_TICKS(6000));

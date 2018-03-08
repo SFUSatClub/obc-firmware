@@ -110,7 +110,7 @@ typedef uint8_t u8_t;
 #if SPIFFS_CACHE
 // Enables memory write caching for file descriptors in hydrogen
 #ifndef  SPIFFS_CACHE_WR
-#define SPIFFS_CACHE_WR                 0 // RA
+#define SPIFFS_CACHE_WR                 1 // RA
 #endif
 
 // Enable/disable statistics on caching. Debug/test purpose only.
@@ -182,7 +182,7 @@ typedef uint8_t u8_t;
 // Lower value generates more read/writes. No meaning having it bigger
 // than logical page size.
 #ifndef SPIFFS_COPY_BUFFER_STACK
-#define SPIFFS_COPY_BUFFER_STACK        (256)
+#define SPIFFS_COPY_BUFFER_STACK        (128)
 #endif
 
 // Enable this to have an identifiable spiffs filesystem. This will look for
