@@ -37,7 +37,7 @@ void spiffs_write_check_test(void *pvParameters) {
 		counter++;
 
 		SPIFFS_close(&fs, fd);
-		vTaskDelay(pdMS_TO_TICKS(3000));
+		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 }
 
@@ -56,11 +56,10 @@ void spiffs_check_task(void *pvParameters) {
 //		printf("LENGTH: %d", s.size);
 		printf("N: %s: %d, %d", s.name, s.size, s.obj_id);
 
-
-		  SPIFFS_info(&fs, &total, &used);
-		  printf("tot: %d, used: %d", total, used);
+		SPIFFS_info(&fs, &total, &used);
+		printf("tot: %d, used: %d", total, used);
 		SPIFFS_close(&fs, fd);
-		vTaskDelay(pdMS_TO_TICKS(6000));
+		vTaskDelay(pdMS_TO_TICKS(12000));
 	}
 }
 
@@ -141,8 +140,8 @@ void test_spiffs() {
 
 	char buf[20];
 
-   printf("Buffer bytes: %i \r\n",SPIFFS_buffer_bytes_for_filedescs(&fs, 10));
-   printf("Cache size: %i \r\n", SPIFFS_buffer_bytes_for_cache(&fs, 8192)); // result of this was 480 bytes
+	printf("Buffer bytes: %i \r\n", SPIFFS_buffer_bytes_for_filedescs(&fs, 10));
+	printf("Cache size: %i \r\n", SPIFFS_buffer_bytes_for_cache(&fs, 8192)); // result of this was 480 bytes
 
 	spiffs_file fd = SPIFFS_open(&fs, "my_file", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
 	if (SPIFFS_write(&fs, fd, (u8_t *) "Hello world", 20) < 0) {

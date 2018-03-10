@@ -39,7 +39,7 @@ typedef uint8_t u8_t;
 
 // Set generic spiffs debug output call.
 #ifndef SPIFFS_DBG
-#define SPIFFS_DBG(_f, ...)        printf(_f, ## __VA_ARGS__)
+#define SPIFFS_DBG(_f, ...)       // printf(_f, ## __VA_ARGS__)
 #endif
 // Set spiffs debug output call for garbage collecting.
 #ifndef SPIFFS_GC_DBG
@@ -373,7 +373,7 @@ typedef uint8_t u8_t;
 typedef u32_t spiffs_block_ix;
 // Page index type. Make sure the size of this type can hold
 // the highest page number of all pages - i.e. spiffs_file_system_size / log_page_size
-typedef u16_t spiffs_page_ix;
+typedef u32_t spiffs_page_ix;
 // Object id type - most significant bit is reserved for index flag. Make sure the
 // size of this type can hold the highest object id on a full system,
 // i.e. 2 + (spiffs_file_system_size / (2*log_page_size))*2
