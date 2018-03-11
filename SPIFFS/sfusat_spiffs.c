@@ -21,20 +21,25 @@ void spiffs_write_check_test(void *pvParameters) {
 	int32_t check_result;
 	my_spiffs_mount();
 	while (1) {
-		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
+			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
-		snprintf(buf, 20, "hello world %d",counter); // make up some data
+			snprintf(buf, 20, "hello world %d",counter); // make up some data
 
-		// Open and write
-		spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
-		if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
-			printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
-			check_result = SPIFFS_check(&fs);
-			printf("SPIFFS CHECK: %d", check_result);
+			// Open and write
+			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
+			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
+				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
+				check_result = SPIFFS_check(&fs);
+				printf("SPIFFS CHECK: %d", check_result);
+			}
+			counter++;
+
+			SPIFFS_close(&fs, fd);
+			xSemaphoreGive(spiffsTopMutex);
+		} else {
+			printf("Write, can't get top mutex");
 		}
-		counter++;
-
-		SPIFFS_close(&fs, fd);
 		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 }
@@ -44,32 +49,37 @@ void spiffs_check_task(void *pvParameters) {
 	uint32_t total, used, counter;
 	counter = 0;
 	while (1) {
-		my_spiffs_mount();
+		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
+			my_spiffs_mount();
 
-		spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0);
+			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0);
 
-		if (SPIFFS_fstat(&fs, fd, &s) < 0) {
-			printf("Spiffs check error %d", SPIFFS_errno(&fs));
-		}
-//		printf("LENGTH: %d", s.size);
-		printf("File info: %s: %d, %d", s.name, s.size, s.obj_id);
+			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
+				printf("Spiffs check error %d", SPIFFS_errno(&fs));
+			}
+			printf("File info: %s: %d, %d", s.name, s.size, s.obj_id);
 
-		if (SPIFFS_info(&fs, &total, &used) < 0){
-			printf("Spiffs info error %d", SPIFFS_errno(&fs));
-			SPIFFS_vis(&fs);
-			SPIFFS_fflush(&fs, fd);
+			if (SPIFFS_info(&fs, &total, &used) < 0){
+				printf("Spiffs info error %d", SPIFFS_errno(&fs));
+				SPIFFS_vis(&fs);
+				SPIFFS_fflush(&fs, fd);
+			}
+			else{
+				printf("SPIFFS Info:: %d, used: %d,--- %d", total, used, counter);
+				counter++;
+			}
+			SPIFFS_close(&fs, fd);
+			xSemaphoreGive(spiffsTopMutex);
+		} else {
+			printf("Check, can't get top mutex");
 		}
-		else{
-			printf("SPIFFS Info:: %d, used: %d,--- %d", total, used, counter);
-			counter++;
-		}
-		SPIFFS_close(&fs, fd);
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
 
 void sfusat_spiffs_init() {
-	spiffsMutex = xSemaphoreCreateMutex();
+	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
+	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
 	my_spiffs_mount();
 }
 
@@ -92,9 +102,9 @@ void my_spiffs_mount() {
 
 static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
 
-	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
 		flash_read_arbitrary(addr, size, dst);
-		xSemaphoreGive(spiffsMutex);
+		xSemaphoreGive(spiffsHALMutex);
 	} else {
 		printf("Read, can't get mutex");
 	}
@@ -102,11 +112,11 @@ static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
 }
 
 static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
-	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
 		flash_write_arbitrary(addr, size, src);
 		while (flash_status() != 0) { // wait for the write to complete
 		}
-		xSemaphoreGive(spiffsMutex);
+		xSemaphoreGive(spiffsHALMutex);
 	} else {
 		printf("Write can't get mutex");
 	}
@@ -115,7 +125,7 @@ static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
 }
 
 static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
-	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_ERASE_TIMEOUT_MS) ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_ERASE_TIMEOUT_MS) ) == pdTRUE) {
 		/* We erase pages - 4096 bytes
 		 * Logical block size = 65536 bytes
 		 *
@@ -134,7 +144,7 @@ static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
 			flash_erase_sector(addr);
 			addr = addr + SPIFFS_CFG_PHYS_ERASE_SZ(fs);
 		}
-		xSemaphoreGive(spiffsMutex);
+		xSemaphoreGive(spiffsHALMutex);
 	} else {
 		printf("Erase can't get mutex");
 	}

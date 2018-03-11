@@ -20,8 +20,10 @@ spiffs_config cfg;
 #define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while
 #define SPIFFS_WRITE_TIMEOUT_MS 2000
 #define SPIFFS_ERASE_TIMEOUT_MS 2000
+#define SPIFFS_TOP_TIMEOUT_MS 3000 // how long we'll wait for basically any other operation to finish
 
-SemaphoreHandle_t spiffsMutex;
+SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
+SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a write and v/v
 
 #define LOG_PAGE_SIZE       256
 
