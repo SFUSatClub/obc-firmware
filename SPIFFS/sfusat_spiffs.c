@@ -115,7 +115,7 @@ static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
 }
 
 static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
-	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_ERASE_TIMEOUT_MS) ) == pdTRUE) {
 		/* We erase pages - 4096 bytes
 		 * Logical block size = 65536 bytes
 		 *
