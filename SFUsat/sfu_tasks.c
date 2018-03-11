@@ -103,7 +103,6 @@ void vSerialTask(void *pvParameters) {
 		}
 		while (xQueueReceive(xSerialTXQueue, &txCurrQueuedStr, xTicksToWait) == pdPASS) {
 			serialSendln(txCurrQueuedStr);
-//			serialSend("\r\n");
 		}
 
 		/*

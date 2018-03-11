@@ -568,9 +568,10 @@ int printf(const char* format, ...)
 
   // SFUSat Mods
   if(getStateRTOS_mode()){ // RTOS: send to queue
-	if (serialSendQ(buffer) != pdPASS){
-		serialSendQ(buffer);
-	}
+//	if (serialSendQ((const char*)buffer) != pdPASS){
+//		serialSendQ(buffer);
+//	}
+	serialSendQ((const char*)buffer);
   }
   else{ // no RTOS: use standard function
 	  for (i = 0U; i < ret; ++i) {

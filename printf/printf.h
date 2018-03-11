@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 // buffer size used for printf (created on stack)
-#define PRINTF_BUFFER_SIZE    80U // RA: make the same size (or smaller) than tx queue size
+#define PRINTF_BUFFER_SIZE    40U // RA: make the same size (or smaller) than tx queue size
 
 // ntoa conversion buffer size, this must be big enough to hold one converted numeric number (created on stack)
 #define NTOA_BUFFER_SIZE      32U

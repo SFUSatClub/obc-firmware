@@ -25,20 +25,20 @@ void spiffs_write_check_test(void *pvParameters) {
 			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 			snprintf(buf, 20, "hello world %d",counter); // make up some data
-
+			serialSendQ("Write");
 			// Open and write
 			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
 			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
-				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
+//				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
 				check_result = SPIFFS_check(&fs);
-				printf("SPIFFS CHECK: %d", check_result);
+//				printf("SPIFFS CHECK: %d", check_result);
 			}
 			counter++;
 
 			SPIFFS_close(&fs, fd);
 			xSemaphoreGive(spiffsTopMutex);
 		} else {
-			printf("Write, can't get top mutex");
+			serialSendQ("Check can't get top mutex.");
 		}
 		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
@@ -48,30 +48,36 @@ void spiffs_check_task(void *pvParameters) {
 	spiffs_stat s;
 	uint32_t total, used, counter;
 	counter = 0;
+
 	while (1) {
+		char buf[70] = {'\0'};
+
 		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
 			my_spiffs_mount();
 
+		// Get file stats
 			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0);
-
 			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
-				printf("Spiffs check error %d", SPIFFS_errno(&fs));
+				snprintf(buf, 50, "Spiffs check error %d", SPIFFS_errno(&fs));
+				serialSendQ(buf);
 			}
-			printf("File info: %s: %d, %d", s.name, s.size, s.obj_id);
 
+		// Get filesystem stats
 			if (SPIFFS_info(&fs, &total, &used) < 0){
-				printf("Spiffs info error %d", SPIFFS_errno(&fs));
-				SPIFFS_vis(&fs);
+				snprintf(buf, 70,"Spiffs info error %d", SPIFFS_errno(&fs));
+				serialSendQ(buf);
+//				SPIFFS_vis(&fs);
 				SPIFFS_fflush(&fs, fd);
 			}
 			else{
-				printf("SPIFFS Info:: %d, used: %d,--- %d", total, used, counter);
+				snprintf(buf, 70, "File: %s: %d, %d \r\nSPIFFS: %d, used: %d,--- %d, H: %d", s.name, s.size, s.obj_id, total, used, counter,xPortGetFreeHeapSize() );
+				serialSendQ(buf);
 				counter++;
 			}
 			SPIFFS_close(&fs, fd);
 			xSemaphoreGive(spiffsTopMutex);
 		} else {
-			printf("Check, can't get top mutex");
+			serialSendQ("Check can't get top mutex.");
 		}
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
@@ -97,7 +103,7 @@ void my_spiffs_mount() {
 
 	int res = SPIFFS_mount(&fs, &cfg, spiffs_work_buf, spiffs_fds, sizeof(spiffs_fds), spiffs_cache_buf,
 			sizeof(spiffs_cache_buf), 0);
-	printf("mount res: %i\n", res);
+//	printf("mount res: %i\n", res);
 }
 
 static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
