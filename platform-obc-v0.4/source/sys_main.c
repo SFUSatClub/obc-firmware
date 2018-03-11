@@ -121,6 +121,7 @@ int main(void)
 
 	serialInit();
 	gioInit();
+	adcInit();
 	spiInit();
     flash_mibspi_init();
 

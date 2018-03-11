@@ -561,14 +561,16 @@ int printf(const char* format, ...)
 {
   va_list va;
   va_start(va, format);
-  char buffer[PRINTF_BUFFER_SIZE];
+  char buffer[PRINTF_BUFFER_SIZE] = {'\0'}; // RA: initialize to empty
   size_t ret = _vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, va);
   va_end(va);
   size_t i;
 
   // SFUSat Mods
   if(getStateRTOS_mode()){ // RTOS: send to queue
-	serialSendQ(buffer);
+	if (serialSendQ(buffer) != pdPASS){
+		serialSendQ(buffer);
+	}
   }
   else{ // no RTOS: use standard function
 	  for (i = 0U; i < ret; ++i) {

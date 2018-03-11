@@ -9,6 +9,7 @@
 #include "sfu_utils.h"
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
+#include "adc.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -35,17 +36,22 @@ void vADCRead(void *pvParameters) {
 	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
 	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
 
-	uint32_t value;
-
+    adcData_t adc_data[24]; // there are 24 channels
+    char sendBuf[20];
 	while (1) {
 		// start conversion (it's inside test_adc)
 		// take a semaphore here
 
-		value = test_adc(2);
+		    adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
+		    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
+		    adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-		printf("ADC Value: %d", value);
+//		printf("ADC Value: %d", adc_data[2].value);
+		    snprintf(sendBuf, 20,"ADC Value: %d",adc_data[2].value);
+//		    printf("hello adc");
+		  serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
@@ -96,8 +102,8 @@ void vSerialTask(void *pvParameters) {
 			serialSendln(" msgs in tx queue");
 		}
 		while (xQueueReceive(xSerialTXQueue, &txCurrQueuedStr, xTicksToWait) == pdPASS) {
-			serialSend(txCurrQueuedStr);
-			serialSend("\r\n");
+			serialSendln(txCurrQueuedStr);
+//			serialSend("\r\n");
 		}
 
 		/*
