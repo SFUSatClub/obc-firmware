@@ -43,7 +43,6 @@ void spiffs_check_task(void *pvParameters) {
 	spiffs_stat s;
 	uint32_t total, used, counter;
 	counter = 0;
-//	my_spiffs_mount();
 	while (1) {
 		my_spiffs_mount();
 
@@ -92,7 +91,8 @@ void my_spiffs_mount() {
 }
 
 static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
-	if ( xSemaphoreTake( spiffsMutex, ( TickType_t ) 1000 ) == pdTRUE) {
+
+	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
 		flash_read_arbitrary(addr, size, dst);
 		xSemaphoreGive(spiffsMutex);
 	} else {
@@ -102,7 +102,7 @@ static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
 }
 
 static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
-	if ( xSemaphoreTake( spiffsMutex, ( TickType_t ) 500 ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
 		flash_write_arbitrary(addr, size, src);
 		while (flash_status() != 0) { // wait for the write to complete
 		}
@@ -115,7 +115,7 @@ static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
 }
 
 static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
-	if ( xSemaphoreTake( spiffsMutex, ( TickType_t ) 500 ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
 		/* We erase pages - 4096 bytes
 		 * Logical block size = 65536 bytes
 		 *

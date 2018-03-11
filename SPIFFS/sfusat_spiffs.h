@@ -16,8 +16,12 @@
 static spiffs fs; // Note: this was static but that prevented access from task
 spiffs_config cfg;
 
-SemaphoreHandle_t spiffsMutex;
+// SFUSat Configs
+#define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while
+#define SPIFFS_WRITE_TIMEOUT_MS 2000
+#define SPIFFS_ERASE_TIMEOUT_MS 2000
 
+SemaphoreHandle_t spiffsMutex;
 
 #define LOG_PAGE_SIZE       256
 
