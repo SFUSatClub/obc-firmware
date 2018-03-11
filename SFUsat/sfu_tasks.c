@@ -148,7 +148,7 @@ void vSerialTask(void *pvParameters) {
 			}
 
 			rxPrevRcvdChar = rxCurrRcvdChar;
-			//serialSendCh(rxCurrRcvdChar);
+			serialSendCh(rxCurrRcvdChar);
 			if (uxQueueMessagesWaiting(xSerialRXQueue) > 5) {
 				serialSendln("WARNING: lots of uart rx");
 			}

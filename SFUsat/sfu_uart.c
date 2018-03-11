@@ -20,7 +20,7 @@ void serialInit(){
 }
 
 BaseType_t serialSendQ(const char * toSend) {
-	if (xQueueSendToBack(xSerialTXQueue, &toSend, 100) == pdPASS) {
+	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
 		return pdPASS;
 	} else {
 		return pdFAIL;

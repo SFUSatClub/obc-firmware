@@ -43,10 +43,10 @@ void vMainTask(void *pvParameters) {
 
 	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 600, NULL, 5, &xSerialTaskHandle);
-//	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
-	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
-	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
+//	xTaskCreate(vStateTask, "state", 800, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
+//	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
+//	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
+//	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
 
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
