@@ -45,7 +45,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 //	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 //	xTaskCreate(vADCRead, "read ADC", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xADCTaskHandle);
-	xTaskCreate(spiffs_check_task, "check spiffs", 800, NULL, 4, &xSPIFFSCheck);
+	xTaskCreate(spiffs_check_task, "check spiffs", 800, NULL, 3, &xSPIFFSCheck);
+
 	xTaskCreate(spiffs_write_check_test, "write spiffs", 800, NULL, 3, &xSPIFFSHandle);
 //
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
@@ -89,7 +90,7 @@ void vMainTask(void *pvParameters) {
 	serialSendln("main tasks created");
 
 	while (1) {
-		serialSendQ("main");
+//		serialSendQ("main");
 
 		CMD_t g;
 		if (getAction(&g)) {

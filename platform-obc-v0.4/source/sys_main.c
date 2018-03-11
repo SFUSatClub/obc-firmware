@@ -155,7 +155,6 @@ int main(void)
 	xSerialRXQueue = xQueueCreate(40, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-//    xFlashMutex = xSemaphoreCreateMutex();
     xRTCMutex = xSemaphoreCreateMutex();
 
 // ---------- SETUP/START RTOS ----------
