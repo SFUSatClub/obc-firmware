@@ -41,7 +41,8 @@ void spiffs_write_check_test(void *pvParameters) {
 
 void spiffs_check_task(void *pvParameters) {
 	spiffs_stat s;
-	uint32_t total, used;
+	uint32_t total, used, counter;
+	counter = 0;
 //	my_spiffs_mount();
 	while (1) {
 		my_spiffs_mount();
@@ -60,9 +61,10 @@ void spiffs_check_task(void *pvParameters) {
 			SPIFFS_fflush(&fs, fd);
 		}
 		else{
-			printf("SPIFFS Info:: %d, used: %d", total, used);
+			printf("SPIFFS Info:: %d, used: %d,--- %d", total, used, counter);
+			counter++;
 		}
-//		SPIFFS_close(&fs, fd);
+		SPIFFS_close(&fs, fd);
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
