@@ -14,6 +14,7 @@
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "rtos_semphr.h"
+#include "sfu_utils.h"
 void spiffs_write_check_test(void *pvParameters) {
 	uint32_t counter;
 	counter = 0;
@@ -21,25 +22,26 @@ void spiffs_write_check_test(void *pvParameters) {
 	int32_t check_result;
 	my_spiffs_mount();
 	while (1) {
-		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
-			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
-
-			snprintf(buf, 20, "hello world %d",counter); // make up some data
-			serialSendQ("Write");
-			// Open and write
-			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
-			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
-//				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
-				check_result = SPIFFS_check(&fs);
-//				printf("SPIFFS CHECK: %d", check_result);
-			}
-			counter++;
-
-			SPIFFS_close(&fs, fd);
-			xSemaphoreGive(spiffsTopMutex);
-		} else {
-			serialSendQ("Check can't get top mutex.");
-		}
+		sfu_file_write("new", "hello");
+//		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
+//			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+//
+//			snprintf(buf, 20, "hello world %d",counter); // make up some data
+//			serialSendQ("Write");
+//			// Open and write
+//			spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
+//			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
+////				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
+//				check_result = SPIFFS_check(&fs);
+////				printf("SPIFFS CHECK: %d", check_result);
+//			}
+//			counter++;
+//
+//			SPIFFS_close(&fs, fd);
+//			xSemaphoreGive(spiffsTopMutex);
+//		} else {
+//			serialSendQ("Check can't get top mutex.");
+//		}
 		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 }
@@ -81,6 +83,41 @@ void spiffs_check_task(void *pvParameters) {
 		}
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
+}
+
+void sfu_file_write(char* file_name, const char* input){
+	uint32_t timestamp;
+	char buf[33] = {'\0'}; // allows for 20 bytes of written data
+
+	timestamp = 4294967292; // replace with RTC write
+
+	utoa2(timestamp, buf, 10, 0); // We can store time has hex in the future for byte savings
+//	dec(timestamp, &buf[10]);
+	timestamp = strlen(buf);
+
+	if (strlen(input) > 20){
+		serialSendQ("Error: file write data too big.");
+		// error log
+	}
+
+	snprintf(buf, 33, "%d: %s",timestamp, input);
+	serialSendQ("write");
+	if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
+			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+
+			spiffs_file fd = SPIFFS_open(&fs, file_name, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
+			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
+//				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
+//				check_result = SPIFFS_check(&fs);
+//				printf("SPIFFS CHECK: %d", check_result);
+			}
+
+			SPIFFS_close(&fs, fd);
+			xSemaphoreGive(spiffsTopMutex);
+		} else {
+			serialSendQ("FWrite can't get top mutex.");
+		}
+
 }
 
 void sfusat_spiffs_init() {

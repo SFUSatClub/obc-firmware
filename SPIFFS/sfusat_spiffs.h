@@ -25,6 +25,8 @@ spiffs_config cfg;
 SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
 SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a write and v/v
 
+void sfu_file_write(char* file_name, const char* input);
+
 #define LOG_PAGE_SIZE       256
 
 static u8_t spiffs_work_buf[LOG_PAGE_SIZE*2];

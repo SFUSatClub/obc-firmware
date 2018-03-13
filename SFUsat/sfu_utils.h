@@ -20,4 +20,7 @@ void busyWait(uint32_t ticksToWait); // DON'T USE THIS IN REAL CODE! - For quick
 void simpleWatchdog(); // tickles watchdog using a busy wait. Appropriate for making sure it doesn't go off during init routines.
 void watchdog_busywait(int32_t numtickles);
 char* itoa2(int num, char *buffer, int base, int itr); // http://code.geeksforgeeks.org/lDrTiv
+char* utoa2(uint32_t num, char *buffer, int base, int itr);
+//char *dec(unsigned x, char *s);
+
 #endif /* SFUSAT_SFU_UTILS_H */
