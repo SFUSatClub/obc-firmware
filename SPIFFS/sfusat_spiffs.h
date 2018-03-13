@@ -32,6 +32,7 @@ SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a wr
 // Tasks
 void spiffs_write_check_test(void *pvParameters);
 void spiffs_check_task(void *pvParameters);
+void spiffs_read_task(void *pvParameters);
 
 // SFUSat Functions
 void sfu_file_write(char* file_name, char *fmt, ...); // printf style writes to files

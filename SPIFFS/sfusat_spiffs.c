@@ -141,6 +141,54 @@ void sfu_file_write(char* file_name, char *fmt, ...){
 		}
 }
 
+void spiffs_read_task(void *pvParameters){
+	spiffs_stat s;
+	char buf[30] = {'\0'};
+	uint32_t readno;
+
+	while(1){
+
+		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
+				my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+				serialSendQ("Read");
+				spiffs_file fd = SPIFFS_open(&fs, "new", SPIFFS_RDWR, 0);
+			  if (fd < 0) {
+	//		    printf("errno %i\n", SPIFFS_errno(&fs));
+				  serialSendQ("Read, Open error");
+//				return;
+			  }
+
+			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
+//				snprintf(buf, 30, "fstat error %d", SPIFFS_errno(&fs));
+//				serialSendQ(buf);
+			}
+
+//			readno = (s.size > 30)? s.size - 31 : 0;
+
+			  // read it
+			  if (SPIFFS_read(&fs, fd, (u8_t *)buf, 30) < 0) {
+	//		    printf("errno %i\n", SPIFFS_errno(&fs));
+				  serialSendQ("Read, read error");
+//				return;
+			  }
+//			  printf("RD: %s", buf);
+			  serialSendQ(buf);
+			  // close it
+			  if (SPIFFS_close(&fs, fd) < 0) {
+	//		    printf("errno %i\n", SPIFFS_errno(&fs));
+//				  serialSendQ("Read, close error");
+//				return;
+			  }
+			xSemaphoreGive(spiffsTopMutex);
+			} else {
+				serialSendQ("Read can't get top mutex.");
+			}
+		vTaskDelay(pdMS_TO_TICKS(5000));
+
+	}
+}
+
+
 void sfusat_spiffs_init() {
 	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v

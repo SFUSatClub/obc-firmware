@@ -22,6 +22,7 @@ TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xSPIFFSHandle = NULL; // RA
 TaskHandle_t xSPIFFSCheck = NULL; // RA
+TaskHandle_t xSPIFFSRead = NULL; // RA
 
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
@@ -47,6 +48,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
 	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
+	xTaskCreate(spiffs_read_task, "read spiffs", 2000, NULL, 4, &xSPIFFSHandle);
 
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
@@ -65,7 +67,7 @@ void vMainTask(void *pvParameters) {
 	addEvent(test_event);
 
 	// Example of scheduling a task
-	test_event.seconds_from_now = 20;
+	test_event.seconds_from_now = 1;
 	test_event.action.subcmd_id = CMD_GET_TASKS;
 	addEvent(test_event);
 
