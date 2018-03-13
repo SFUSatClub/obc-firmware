@@ -18,11 +18,11 @@
 void spiffs_write_check_test(void *pvParameters) {
 	uint32_t counter;
 	counter = 0;
-	char buf[20]; // to hold our file writes
-	int32_t check_result;
+//	int32_t check_result;
 	my_spiffs_mount();
 	while (1) {
-		sfu_file_write("new", "hello");
+		sfu_file_write("new", "wassup%d", counter);
+		counter++;
 //		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
 //			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 //
@@ -85,28 +85,50 @@ void spiffs_check_task(void *pvParameters) {
 	}
 }
 
-void sfu_file_write(char* file_name, const char* input){
-	uint32_t timestamp;
-	char buf[33] = {'\0'}; // allows for 20 bytes of written data
+void sfu_file_write(char* file_name, char *fmt, ...){
+	/* Lets us write data to the filesystem using printf format specifiers.
+	 *
+	 * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
+	 * 	= #SFU_WRITE_DATA_BUF - 12 characters, as the max to be safe.
+	 *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
+	 *  end character to allow us to separate file entries.
+	 *
+	 * Todo:
+	 * 	- search for correct file
+	 *
+	 * File entry format: "timestamp|data\0"
+	 * where:
+	 * 		timestamp is max 10 chars (maxed out 32-bit int)
+	 * 		| separates timestamp and arbitrary data
+	 * 		\0 is the null terminator and also the end of the entry
+	 *
+	 * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
+	 */
+	uint32_t x;
+	char buf[SFU_WRITE_DATA_BUF] = {'\0'};
 
-	timestamp = 4294967292; // replace with RTC write
+	x = 4294967292; // replace with RTC read
 
-	utoa2(timestamp, buf, 10, 0); // We can store time has hex in the future for byte savings
-//	dec(timestamp, &buf[10]);
-	timestamp = strlen(buf);
+	va_list argptr;
+	 va_start(argptr,fmt);
 
-	if (strlen(input) > 20){
+	utoa2(x, buf, 10, 0); // We can store time has hex in the future for byte savings, but it'd be kinda gross.
+	x = strlen(buf); // reuse this
+	buf[x] = '|'; // add a separator between time and data
+	x++; // new strlen after adding sep
+
+	if(sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF-1-x, fmt, argptr) > (SFU_WRITE_DATA_BUF -2 -x)){ // 32 - x so that we always end with a \0, 31 - x for warning
 		serialSendQ("Error: file write data too big.");
+		// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer.
 		// error log
 	}
-
-	snprintf(buf, 33, "%d: %s",timestamp, input);
+	va_end(argptr);
 	serialSendQ("write");
 	if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_TOP_TIMEOUT_MS) ) == pdTRUE) {
 			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 			spiffs_file fd = SPIFFS_open(&fs, file_name, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
-			if (SPIFFS_write(&fs, fd, buf, strlen(buf)) < 0) {
+			if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 //				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
 //				check_result = SPIFFS_check(&fs);
 //				printf("SPIFFS CHECK: %d", check_result);
@@ -117,7 +139,6 @@ void sfu_file_write(char* file_name, const char* input){
 		} else {
 			serialSendQ("FWrite can't get top mutex.");
 		}
-
 }
 
 void sfusat_spiffs_init() {

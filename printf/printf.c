@@ -324,7 +324,7 @@ static size_t _ftoa(double value, char* buffer, size_t maxlen, unsigned int prec
 
 
 // internal vsnprintf
-static size_t _vsnprintf(char* buffer, size_t buffer_len, const char* format, va_list va)
+size_t sfu_vsnprintf(char* buffer, size_t buffer_len, const char* format, va_list va)
 {
   unsigned int flags, width, precision, n;
   size_t idx = 0U;
@@ -562,7 +562,7 @@ int printf(const char* format, ...)
   va_list va;
   va_start(va, format);
   char buffer[PRINTF_BUFFER_SIZE] = {'\0'}; // RA: initialize to empty
-  size_t ret = _vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, va);
+  size_t ret = sfu_vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, va);
   va_end(va);
   size_t i;
 
@@ -587,7 +587,7 @@ int sprintf(char* buffer, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
-  size_t ret = _vsnprintf(buffer, (size_t)-1, format, va);
+  size_t ret = sfu_vsnprintf(buffer, (size_t)-1, format, va);
   va_end(va);
   return (int)ret;
 }
@@ -597,7 +597,7 @@ int snprintf(char* buffer, size_t count, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
-  size_t ret = _vsnprintf(buffer, count, format, va);
+  size_t ret = sfu_vsnprintf(buffer, count, format, va);
   va_end(va);
   return (int)ret;
 }

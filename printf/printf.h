@@ -110,6 +110,8 @@ int sprintf(char* buffer, const char* format, ...);
  */
 int snprintf(char* buffer, size_t count, const char* format, ...);
 
+// RA: just took over the internal _vsnprintf included with this lib, made not-static so we can use it in our code.
+size_t sfu_vsnprintf(char* buffer, size_t buffer_len, const char* format, va_list va);
 
 #ifdef __cplusplus
 }
