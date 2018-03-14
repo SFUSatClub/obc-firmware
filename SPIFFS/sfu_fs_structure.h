@@ -45,6 +45,5 @@ void sfu_create_fs_test(void *pvParameters);
 // Functions
 void write_fd(spiffs_file fd, char *fmt, ...); // printf style write to an already open file
 void sfu_create_files();
-void sfu_write_fname(); // write printf style data to a file name
-
+void sfu_write_fname(char f_suffix ); // write printf style data to a file name
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */

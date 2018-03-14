@@ -11,6 +11,8 @@
 #include "sfusat_spiffs.h"
 #include "spiffs.h"
 #include "sfu_uart.h"
+#include "sfu_utils.h"
+#include "sfu_rtc.h"
 // -------------- Tasks for testing --------------------
 void sfu_create_fs_test(void *pvParameters){
 
@@ -45,8 +47,9 @@ void sfu_create_files() {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 		// Create, write the file
-		nameBuf[0] = *(char *)fs.user_data; // file name prefix
-		for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys
+		nameBuf[0] = *(char *)fs.user_data; // file name prefix. Void pointer help: https://www.geeksforgeeks.org/void-pointer-c/
+
+		for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys and create a file for it
 			nameBuf[1] = (char)(FSYS_OFFSET + i); // make the file suffix
 
 			fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
@@ -54,14 +57,18 @@ void sfu_create_files() {
 				snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			} else { // write to it
-				write_fd(fd, "Created");
+				write_fd(fd, "Created"); // created, timestamp will be added automatically
 			}
 
 			// Close the file
 			if (SPIFFS_close(&fs, fd) < 0) {
+//				clearBuf(genBuf, 20);
 				snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			}
+			snprintf(genBuf, 20, "Create: %s", nameBuf);
+			serialSendQ(genBuf);
+//			clearBuf(genBuf, 20);
 		}
 		xSemaphoreGive(spiffsTopMutex);
 	} else {
@@ -94,7 +101,7 @@ void write_fd(spiffs_file fd, char *fmt, ...){
 		uint32_t x;
 		char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
-		x = 4294967292; // replace with RTC read
+		x = getCurrentRTCTime();
 
 		va_list argptr;
 		va_start(argptr, fmt);
@@ -113,8 +120,8 @@ void write_fd(spiffs_file fd, char *fmt, ...){
 		serialSendQ("write");
 
 		if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
-			snprintf(BUF, 20, "FDwe: %i", SPIFFS_errno(&fs));
-			serialSendQ(BUF);
+			snprintf(buf, 20, "FDwe: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
 		}
 		// YOU MUST CLOSE THE FILE
 }
@@ -123,7 +130,7 @@ void write_fd(spiffs_file fd, char *fmt, ...){
  *
  * Given a file name (through the #define), write the printf-formatted data to it and timestamp
  */
-void sfu_write_fname(){
+void sfu_write_fname(char f_suffix ){
 // given a file name (from the defines), find and open it into an fd, call write_fd
 	// FIND
 	// WRITE

@@ -70,3 +70,9 @@ void watchdog_busywait(int32_t numtickles){
 		numtickles--;
 	}
 }
+
+void clearBuf(char *buf,uint32_t length){
+	// use memset to fill empty chars into the buffer
+	memset(buf, '\0', length);
+}
+

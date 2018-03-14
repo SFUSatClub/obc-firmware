@@ -21,5 +21,5 @@ void simpleWatchdog(); // tickles watchdog using a busy wait. Appropriate for ma
 void watchdog_busywait(int32_t numtickles);
 char* itoa2(int num, char *buffer, int base, int itr); // http://code.geeksforgeeks.org/lDrTiv
 char* utoa2(uint32_t num, char *buffer, int base, int itr);
-
+void clearBuf(char *buf,uint32_t length);
 #endif /* SFUSAT_SFU_UTILS_H */
