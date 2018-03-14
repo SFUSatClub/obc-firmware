@@ -72,7 +72,7 @@ void sfusat_spiffs_init() {
 	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
 	sfu_prefix = 'a'; // TODO: figure out the correct prefix
-//	fs.user_data = &sfu_prefix;
+	fs.user_data = &sfu_prefix;
 	my_spiffs_mount();
 }
 

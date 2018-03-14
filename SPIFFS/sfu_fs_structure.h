@@ -22,6 +22,9 @@
 #ifndef SPIFFS_SFU_FS_STRUCTURE_H_
 #define SPIFFS_SFU_FS_STRUCTURE_H_
 
+#include "spiffs.h"
+#include "sfusat_spiffs.h"
+
 // SFUSat Configs
 #define SFU_MAX_DATA_WRITE 21 // bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp.
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) // DON'T TOUCH: to size the file write buffer
@@ -31,12 +34,17 @@
 
 /* ASCII codes for the subsystem log suffix
  * These are passed to read, write so that we can grab the correct file
+ * Stick with ASCII codes so we can easily iterate based on FSYS_OFFSET
  */
 #define FSYS_SYS 65 // S, system log
 #define FSYS_CURRENT 66 // C, current log
 
-void sfu_write_fd(char *fmt, ...);
+// Tasks
+void sfu_create_fs_test(void *pvParameters);
+
+// Functions
+void write_fd(spiffs_file fd, char *fmt, ...); // printf style write to an already open file
 void sfu_create_files();
-void sfu_write_fname();
+void sfu_write_fname(); // write printf style data to a file name
 
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */

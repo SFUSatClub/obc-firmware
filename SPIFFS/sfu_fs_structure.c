@@ -4,6 +4,25 @@
  *  Created on: Mar 13, 2018
  *      Author: Richard
  */
+
+
+#include "sys_common.h"
+#include "sfu_fs_structure.h"
+#include "sfusat_spiffs.h"
+#include "spiffs.h"
+#include "sfu_uart.h"
+// -------------- Tasks for testing --------------------
+void sfu_create_fs_test(void *pvParameters){
+
+	while(1){
+		sfu_create_files();
+		vTaskDelay(pdMS_TO_TICKS(5000));
+	}
+}
+
+
+// ------------ Core Functions -------------------------
+
 /* sfu_create_files
  * - This function creates a file for every subsystem suffix with SPIFFS' current
  * - index prefix.
@@ -17,12 +36,6 @@
  * 		- set index prefix to 'a'
  * 		- call this function
  */
-
-#include "sys_common.h"
-#include "sfu_fs_structure.h"
-#include "sfusat_spiffs.h"
-#include "spiffs.h"
-#include "sfu_uart.h"
 void sfu_create_files() {
 	char genBuf[20] = { '\0' };
 	char nameBuf[2] = { '\0' };
@@ -32,16 +45,16 @@ void sfu_create_files() {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 		// Create, write the file
-		nameBuf[0] = (char)78;// spiffs prefix
+		nameBuf[0] = *(char *)fs.user_data; // file name prefix
 		for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys
 			nameBuf[1] = (char)(FSYS_OFFSET + i); // make the file suffix
 
-			fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_RDWR, 0); // create file with appropriate name
+			fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
 			if (fd < 0) { // check that the create worked
 				snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			} else { // write to it
-				// write function
+				write_fd(fd, "Created");
 			}
 
 			// Close the file
@@ -59,9 +72,10 @@ void sfu_create_files() {
 /* sfu_write_fd
  *
  * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
- * MUST BE CALLED FROM WITHIN A MUTEX
+ *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
+ * Having a file descriptor means we've already opened the file up
  */
-void sfu_write_fd(char *fmt, ...){
+void write_fd(spiffs_file fd, char *fmt, ...){
 	/* Lets us write data to the filesystem using printf format specifiers.
 		 *
 		 * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
@@ -92,21 +106,17 @@ void sfu_write_fd(char *fmt, ...){
 
 		if (sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF - 1 - x, fmt, argptr) > (SFU_WRITE_DATA_BUF - 2 - x)) { // 32 - x so that we always end with a \0, 31 - x for warning
 			serialSendQ("Error: file write data too big.");
-			// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer.
+			// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer. Worst case we lose some data.
 			// error log
 		}
 		va_end(argptr);
 		serialSendQ("write");
 
-
-		spiffs_file fd = SPIFFS_open(&fs, "filename", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
 		if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
-//				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
-//				check_result = SPIFFS_check(&fs);
-//				printf("SPIFFS CHECK: %d", check_result);
+			snprintf(BUF, 20, "FDwe: %i", SPIFFS_errno(&fs));
+			serialSendQ(BUF);
 		}
-
-		SPIFFS_close(&fs, fd);
+		// YOU MUST CLOSE THE FILE
 }
 
 /* sfu_write_fname
@@ -115,6 +125,7 @@ void sfu_write_fd(char *fmt, ...){
  */
 void sfu_write_fname(){
 // given a file name (from the defines), find and open it into an fd, call write_fd
-
-
+	// FIND
+	// WRITE
+	// CLOSE
 }
