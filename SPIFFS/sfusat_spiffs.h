@@ -12,13 +12,11 @@
 #include "spiffs.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
-
+#include "sfu_fs_structure.h"
 static spiffs fs; // Note: this was static but that prevented access from task
 spiffs_config cfg;
 
-// SFUSat Configs
-#define SFU_MAX_DATA_WRITE 21 // bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp.
-#define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) // DON'T TOUCH: to size the file write buffer
+
 
 #define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while
 #define SPIFFS_WRITE_TIMEOUT_MS 2000
@@ -30,16 +28,15 @@ SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPI
 SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a write and v/v
 
 // Tasks
-void spiffs_write_check_test(void *pvParameters);
-void spiffs_check_task(void *pvParameters);
-void spiffs_read_task(void *pvParameters);
+void spiffs_read_task(void *pvParameters); // WIP
+void sfu_create_fs(void *pvParameters); // set up the FS with our directories
+
 
 // SFUSat Functions
-void sfu_file_write(char* file_name, char *fmt, ...); // printf style writes to files
 void test_spiffs();
 void read_write_example();
 void sfusat_spiffs_init();
-
+// test sequences with RTOS are in test_sequences/test_spiffs_rtos.c
 
 // SPIFFS Config stuff
 #define LOG_PAGE_SIZE       256

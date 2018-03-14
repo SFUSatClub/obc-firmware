@@ -13,7 +13,7 @@
 #include "sfu_state.h"
 #include "printf.h"
 #include "sfusat_spiffs.h"
-
+#include "test_sequences/test_spiffs_rtos.h"
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -48,7 +48,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
 	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
-	xTaskCreate(spiffs_read_task, "read spiffs", 2000, NULL, 4, &xSPIFFSHandle);
+//	xTaskCreate(spiffs_read_task, "read spiffs", 2000, NULL, 4, &xSPIFFSHandle);
+//	xTaskCreate(sfu_create_fs, "create fs", 1400, NULL, 4, &xSPIFFSCheck);
 
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
