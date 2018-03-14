@@ -17,6 +17,12 @@
  * 		- set index prefix to 'a'
  * 		- call this function
  */
+
+#include "sys_common.h"
+#include "sfu_fs_structure.h"
+#include "sfusat_spiffs.h"
+#include "spiffs.h"
+#include "sfu_uart.h"
 void sfu_create_files() {
 	char genBuf[20] = { '\0' };
 	char nameBuf[2] = { '\0' };
@@ -26,9 +32,9 @@ void sfu_create_files() {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 		// Create, write the file
-		nameBuf[0] = char()// spiffs prefix
-		for (i = 0; i < FS_NUM_SUBSYS; i++) { // run through each subsys
-			nameBuf[1] = (char)(FS_SUBSYS_OFFSET + i); // make the file suffix
+		nameBuf[0] = (char)78;// spiffs prefix
+		for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys
+			nameBuf[1] = (char)(FSYS_OFFSET + i); // make the file suffix
 
 			fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_RDWR, 0); // create file with appropriate name
 			if (fd < 0) { // check that the create worked
@@ -55,7 +61,7 @@ void sfu_create_files() {
  * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
  * MUST BE CALLED FROM WITHIN A MUTEX
  */
-void sfu_write_fd(){
+void sfu_write_fd(char *fmt, ...){
 	/* Lets us write data to the filesystem using printf format specifiers.
 		 *
 		 * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
@@ -93,7 +99,7 @@ void sfu_write_fd(){
 		serialSendQ("write");
 
 
-		spiffs_file fd = SPIFFS_open(&fs, file_name, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
+		spiffs_file fd = SPIFFS_open(&fs, "filename", SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 1);
 		if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 //				printf("Error on SPIFFS write, %i\r\n", SPIFFS_errno(&fs));
 //				check_result = SPIFFS_check(&fs);
@@ -109,6 +115,6 @@ void sfu_write_fd(){
  */
 void sfu_write_fname(){
 // given a file name (from the defines), find and open it into an fd, call write_fd
-}
+
 
 }

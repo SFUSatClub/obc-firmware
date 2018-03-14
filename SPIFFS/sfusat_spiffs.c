@@ -17,7 +17,6 @@
 #include "sfu_utils.h"
 
 
-
 void spiffs_read_task(void *pvParameters) {
 	spiffs_stat s;
 	char buf[30] = { '\0' };
@@ -72,6 +71,8 @@ void spiffs_read_task(void *pvParameters) {
 void sfusat_spiffs_init() {
 	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
+	sfu_prefix = 'a'; // TODO: figure out the correct prefix
+//	fs.user_data = &sfu_prefix;
 	my_spiffs_mount();
 }
 

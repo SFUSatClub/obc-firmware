@@ -13,9 +13,10 @@
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
 #include "sfu_fs_structure.h"
-static spiffs fs; // Note: this was static but that prevented access from task
+spiffs fs; // Note: this was static but that prevents access
 spiffs_config cfg;
 
+char sfu_prefix; // holds our prefix, gets mapped to fs.user_data
 
 
 #define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while
@@ -29,7 +30,6 @@ SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a wr
 
 // Tasks
 void spiffs_read_task(void *pvParameters); // WIP
-void sfu_create_fs(void *pvParameters); // set up the FS with our directories
 
 
 // SFUSat Functions

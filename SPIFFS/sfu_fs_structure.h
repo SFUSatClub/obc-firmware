@@ -35,4 +35,8 @@
 #define FSYS_SYS 65 // S, system log
 #define FSYS_CURRENT 66 // C, current log
 
+void sfu_write_fd(char *fmt, ...);
+void sfu_create_files();
+void sfu_write_fname();
+
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */

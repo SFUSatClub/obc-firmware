@@ -10,13 +10,14 @@
  *			xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
  *
  *		You should see us constantly write to a file and should see its size growing.
+ *		It'll write about 60 bytes between runs of the check task.
  */
 
 #ifndef SFUSAT_TEST_SEQUENCES_TEST_SPIFFS_RTOS_H_
 #define SFUSAT_TEST_SEQUENCES_TEST_SPIFFS_RTOS_H_
-#include "SPIFFS/sfusat_spiffs.h"
-#include "spiffs/sfu_fs_structure.h"
-#include "spiffs/spiffs.h"
+#include "../SPIFFS/sfusat_spiffs.h"
+#include "../spiffs/sfu_fs_structure.h"
+#include "../spiffs/spiffs.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
 
