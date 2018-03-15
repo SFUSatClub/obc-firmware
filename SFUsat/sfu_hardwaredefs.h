@@ -28,6 +28,7 @@
 #define RTC_CONFIG_CSNR 0x00 // chip select to use
 
 // ---------------- General Functionality ------------------
+#define RTI_CLK_SPEED_HZ 30000000 // 30 MHz - for RTOS tick
 #define DEBUG_LED_PORT gioPORTA
 #define DEBUG_LED_PIN 6
 
@@ -72,6 +73,8 @@
 #define RTC_CONFIG_CSNR 0x00 // chip select to use
 
 // ---------------- General Functionality ------------------
+#define RTI_CLK_SPEED_HZ 80000000 // 80 MHz
+
 #define DEBUG_LED_PORT gioPORTA
 #define DEBUG_LED_PIN 6
 
@@ -114,6 +117,8 @@
 #define RTC_CONFIG_CSNR 0x00 // chip select to use
 
 // ---------------- General Functionality ------------------
+#define RTI_CLK_SPEED_HZ 40000000 //Note: this is not used in RTOS config for this platform.
+
 #define DEBUG_LED_PORT gioPORTA
 #define DEBUG_LED_PIN 2
 

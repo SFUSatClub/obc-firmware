@@ -94,7 +94,7 @@ uint32 i ;
                      | (uint32)((uint32)0U << 20U)  /* shift direction */
                      | (uint32)((uint32)0U << 17U)  /* clock polarity */
                      | (uint32)((uint32)1U << 16U)  /* clock phase */
-                     | (uint32)((uint32)15U << 8U)  /* baudrate prescale */
+                     | (uint32)((uint32)5U << 8U)  /* baudrate prescale */
                      | (uint32)((uint32)8U << 0U); /* data word length */
 
     /** - Data Format 1 */
@@ -105,7 +105,7 @@ uint32 i ;
                      | (uint32)((uint32)0U << 20U)  /* shift direction */
                      | (uint32)((uint32)0U << 17U)  /* clock polarity */
                      | (uint32)((uint32)0U << 16U)  /* clock phase */
-                     | (uint32)((uint32)79U << 8U)  /* baudrate prescale */
+                     | (uint32)((uint32)29U << 8U)  /* baudrate prescale */
                      | (uint32)((uint32)16U << 0U); /* data word length */
 
     /** - Data Format 2 */
@@ -116,7 +116,7 @@ uint32 i ;
                      | (uint32)((uint32)0U << 20U)  /* shift direction */
                      | (uint32)((uint32)0U << 17U)  /* clock polarity */
                      | (uint32)((uint32)0U << 16U)  /* clock phase */
-                     | (uint32)((uint32)79U << 8U)  /* baudrate prescale */
+                     | (uint32)((uint32)29U << 8U)  /* baudrate prescale */
                      | (uint32)((uint32)16U << 0U); /* data word length */
 
     /** - Data Format 3 */
@@ -127,7 +127,7 @@ uint32 i ;
                      | (uint32)((uint32)0U << 20U)  /* shift direction */
                      | (uint32)((uint32)0U << 17U)  /* clock polarity */
                      | (uint32)((uint32)0U << 16U)  /* clock phase */
-                     | (uint32)((uint32)79U << 8U)  /* baudrate prescale */
+                     | (uint32)((uint32)29U << 8U)  /* baudrate prescale */
                      | (uint32)((uint32)16U << 0U); /* data word length */
 
     /** - Default Chip Select */

@@ -22,6 +22,15 @@ void sfu_create_fs_test(void *pvParameters) {
 }
 
 // ------------ Core Functions -------------------------
+/* increment_prefix
+ * - increments the fs prefix once we've filled up the files for the day
+ *
+ *
+ * Todo:
+ * delete by prefix
+ * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
+ * delete oldest function (calls this), called by rescue
+ */
 
 /* sfu_create_files
  * - This function creates a file for every subsystem suffix with SPIFFS' current index prefix.

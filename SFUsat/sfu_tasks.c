@@ -36,9 +36,10 @@ void vADCRead(void *pvParameters) {
 	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
 	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
 
-    adcData_t adc_data[24]; // there are 24 channels
-    char sendBuf[20];
+
 	while (1) {
+	    adcData_t adc_data[24]; // there are 24 channels
+	    char sendBuf[20];
 		// start conversion (it's inside test_adc)
 		// take a semaphore here
 
