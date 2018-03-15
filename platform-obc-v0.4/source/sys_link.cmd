@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------*/
-/* sys_link_freeRTOS.cmd                                                      */
+/* sys_link.cmd                                                               */
 /*                                                                            */
 /* 
 * Copyright (C) 2009-2016 Texas Instruments Incorporated - www.ti.com  
@@ -38,16 +38,13 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN (0) */
-/* USER CODE END */
-/*----------------------------------------------------------------------------*/
-/* Linker Settings                                                            */
+// We need to override the halcogen generated sys_link, so we do it with this #define.
+#define SYS_LINK_OVERRIDE 1
+#if SYS_LINK_OVERRIDE == 1
+/* Linker Settings   (SFUSat)                                                          */
 
 --retain="*(.intvecs)"
 
-/* USER CODE BEGIN (1) */
-/* USER CODE END */
-
-/*----------------------------------------------------------------------------*/
 /* Memory Map                                                                 */
 
 MEMORY
@@ -59,13 +56,8 @@ MEMORY
     KRAM    (RW) : origin=0x08000800 length=0x00000800
     RAM     (RW) : origin=(0x08000800+0x00000800) length=(0x0001F800 - 0x00000800)
 
-/* USER CODE BEGIN (2) */
-/* USER CODE END */
+
 }
-
-/* USER CODE BEGIN (3) */
-/* USER CODE END */
-
 /*----------------------------------------------------------------------------*/
 /* Section Configuration                                                      */
 
@@ -86,6 +78,55 @@ SECTIONS
     .data         : {} > RAM
     .sysmem  : {} > RAM // RA: added to get rid of warning. If we run into issues, investigate what this does
 
+}
+
+#else
+
+// ------- This is the standard halcogen stuff, which is incompatible with our needs
+
+/* USER CODE END */
+
+
+/*----------------------------------------------------------------------------*/
+/* Linker Settings                                                            */
+
+--retain="*(.intvecs)"
+
+/* USER CODE BEGIN (1) */
+/* USER CODE END */
+
+/*----------------------------------------------------------------------------*/
+/* Memory Map                                                                 */
+
+MEMORY
+{
+    VECTORS (X)  : origin=0x00000000 length=0x00000020
+    FLASH0  (RX) : origin=0x00008020 length=0x000B7FE0
+    STACKS  (RW) : origin=0x08000000 length=0x00000800
+    RAM     (RW) : origin=0x08000800 length=0x0001F800
+
+/* USER CODE BEGIN (2) */
+/* USER CODE END */
+}
+
+/* USER CODE BEGIN (3) */
+/* USER CODE END */
+
+/*----------------------------------------------------------------------------*/
+/* Section Configuration                                                      */
+
+SECTIONS
+{
+    .intvecs : {} > VECTORS
+    .text    : {} > FLASH0 
+    .const   : {} > FLASH0 
+    .cinit   : {} > FLASH0 
+    .pinit   : {} > FLASH0 
+    .bss     : {} > RAM
+    .data    : {} > RAM
+    .sysmem  : {} > RAM
+    
+
 /* USER CODE BEGIN (4) */
 /* USER CODE END */
 }
@@ -93,10 +134,13 @@ SECTIONS
 /* USER CODE BEGIN (5) */
 /* USER CODE END */
 
+
 /*----------------------------------------------------------------------------*/
 /* Misc                                                                       */
 
 /* USER CODE BEGIN (6) */
-/* USER CODE END */
 
+
+#endif
+/* USER CODE END */
 /*----------------------------------------------------------------------------*/
