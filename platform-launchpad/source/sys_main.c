@@ -72,6 +72,7 @@
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
+#include "examples/sfusat_examples.h"
 /* USER CODE END */
 
 /* Include Files */

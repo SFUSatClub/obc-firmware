@@ -72,6 +72,7 @@
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
+#include "examples/sfusat_examples.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -142,7 +143,7 @@ int main(void)
 //		serialSendln("Passed flash JEDEC test!");
 //	}
 
-	gio_interrupt_example_rtos_init();
+    gio_interrupt_example_rtos_init();
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these

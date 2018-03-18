@@ -70,7 +70,7 @@ MEMORY
     VECTORS (X)  : origin=0x00000000 length=0x00000020
     FLASH0  (RX) : origin=0x00008020 length=0x000B7FE0
     STACKS  (RW) : origin=0x08000000 length=0x00000800
-    RAM     (RW) : origin=0x08000800 length=0x0001F800
+    RAM     (RW) : origin=0x08000800 length=0x0001f800
 
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
