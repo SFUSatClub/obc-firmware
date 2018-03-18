@@ -30,11 +30,13 @@ uint32_t test_adc(uint8_t channel){
 		uint32_t result;
 		result = test_adc(2);
 	 */
-
+#pragma diag_push
+#pragma diag_suppress 552
 	// Example - we don't need these usually
     uint32 ch_count;
     uint32 id;
     uint32 value;
+#pragma diag_pop
 
     adcData_t adc_data[24]; // there are 24 channels
     adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
