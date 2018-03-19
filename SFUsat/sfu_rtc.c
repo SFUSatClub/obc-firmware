@@ -12,7 +12,7 @@
 #include "sfu_hardwaredefs.h"
 
 #include <assert.h>
-
+#include <math.h>
 
 
 
@@ -118,11 +118,35 @@ uint32_t setEpochOffset(uint32_t inputOffset) {
 	return epochOffset;
 }
 
-uint8_t convertBCD(uint8_t input) {
-	// the time data from the rtc is in BCD format, https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
-	assert(((input & 0xF0) >> 4) < 10);  // More significant nybble is valid
-	assert((input & 0x0F) < 10);         // Less significant nybble is valid
-	return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
+//uint8_t convertBCD(uint8_t input) {
+//	// the time data from the rtc is in BCD format, https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
+//	assert(((input & 0xF0) >> 4) < 10);  // More significant nybble is valid
+//	assert((input & 0x0F) < 10);         // Less significant nybble is valid
+//	return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
+//}
+
+//uint8_t convertBCD(uint8_t input) {
+//    uint8_t nResult=0;
+//    int32_t ncnt,anHexValueStored[8];
+//    uint16_t unflag=0;
+//
+//    for(ncnt=7 ;ncnt>=0 ; ncnt--){
+//        anHexValueStored[ncnt]=input & (0x0000000f << 4*(7-ncnt));
+//        anHexValueStored[ncnt]=anHexValueStored[ncnt] >> 4*(7-ncnt);
+//        if(anHexValueStored[ncnt]>9)
+//        unflag=1;
+//    }
+//    if(unflag==1){
+//        return 0;
+//    }
+//    else{
+//        for(ncnt=0 ;ncnt<8 ; ncnt++)
+//        nResult= nResult +anHexValueStored[ncnt]*pow(10,(7-ncnt));
+//        return nResult;
+//    }
+//}
+uint8_t convertBCD(uint8_t x) {
+    return x - 6 * (x >> 4);
 }
 
 uint8_t rtc_get_seconds(void) {

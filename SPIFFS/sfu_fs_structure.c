@@ -32,6 +32,50 @@ void sfu_create_fs_test(void *pvParameters) {
  * delete oldest function (calls this), called by rescue
  */
 
+/*sfu_delete_prefix
+ * - This function deletes all files with the specified prefix
+ * - Used to get rid of the oldest set of files when we loop back around
+ */
+void sfu_delete_prefix(char prefix) {
+	spiffs_DIR d;
+	struct spiffs_dirent e;
+	struct spiffs_dirent *pe = &e;
+	int32_t res;
+	char genBuf[20] = { '\0' };
+	spiffs_file fd = -1;
+
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+
+		SPIFFS_opendir(&fs, "/", &d);
+		while ((pe = SPIFFS_readdir(&d, pe))) {
+			if (0 == strncmp((const char *) prefix, (char *) pe->name, 1)) { // 1 = strlen of prefix
+			// found one
+				fd = SPIFFS_open_by_dirent(&fs, pe, SPIFFS_RDWR, 0);
+				if (fd < 0) {
+					snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
+					serialSendQ(genBuf);
+					return;
+				}
+				res = SPIFFS_fremove(&fs, fd);
+				if (res < 0) {
+					snprintf(genBuf, 20, "Fdr: %i", SPIFFS_errno(&fs));
+					serialSendQ(genBuf);
+					return;
+				}
+				res = SPIFFS_close(&fs, fd);
+				if (res < 0) {
+					snprintf(genBuf, 20, "Fdc: %i", SPIFFS_errno(&fs));
+					serialSendQ(genBuf);
+					return;
+				}
+			}
+		}
+		SPIFFS_closedir(&d);
+	} else {
+		serialSendQ("Create can't get top mutex");
+	}
+}
+
 /* sfu_create_files
  * - This function creates a file for every subsystem suffix with SPIFFS' current index prefix.
  *

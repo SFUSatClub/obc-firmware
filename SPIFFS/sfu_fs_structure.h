@@ -43,10 +43,11 @@
 void sfu_create_fs_test(void *pvParameters);
 
 // Functions
-void write_fd(spiffs_file fd, char *fmt, ...); // printf style write to an already open file
-void sfu_create_files();
-void sfu_write_fname(char f_suffix, char *fmt, ...); // write printf style data to a file name
+void sfu_create_files(); // creates files w/ current prefix and records creation time
 void create_filename(char* namebuf, char file_suffix); // creates filename with appropriate prefix and suffix
+void sfu_write_fname(char f_suffix, char *fmt, ...); // write printf style data to a file name
 void format_entry(char* buf, char *fmt, va_list argptr); // formats our file entries with timestamp and data
+void write_fd(spiffs_file fd, char *fmt, ...); // printf style write to an already open file
+void sfu_delete_prefix(char prefix); // deletes the files with the specified prefix
 void increment_prefix();
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */

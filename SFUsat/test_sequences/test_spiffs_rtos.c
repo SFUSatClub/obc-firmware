@@ -5,6 +5,8 @@
  *      Author: Richard
  */
 #include "test_spiffs_rtos.h"
+#include "sfu_uart.h"
+#include "sfu_rtc.h"
 void spiffs_write_check_test(void *pvParameters) {
 	uint32_t counter;
 	counter = 0;
@@ -97,7 +99,7 @@ void sfu_file_write(char* file_name, char *fmt, ...) {
 	uint32_t x;
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
-	x = 4294967292; // replace with RTC read
+	x = getCurrentRTCTime(); // replace with RTC read
 
 	va_list argptr;
 	va_start(argptr, fmt);
