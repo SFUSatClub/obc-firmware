@@ -22,4 +22,6 @@ void watchdog_busywait(int32_t numtickles);
 char* itoa2(int num, char *buffer, int base, int itr); // http://code.geeksforgeeks.org/lDrTiv
 char* utoa2(uint32_t num, char *buffer, int base, int itr);
 void clearBuf(char *buf,uint32_t length);
+uint32_t adc_to_mA(uint32_t adcval); // based on some rough calibration, convert an ADC reading of the INA301 current output to an actual current draw
+
 #endif /* SFUSAT_SFU_UTILS_H */
