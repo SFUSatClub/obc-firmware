@@ -14,29 +14,66 @@
 #include "sfu_rtc.h"
 // -------------- Tasks for testing --------------------
 void sfu_create_fs_test(void *pvParameters) {
-
+	sfu_create_files();
+	sfu_fs_init();
 	while (1) {
-		sfu_create_files();
+//		sfu_create_files();
+		delete_oldest();
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
 
 // ------------ Core Functions -------------------------
+void sfu_fs_init(){
+	// Todo: grab this from FEE or from config file
+	fs_num_increments = 0;
+}
 /* increment_prefix
  * - increments the fs prefix once we've filled up the files for the day
  *
  *
  * Todo:
- * delete by prefix
  * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
  * delete oldest function (calls this), called by rescue
+ * add a counter for number of rollovers we do - this will also be used to not delete files until after the first fillup.
  */
+
+void delete_oldest(){
+	// take the mutex since we don't want any writes while we're messing with this
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		// increment prefix
+		increment_prefix();
+
+		// delete the files with the current prefix since we're replacing it
+		if(fs_num_increments >= PREFIX_QUANTITY){
+			sfu_delete_prefix(*(char *) fs.user_data);
+		}
+		// create fresh files
+		sfu_create_files();
+		xSemaphoreGive(spiffsTopMutex);
+	} else {
+		serialSendQ("Del oldest can't get top mutex");
+	}
+}
+
+
+// a b c (delete a)   a  b
+// 0 1 2    3=delete a   4
+
+void increment_prefix(){
+	if(*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)){ // if we're at the end, roll back around
+		sfu_prefix = PREFIX_START;
+	} else{ // else just increment
+		sfu_prefix = sfu_prefix + 1; // increment to next prefix
+	}
+	fs_num_increments++;
+}
 
 /*sfu_delete_prefix
  * - This function deletes all files with the specified prefix
  * - Used to get rid of the oldest set of files when we loop back around
  */
-void sfu_delete_prefix(char prefix) {
+void sfu_delete_prefix(const char prefix) {
 	spiffs_DIR d;
 	struct spiffs_dirent e;
 	struct spiffs_dirent *pe = &e;
@@ -44,36 +81,37 @@ void sfu_delete_prefix(char prefix) {
 	char genBuf[20] = { '\0' };
 	spiffs_file fd = -1;
 
-	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-
+	// MUST CALL WITHIN MUTEX
 		SPIFFS_opendir(&fs, "/", &d);
 		while ((pe = SPIFFS_readdir(&d, pe))) {
-			if (0 == strncmp((const char *) prefix, (char *) pe->name, 1)) { // 1 = strlen of prefix
+//			res = strncmp((const char *) prefix, (char *) pe->name, 1);
+//			if (0 == res) { // 1 = strlen of prefix
+			if((const char *) prefix == (char *) pe->name[0]){ // we kinda don't have strncmp, but we only compare one char anyway
 			// found one
 				fd = SPIFFS_open_by_dirent(&fs, pe, SPIFFS_RDWR, 0);
 				if (fd < 0) {
 					snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
 					serialSendQ(genBuf);
-					return;
+//					return;
 				}
 				res = SPIFFS_fremove(&fs, fd);
 				if (res < 0) {
 					snprintf(genBuf, 20, "Fdr: %i", SPIFFS_errno(&fs));
 					serialSendQ(genBuf);
-					return;
+//					return;
 				}
 				res = SPIFFS_close(&fs, fd);
-				if (res < 0) {
+				if (res != -10008 && res != -10009) { // will return file closed or deleted since we deleted it
 					snprintf(genBuf, 20, "Fdc: %i", SPIFFS_errno(&fs));
 					serialSendQ(genBuf);
-					return;
+//					return;
+				}
+				else{
+					serialSendQ("deleted one");
 				}
 			}
 		}
 		SPIFFS_closedir(&d);
-	} else {
-		serialSendQ("Create can't get top mutex");
-	}
 }
 
 /* sfu_create_files
@@ -93,7 +131,7 @@ void sfu_create_files() {
 	char nameBuf[2] = { '\0' };
 	spiffs_file fd;
 	uint8_t i;
-	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+//	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 // Create and write to the file
@@ -116,10 +154,10 @@ void sfu_create_files() {
 			serialSendQ(genBuf);
 //			clearBuf(genBuf, 20);
 		}
-		xSemaphoreGive(spiffsTopMutex);
-	} else {
-		serialSendQ("Create can't get top mutex");
-	}
+//		xSemaphoreGive(spiffsTopMutex);
+//	} else {
+//		serialSendQ("Create can't get top mutex");
+//	}
 }
 
 /* sfu_write_fd

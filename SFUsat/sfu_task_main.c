@@ -23,7 +23,6 @@ TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xSPIFFSHandle = NULL; // RA
 TaskHandle_t xSPIFFSCheck = NULL; // RA
-TaskHandle_t xSPIFFSRead = NULL; // RA
 
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
@@ -47,10 +46,9 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vSerialTask, "serial", 600, NULL, 5, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 800, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
-	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
-	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
-//	xTaskCreate(spiffs_read_task, "read spiffs", 2000, NULL, 4, &xSPIFFSHandle);
-//	xTaskCreate(sfu_create_fs_test, "create fs", 1400, NULL, 4, &xSPIFFSCheck);
+//	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
+//	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
+	xTaskCreate(sfu_create_fs_test, "create fs", 1400, NULL, 4, &xSPIFFSCheck);
 
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
