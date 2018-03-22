@@ -30,7 +30,7 @@ TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
 	setStateRTOS_mode(); // tell state machine we're in RTOS control so it can print correctly
-	 sfusat_spiffs_init();
+	sfusat_spiffs_init();
 //	   test_spiffs();
 
 
@@ -48,7 +48,9 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 //	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
 //	xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
-	xTaskCreate(sfu_create_fs_test, "create fs", 1400, NULL, 4, &xSPIFFSCheck);
+	xTaskCreate(sfu_fs_lifecycle, "fs life", 1400, NULL, 4, &xSPIFFSCheck);
+	xTaskCreate(fs_rando_write, "rando write", 1400, NULL, 3, &xSPIFFSHandle);
+
 
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);

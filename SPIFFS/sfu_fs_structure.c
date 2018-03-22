@@ -12,13 +12,37 @@
 #include "sfu_uart.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+
+// * Todo:
+// * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
+// * delete oldest function (calls this), called by rescue
+// * add a counter for number of rollovers we do - this will also be used to not delete files until after the first fillup.
+
+
 // -------------- Tasks for testing --------------------
-void sfu_create_fs_test(void *pvParameters) {
+void sfu_fs_lifecycle(void *pvParameters) {
+	/* lifecycle
+	 * - inits, deletes the files in the system as we will in flight
+	 * - another task is required to write/read the files as would be done normally
+	 */
+
 	sfu_fs_init();
 	sfu_create_files();
 	while (1) {
-		vTaskDelay(pdMS_TO_TICKS(5000));
+		vTaskDelay(pdMS_TO_TICKS(10000));
 		delete_oldest(); // this handles deletion and creation
+	}
+}
+
+void fs_rando_write(void *pvParameters){
+	/* random write
+	 * - writes some random + nonrandom data into the system log file
+	 * - used to show that file sizes do grow
+	 */
+	while(1){
+		char randomData[5];
+		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
+		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 }
 
@@ -27,20 +51,13 @@ void sfu_fs_init() {
 	// Todo: grab this from FEE or from config file
 	fs_num_increments = 0;
 }
-/* increment_prefix
- * - increments the fs prefix once we've filled up the files for the day
- *
- *
- * Todo:
- * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
- * delete oldest function (calls this), called by rescue
- * add a counter for number of rollovers we do - this will also be used to not delete files until after the first fillup.
- */
-/* delete_oldest
- * - this function is run at the end of every day.
- * - it increments the file prefix and deletes any old files
- */
+
 void delete_oldest() {
+	/* delete_oldest
+	 * - this function is run at the end of every day.
+	 * - it increments the file prefix and deletes any old files
+	 */
+
 	// take the mutex since we don't want any writes while we're messing with this
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		// increment prefix
@@ -59,6 +76,10 @@ void delete_oldest() {
 }
 
 void increment_prefix() {
+	/* increment_prefix
+	 * - increments the fs prefix once we've filled up the files for the day
+	 */
+
 	// CALL WITHIN MUTEX
 	if (*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)) { // if we're at the end, roll back around
 		sfu_prefix = PREFIX_START;
@@ -68,11 +89,12 @@ void increment_prefix() {
 	fs_num_increments++;
 }
 
-/*sfu_delete_prefix
- * - This function deletes all files with the specified prefix
- * - Used to get rid of the oldest set of files when we loop back around
- */
 void sfu_delete_prefix(const char prefix) {
+	/*sfu_delete_prefix
+	 * - This function deletes all files with the specified prefix
+	 * - Used to get rid of the oldest set of files when we loop back around
+	 */
+
 	// MUST CALL WITHIN MUTEX
 
 	spiffs_DIR d;
@@ -109,7 +131,7 @@ void sfu_delete_prefix(const char prefix) {
 				snprintf(genBuf, 20, "Fdc: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			} else {
-				snprintf(genBuf, 20, "Deleted: %i",s.size);
+				snprintf(genBuf, 20, "Del: %i",s.size);
 				serialSendQ(genBuf);
 			}
 		}
@@ -155,8 +177,8 @@ void sfu_create_files() {
 			serialSendQ(genBuf);
 		}
 		clearBuf(genBuf, 20);
-		snprintf(genBuf, 20, "Create: %s", nameBuf);
-// Todo: this often prints garbage for some reason. Full queue?
+		snprintf(genBuf, 11, "Create: %s", nameBuf);
+// Todo: this often prints garbage (it does with two files). Task getting suspended before we have the chance to pass data by copy into the queue?
 		serialSendQ((const char*)genBuf);
 	}
 //		xSemaphoreGive(spiffsTopMutex);
@@ -165,13 +187,15 @@ void sfu_create_files() {
 //	}
 }
 
-/* sfu_write_fd
- *
- * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
- *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
- * Having a file descriptor means we've already opened the file up
- */
+
 void write_fd(spiffs_file fd, char *fmt, ...) {
+	/* sfu_write_fd
+	 *
+	 * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
+	 *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
+	 * Having a file descriptor means we've already opened the file up
+	 */
+
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 	va_list argptr;
 	va_start(argptr, fmt);
@@ -187,11 +211,12 @@ void write_fd(spiffs_file fd, char *fmt, ...) {
 	// YOU MUST CLOSE THE FILE
 }
 
-/* sfu_write_fname
- *
- * Given a file name (through the #define), write the printf-formatted data to it and timestamp
- */
+
 void sfu_write_fname(char f_suffix, char *fmt, ...) {
+	/* sfu_write_fname
+	 * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
+	 */
+
 	char nameBuf[2] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
@@ -199,13 +224,13 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	va_start(argptr, fmt);
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
-
+	spiffs_file fd;
 	create_filename(nameBuf, f_suffix);
 
 // Formatting done, enter mutex and open + write the file
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
-		spiffs_file fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
+		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND|  SPIFFS_RDWR, 0);
 
 		if (fd < 0) { 	// if there's an error opening
 			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
