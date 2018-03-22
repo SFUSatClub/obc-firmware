@@ -14,17 +14,16 @@
 #include "sfu_rtc.h"
 // -------------- Tasks for testing --------------------
 void sfu_create_fs_test(void *pvParameters) {
-	sfu_create_files();
 	sfu_fs_init();
+	sfu_create_files();
 	while (1) {
-//		sfu_create_files();
-		delete_oldest();
 		vTaskDelay(pdMS_TO_TICKS(5000));
+		delete_oldest(); // this handles deletion and creation
 	}
 }
 
 // ------------ Core Functions -------------------------
-void sfu_fs_init(){
+void sfu_fs_init() {
 	// Todo: grab this from FEE or from config file
 	fs_num_increments = 0;
 }
@@ -37,15 +36,18 @@ void sfu_fs_init(){
  * delete oldest function (calls this), called by rescue
  * add a counter for number of rollovers we do - this will also be used to not delete files until after the first fillup.
  */
-
-void delete_oldest(){
+/* delete_oldest
+ * - this function is run at the end of every day.
+ * - it increments the file prefix and deletes any old files
+ */
+void delete_oldest() {
 	// take the mutex since we don't want any writes while we're messing with this
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		// increment prefix
 		increment_prefix();
 
 		// delete the files with the current prefix since we're replacing it
-		if(fs_num_increments >= PREFIX_QUANTITY){
+		if (fs_num_increments >= PREFIX_QUANTITY) {
 			sfu_delete_prefix(*(char *) fs.user_data);
 		}
 		// create fresh files
@@ -56,14 +58,11 @@ void delete_oldest(){
 	}
 }
 
-
-// a b c (delete a)   a  b
-// 0 1 2    3=delete a   4
-
-void increment_prefix(){
-	if(*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)){ // if we're at the end, roll back around
+void increment_prefix() {
+	// CALL WITHIN MUTEX
+	if (*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)) { // if we're at the end, roll back around
 		sfu_prefix = PREFIX_START;
-	} else{ // else just increment
+	} else { // else just increment
 		sfu_prefix = sfu_prefix + 1; // increment to next prefix
 	}
 	fs_num_increments++;
@@ -74,44 +73,48 @@ void increment_prefix(){
  * - Used to get rid of the oldest set of files when we loop back around
  */
 void sfu_delete_prefix(const char prefix) {
+	// MUST CALL WITHIN MUTEX
+
 	spiffs_DIR d;
 	struct spiffs_dirent e;
 	struct spiffs_dirent *pe = &e;
 	int32_t res;
 	char genBuf[20] = { '\0' };
 	spiffs_file fd = -1;
+	spiffs_stat s;
 
-	// MUST CALL WITHIN MUTEX
-		SPIFFS_opendir(&fs, "/", &d);
-		while ((pe = SPIFFS_readdir(&d, pe))) {
-//			res = strncmp((const char *) prefix, (char *) pe->name, 1);
-//			if (0 == res) { // 1 = strlen of prefix
-			if((const char *) prefix == (char *) pe->name[0]){ // we kinda don't have strncmp, but we only compare one char anyway
+	SPIFFS_opendir(&fs, "/", &d);
+	while ((pe = SPIFFS_readdir(&d, pe))) {
+		if ((const char *) prefix == (char *) pe->name[0]) { // we kinda don't have strncmp, but we only compare one char anyway
 			// found one
-				fd = SPIFFS_open_by_dirent(&fs, pe, SPIFFS_RDWR, 0);
-				if (fd < 0) {
-					snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
+			fd = SPIFFS_open_by_dirent(&fs, pe, SPIFFS_RDWR, 0);
+			if (fd < 0) {
+				snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
+				serialSendQ(genBuf);
+			}
+
+// Get file stats
+			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
+					snprintf(genBuf, 20, "Fds check error %d", SPIFFS_errno(&fs));
 					serialSendQ(genBuf);
-//					return;
-				}
-				res = SPIFFS_fremove(&fs, fd);
-				if (res < 0) {
-					snprintf(genBuf, 20, "Fdr: %i", SPIFFS_errno(&fs));
-					serialSendQ(genBuf);
-//					return;
-				}
-				res = SPIFFS_close(&fs, fd);
-				if (res != -10008 && res != -10009) { // will return file closed or deleted since we deleted it
-					snprintf(genBuf, 20, "Fdc: %i", SPIFFS_errno(&fs));
-					serialSendQ(genBuf);
-//					return;
-				}
-				else{
-					serialSendQ("deleted one");
-				}
+			}
+// Remove file
+			res = SPIFFS_fremove(&fs, fd);
+			if (res < 0) {
+				snprintf(genBuf, 20, "Fdr: %i", SPIFFS_errno(&fs));
+				serialSendQ(genBuf);
+			}
+			res = SPIFFS_close(&fs, fd);
+			if (res != -10008 && res != -10009) { // will return file closed or deleted since we deleted it
+				snprintf(genBuf, 20, "Fdc: %i", SPIFFS_errno(&fs));
+				serialSendQ(genBuf);
+			} else {
+				snprintf(genBuf, 20, "Deleted: %i",s.size);
+				serialSendQ(genBuf);
 			}
 		}
-		SPIFFS_closedir(&d);
+	}
+	SPIFFS_closedir(&d);
 }
 
 /* sfu_create_files
@@ -120,40 +123,42 @@ void sfu_delete_prefix(const char prefix) {
  * Preconditions:
  * 	- all files with the index prefix have been deleted
  * 	- index prefix in spiffs is the one to create files for
- * 	- so if we roll over and want to set up a new set of 'a' files,
- * 		- remove all 'a' files
- * 		- remove all 'b' files (we want to give ourselves lots of room)
+ * 	- so if we roll over and want to create up a new set of 'a' files,
  * 		- set index prefix to 'a'
+ * 		- remove all existing 'a' files
  * 		- call this function
  */
 void sfu_create_files() {
+	// CALL WITHIN MUTEX
+
 	char genBuf[20] = { '\0' };
 	char nameBuf[2] = { '\0' };
 	spiffs_file fd;
 	uint8_t i;
 //	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+	my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 
 // Create and write to the file
-		for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys and create a file for it
-			create_filename(nameBuf, (char) (FSYS_OFFSET + i));
-			fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
-			if (fd < 0) { // check that the create worked
-				snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
-				serialSendQ(genBuf);
-			} else { // write to it
-				write_fd(fd, "Created"); // created, timestamp will be added automatically
-			}
-
-			if (SPIFFS_close(&fs, fd) < 0) {
-//				clearBuf(genBuf, 20);
-				snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
-				serialSendQ(genBuf);
-			}
-			snprintf(genBuf, 20, "Create: %s", nameBuf);
+	for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys and create a file for it
+		create_filename(nameBuf, (char) (FSYS_OFFSET + i));
+		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
+		if (fd < 0) { // check that the create worked
+			snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
-//			clearBuf(genBuf, 20);
+		} else { // write to it
+			write_fd(fd, "Created"); // created, timestamp will be added automatically
 		}
+
+		if (SPIFFS_close(&fs, fd) < 0) {
+//				clearBuf(genBuf, 20);
+			snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
+			serialSendQ(genBuf);
+		}
+		clearBuf(genBuf, 20);
+		snprintf(genBuf, 20, "Create: %s", nameBuf);
+// Todo: this often prints garbage for some reason. Full queue?
+		serialSendQ((const char*)genBuf);
+	}
 //		xSemaphoreGive(spiffsTopMutex);
 //	} else {
 //		serialSendQ("Create can't get top mutex");
@@ -173,7 +178,7 @@ void write_fd(spiffs_file fd, char *fmt, ...) {
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
 
-	serialSendQ("write");
+//	serialSendQ("write");
 
 	if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 		snprintf(buf, 20, "FDwe: %i", SPIFFS_errno(&fs));
@@ -202,18 +207,17 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 		spiffs_file fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
 
-		if (fd < 0) { // if there's an error opening
+		if (fd < 0) { 	// if there's an error opening
 			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
 			serialSendQ(buf);
-		} else { // otherwise, write
+		} else { 		// otherwise, write
 			serialSendQ("fname_write");
-
 			if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 				snprintf(buf, 20, "FNwe: %i", SPIFFS_errno(&fs));
 				serialSendQ(buf);
 			}
 			if (SPIFFS_close(&fs, fd) < 0) {
-				//				clearBuf(genBuf, 20);
+				//clearBuf(genBuf, 20);
 				snprintf(buf, 20, "FNce: %i", SPIFFS_errno(&fs));
 				serialSendQ(buf);
 			}

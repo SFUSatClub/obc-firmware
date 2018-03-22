@@ -20,7 +20,7 @@
 void spiffs_read_task(void *pvParameters) {
 	spiffs_stat s;
 	char buf[30] = { '\0' };
-	uint32_t readno;
+//	uint32_t readno;
 
 	while (1) {
 
@@ -94,7 +94,6 @@ void my_spiffs_mount() {
 }
 
 static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
-
 	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
 		flash_read_arbitrary(addr, size, dst);
 		xSemaphoreGive(spiffsHALMutex);
