@@ -119,23 +119,10 @@ uint32_t setEpochOffset(uint32_t inputOffset) {
 }
 
 uint8_t convertBCD(uint8_t input) {
-    uint8_t nResult=0;
-    int32_t ncnt,anHexValueStored[8];
-    uint16_t unflag=0;
-
-    for(ncnt=7 ;ncnt>=0 ; ncnt--){
-        anHexValueStored[ncnt]=input & (0x0000000f << 4*(7-ncnt));
-        anHexValueStored[ncnt]=anHexValueStored[ncnt] >> 4*(7-ncnt);
-        if(anHexValueStored[ncnt]>9)
-        unflag=1;
-    }
-    if(unflag==1){
+    if (((input & 0xF0 >> 4) < 10) && ((input & 0x0F) < 10)){
+        return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
+    }else{
         return 0;
-    }
-    else{
-        for(ncnt=0 ;ncnt<8 ; ncnt++)
-        nResult= nResult +anHexValueStored[ncnt]*pow(10,(7-ncnt));
-        return nResult;
     }
 }
 
