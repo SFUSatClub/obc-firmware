@@ -134,15 +134,11 @@ int main(void)
 // ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
+	//test_flash();
 	init_adc_test();
     triumf_init();
 //    uint32_t time;
 //    time = no_rtos_test_getCurrentRTCTime();
-
-	if(flash_test_JEDEC()){ // kind of redundant now
-		serialSendln("Passed flash JEDEC test!");
-	}
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
@@ -164,6 +160,8 @@ int main(void)
 		// keep running the scheduler
 	}
 
+#pragma diag_push // Guard the following pragmas to prevent them from having an effect anywhere else.
+#pragma diag_suppress 112 // Suppress "statement is unreachable" since Halcogen always generates the return statement below outside of USER CODE.
 	/* USER CODE END */
 
     return 0;
@@ -171,7 +169,7 @@ int main(void)
 
 
 /* USER CODE BEGIN (4) */
-
+#pragma diag_pop // Restore warnings
 
 #if (configGENERATE_RUN_TIME_STATS == 1)
 BaseType_t getRunTimeCounterValue() {

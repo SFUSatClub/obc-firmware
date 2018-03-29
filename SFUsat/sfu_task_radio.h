@@ -26,11 +26,4 @@ extern QueueHandle_t xRadioRXQueue;
 
 uint8 hello;
 
-//typedef struct RadioDAT RadioDAT_1;
-
-extern struct RadioDAT{
-	uint8 srcsz;
-	uint8 srcdat[100];
-};
-
 #endif /* SFUSAT_SFU_TASK_RADIO_H_ */
