@@ -4,25 +4,115 @@
  * Refactored code from sfu_uart.* by Seleena
  *
  * */
+#include <assert.h>
 
 #include "sfu_uart.h"
 #include "sfu_cmds.h"
 #include "sfu_scheduler.h"
 #include "sfu_state.h"
+#include "sfu_utils.h"
+
+struct subcmd_opt {
+	const char *name;
+	const uint8_t subcmd_id;
+	const char *info;
+};
+struct cmd_opt {
+	int8_t (*const func)(const CMD_t *cmd);
+	const uint8_t cmd_id;
+#ifdef _DEBUG
+	const char *name;
+	const struct subcmd_opt *subcmds;
+	const size_t num_subcmds;
+#endif
+};
+
+int sentinel = 0x89abcdef;
+int test_const_size = HASH("test");
+
+/**
+ * Help command
+ */
+static const struct subcmd_opt CMD_HELP_OPTS[] = {
+	{
+		.subcmd_id   = CMD_HELP_NONE,
+		.name = "",
+		.info = "help  -- Show this help\n"
+				"get   -- Get various metrics\n"
+				"exec  -- Execute various actions\n"
+				"rf    -- RF-related commands\n"
+				"task  -- Task-related commands\n"
+				"sched -- Schedule-related commands\n"
+				"state -- State-related commands\n"
+	},
+	{
+		.subcmd_id   = CMD_HELP_GET,
+		.name = "get",
+		.info = "Get various metrics"
+	},
+	{
+		.subcmd_id   = CMD_HELP_EXEC,
+		.name = "exec",
+		.info = "Execute various actions"
+	},
+	{
+		.subcmd_id   = CMD_HELP_RF,
+		.name = "rf",
+		.info = "RF-related commands"
+	},
+	{
+		.subcmd_id   = CMD_HELP_TASK,
+		.name = "task",
+		.info = "Task-related commands"
+	},
+	{
+		.subcmd_id   = CMD_HELP_SCHED,
+		.name = "sched",
+		.info = "Schedule-related commands"
+	},
+	{
+		.subcmd_id   = CMD_HELP_STATE,
+		.name = "state",
+		.info = "State-related commands"
+	},
+};
 
 int8_t cmdHelp(const CMD_t *cmd) {
-	switch (cmd->subcmd_help_id) {
-		case CMD_HELP_NONE: {
-			serialSendQ("help cmd 0 args");
+	const struct subcmd_opt *subcmd_opt = NULL;
+	FOR_EACH(subcmd_opt, CMD_HELP_OPTS) {
+		if (cmd->subcmd_id == subcmd_opt->subcmd_id) {
+			serialSendQ(subcmd_opt->info);
 			return 1;
 		}
+	}
+	if (IS_OUT_OF_BOUNDS(subcmd_opt, CMD_HELP_OPTS)) {
+		serialSendQ("help: unknown sub-command");
 	}
 	return 0;
 }
 
+
+/**
+ * Get command
+ */
+static const struct subcmd_opt CMD_GET_OPTS[] = {
+	{
+		.subcmd_id   = CMD_GET_NONE,
+		.name = "",
+	},
+	{
+		.subcmd_id   = CMD_GET_RUNTIME,
+		.name = "runtime",
+	},
+	{
+		.subcmd_id   = CMD_GET_HEAP,
+		.name = "heap",
+	},
+};
 char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
-	switch (cmd->subcmd_get_id) {
+	switch (cmd->subcmd_id) {
+		case CMD_GET_NONE:
 		case CMD_GET_TASKS: {
 			serialSend("Task\t\tState\tPrio\tStack\tNum\n");
 			vTaskList(buffer);
@@ -61,11 +151,12 @@ int8_t cmdGet(const CMD_t *cmd) {
 			return 1;
 		}
 	}
+	serialSendQ("get: unknown sub-command");
 	return 0;
 }
 
 int8_t cmdExec(const CMD_t *cmd) {
-	switch (cmd->subcmd_exec_id) {
+	switch (cmd->subcmd_id) {
 		case CMD_EXEC_RADIO: {
 			initRadio();
 			return 1;
@@ -74,13 +165,24 @@ int8_t cmdExec(const CMD_t *cmd) {
 	return 0;
 }
 
+int8_t cmdRF(const CMD_t *cmd) {
+	switch (cmd->subcmd_id) {
+		case CMD_EXEC_RADIO: {
+			initRadio();
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
 /**
  * Handle all task related commands.
  * @param cmd
  * @return
  */
 int8_t cmdTask(const CMD_t *cmd) {
-	switch (cmd->subcmd_task_id) {
+	switch (cmd->subcmd_id) {
 		/**
 		 * Show status of all tasks if no arguments are supplied.
 		 */
@@ -182,7 +284,7 @@ int8_t cmdTask(const CMD_t *cmd) {
  * @return
  */
 int8_t cmdSched(const CMD_t *cmd) {
-	switch (cmd->subcmd_sched_id) {
+	switch (cmd->subcmd_id) {
 		case CMD_SCHED_NONE: {
 			return 1;
 		}
@@ -219,7 +321,7 @@ int8_t cmdSched(const CMD_t *cmd) {
  * @return
  */
 int8_t cmdState(const CMD_t *cmd) {
-	switch (cmd->subcmd_state_id) {
+	switch (cmd->subcmd_id) {
 		/**
 		 * nothing
 		 */
@@ -270,28 +372,72 @@ int8_t cmdState(const CMD_t *cmd) {
 	return 0;
 }
 
-
-#define LEN(array) (sizeof((array))/sizeof((array)[0]))
 /**
- * CMD_DBG_STRINGS[i][j]
- * 		- Index of commands i (row) must match order defined in CMD_NAMES.
- *  	- Index of sub-commands j (col) must match enum representation defined in CMD_TABLE.
- *  	- Index 0 is reserved by NONE, so it's used as row descriptor.
+ * Command table
  */
-#define MAX_SUB_CMDS 10
-const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
-		{"help"},
-		{"get", "tasks", "runtime", "heap", "minheap", "types"},
-		{"exec", "radio"},
-		{"task", "create", "delete", "resume", "suspend", "status", "show"},
-		{"sched", "add", "remove", "show"},
-		{"state", "get", "prev", "set"},
-};
-const char *CMD_NAMES[] = {
-		CMD_TABLE(CMD_NAME_SELECTOR)
-};
-int8_t (*const CMD_FUNCS[])(const CMD_t *cmd) = {
-		CMD_TABLE(CMD_FUNC_SELECTOR)
+static const struct cmd_opt CMD_OPTS[] = {
+		{
+				.cmd_id = CMD_HELP,
+				.func = cmdHelp,
+#ifdef _DEBUG
+				.name = "help",
+				.subcmds = CMD_HELP_OPTS,
+				.num_subcmds = LEN(CMD_HELP_OPTS),
+#endif
+		},
+		{
+				.cmd_id = CMD_GET,
+				.func = cmdGet,
+#ifdef _DEBUG
+				.name = "get",
+				.subcmds = CMD_GET_OPTS,
+				.num_subcmds = LEN(CMD_GET_OPTS),
+#endif
+		},
+		{
+				.cmd_id = CMD_EXEC,
+				.func = cmdExec,
+#ifdef _DEBUG
+				.name = "exec",
+				.subcmds = NULL,
+				.num_subcmds = 0,
+#endif
+		},
+		{
+				.cmd_id = CMD_RF,
+				.func = cmdRF,
+#ifdef _DEBUG
+				.name = "rf",
+				.subcmds = NULL,
+				.num_subcmds = 0,
+#endif
+		},
+		{
+				.cmd_id = CMD_TASK,
+				.func = cmdTask,
+#ifdef _DEBUG
+				.subcmds = NULL,
+				.num_subcmds = 0,
+#endif
+		},
+		{
+				.cmd_id = CMD_SCHED,
+				.name = "sched",
+				.func = cmdSched,
+#ifdef _DEBUG
+				.subcmds = NULL,
+				.num_subcmds = 0,
+#endif
+		},
+		{
+				.cmd_id = CMD_STATE,
+				.name = "state",
+				.func = cmdState,
+#ifdef _DEBUG
+				.subcmds = NULL,
+				.num_subcmds = 0,
+#endif
+		}
 };
 
 /**
@@ -312,10 +458,14 @@ void __unused() {
 #endif
 
 int8_t checkAndRunCommand(const CMD_t *cmd) {
-	const CMD_ID id = cmd->cmd_id;
-	if (id >= NUM_CMDS) return 0;
-	(*CMD_FUNCS[id])(cmd);
-	return 1;
+	const struct cmd_opt *cmd_opt = NULL;
+	FOR_EACH(cmd_opt, CMD_OPTS) {
+		if (cmd->cmd_id == cmd_opt->cmd_id) {
+			cmd_opt->func(cmd);
+			return 1;
+		}
+	}
+	return 0;
 }
 
 int8_t checkAndRunCommandStr(char *cmd) {
@@ -328,36 +478,37 @@ int8_t checkAndRunCommandStr(char *cmd) {
 
 	/**
 	 * Compare the first word (which is the user's intended command) with all known
-	 * commands. Save the index if a match is found.
+	 * commands. The iterator cmd_opt is set on each iteration.
 	 */
-	int8_t intendedCmdIdx = -1;
-	uint8_t i;
-	for (i = 0; i < sizeof(CMD_NAMES) / sizeof(char*); i++) {
-		const char *currCmd = CMD_NAMES[i];
-		if(strcmp(intendedCmd, currCmd) == 0) {
-			intendedCmdIdx = i;
+	const struct cmd_opt *cmd_opt;
+	FOR_EACH(cmd_opt, CMD_OPTS) {
+		if(strcmp(intendedCmd, cmd_opt->name) == 0) {
 			break;
 		}
 	}
 	/**
 	 * Exit if the command does not exist.
 	 */
-	if (intendedCmdIdx == -1) return 0;
+	if (IS_OUT_OF_BOUNDS(cmd_opt, CMD_OPTS)) return 0;
 
 	/**
 	 * Compare the second word if it exists (which is the user's intended sub-command)
-	 * with all known sub-commands for that command. Save the index if a match is found.
+	 * with all known sub-commands for that command. Save the sub-command ID if a match is found.
 	 */
 	intendedCmd = strtok(NULL, delim);
-	uint8_t intendedSubCmdIdx = 0;
-	for (i = 1; i < MAX_SUB_CMDS && CMD_DBG_STRINGS[intendedCmdIdx][i] != NULL && intendedCmd != NULL; i++) {
-		if (strcmp(CMD_DBG_STRINGS[intendedCmdIdx][i], intendedCmd) == 0) {
-			intendedSubCmdIdx = i;
+	const struct subcmd_opt *subcmd_opt = NULL;
+	uint8_t subcmd_id = CMD_UNDEFINED;
+	for (subcmd_opt = cmd_opt->subcmds; subcmd_opt != NULL &&
+										intendedCmd != NULL &&
+										subcmd_opt < &cmd_opt->subcmds[cmd_opt->num_subcmds]; subcmd_opt++)
+	{
+		if(strcmp(intendedCmd, subcmd_opt->name) == 0) {
+			subcmd_id = subcmd_opt->subcmd_id;
 			break;
 		}
 	}
 
-	CMD_t cmd_t = {.cmd_id = (CMD_ID)intendedCmdIdx, .subcmd_id = intendedSubCmdIdx};
+	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
 	/**
 	 * The third token will be interpreted as a hex string if it exists.
 	 * No preceding 0x required.
@@ -373,13 +524,15 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 * 		cmd_t.cmd_task_data.task_id will be == TASK_BLINKY (4)
 	 */
 	const char *data = strtok(NULL, delim);
+	unsigned int i = 0;
 	if (data != NULL) {
 		const int data_len = strlen(data);
 		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
 			char c[3] = {NULL};
 			c[0] = *(data + i);
+			// TODO: fix dereference beyond null char
 			const char n = *(data + i + 1);
-			c[1] = n == NULL ? '0' : n;
+			c[1] = n == '\0' ? '0' : n;
 			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
 		}
 	}
@@ -388,7 +541,7 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	/**
 	 * Invoke the intended command with the command struct created above.
 	 */
-	(*CMD_FUNCS[intendedCmdIdx])(&cmd_t);
+	cmd_opt->func(&cmd_t);
 
 	return 1;
 }
