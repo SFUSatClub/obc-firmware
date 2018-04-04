@@ -89,8 +89,6 @@ void vMainTask(void *pvParameters) {
 	serialSendln("main tasks created");
 
 	while (1) {
-		serialSendQ("main");
-
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};

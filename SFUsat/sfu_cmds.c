@@ -17,64 +17,94 @@ struct subcmd_opt {
 	const uint8_t subcmd_id;
 	const char *info;
 };
+
+/**
+ * The following fields are used mainly to facilitate UART debugging:
+ * 		- name
+ * 		- subcmds
+ * 		- num_subcmds
+ * Word aligned.
+ */
 struct cmd_opt {
-	int8_t (*const func)(const CMD_t *cmd);
-	const uint8_t cmd_id;
-#ifdef _DEBUG
 	const char *name;
+	int8_t (*const func)(const CMD_t *cmd);
 	const struct subcmd_opt *subcmds;
-	const size_t num_subcmds;
-#endif
+	const uint8_t cmd_id;
+	const uint8_t num_subcmds;
 };
 
 int sentinel = 0x89abcdef;
 int test_const_size = HASH("test");
 
 /**
- * Help command
+ * Help command.
  */
 static const struct subcmd_opt CMD_HELP_OPTS[] = {
-	{
-		.subcmd_id   = CMD_HELP_NONE,
-		.name = "",
-		.info = "help  -- Show this help\n"
-				"get   -- Get various metrics\n"
-				"exec  -- Execute various actions\n"
-				"rf    -- RF-related commands\n"
-				"task  -- Task-related commands\n"
-				"sched -- Schedule-related commands\n"
-				"state -- State-related commands\n"
-	},
-	{
-		.subcmd_id   = CMD_HELP_GET,
-		.name = "get",
-		.info = "Get various metrics"
-	},
-	{
-		.subcmd_id   = CMD_HELP_EXEC,
-		.name = "exec",
-		.info = "Execute various actions"
-	},
-	{
-		.subcmd_id   = CMD_HELP_RF,
-		.name = "rf",
-		.info = "RF-related commands"
-	},
-	{
-		.subcmd_id   = CMD_HELP_TASK,
-		.name = "task",
-		.info = "Task-related commands"
-	},
-	{
-		.subcmd_id   = CMD_HELP_SCHED,
-		.name = "sched",
-		.info = "Schedule-related commands"
-	},
-	{
-		.subcmd_id   = CMD_HELP_STATE,
-		.name = "state",
-		.info = "State-related commands"
-	},
+		{
+				.subcmd_id	= CMD_HELP_NONE,
+				.name		= "",
+				.info		= "Available commands (type `help <cmd>` for more information):\n"
+							  "  help  -- Show this help\n"
+							  "  get   -- Get various metrics\n"
+							  "  exec  -- Execute various actions\n"
+							  "  rf    -- RF-related commands\n"
+							  "  task  -- Task-related commands\n"
+							  "  sched -- Schedule-related commands\n"
+							  "  state -- State-related commands\n"
+		},
+		{
+				.subcmd_id	= CMD_HELP_GET,
+				.name		= "get",
+				.info		= "Get various metrics\n"
+							  "  tasks   -- Show status of tasks (state, priority, stack, etc)\n"
+							  "  runtime -- Show per-task CPU utilization\n"
+							  "  heap    -- Show size of free heap\n"
+							  "  minheap -- Show lowest size of free heap ever reached\n"
+							  "  types   -- Show size of various types (debugging)\n"
+		},
+		{
+				.subcmd_id	= CMD_HELP_EXEC,
+				.name		= "exec",
+				.info		= "Execute various actions\n"
+							  "  rf -- Initialize the radio\n"
+		},
+		{
+				.subcmd_id	= CMD_HELP_RF,
+				.name		= "rf",
+				.info		= "RF-related commands (none)"
+		},
+		{
+				.subcmd_id	= CMD_HELP_TASK,
+				.name		= "task",
+				.info		= "Task-related commands\n"
+							  "  resume [TASK_ID]\n"
+							  "    Resume the given task ID\n"
+							  "    TODO: TASK_IDs to be listed here\n"
+							  "  suspend [TASK_ID]\n"
+							  "    Suspend the given task ID\n"
+		},
+		{
+				.subcmd_id	= CMD_HELP_SCHED,
+				.name		= "sched",
+				.info		= "Schedule-related commands\n"
+							  "  add [HEX DATA]\n"
+							  "    Add an event to be scheduled\n"
+							  "  remove [INDEX]\n"
+							  "    Remove an event from the scheduler\n"
+							  "  show\n"
+							  "    Show scheduled events\n"
+		},
+		{
+				.subcmd_id	= CMD_HELP_STATE,
+				.name		= "state",
+				.info		= "State-related commands\n"
+							  "  get\n"
+							  "    Show current state\n"
+							  "  set [HEX DATA]\n"
+							  "    Set the current state\n"
+							  "  prev\n"
+							  "    Show previous state\n"
+		},
 };
 
 int8_t cmdHelp(const CMD_t *cmd) {
@@ -93,21 +123,33 @@ int8_t cmdHelp(const CMD_t *cmd) {
 
 
 /**
- * Get command
+ * Get command.
  */
 static const struct subcmd_opt CMD_GET_OPTS[] = {
-	{
-		.subcmd_id   = CMD_GET_NONE,
-		.name = "",
-	},
-	{
-		.subcmd_id   = CMD_GET_RUNTIME,
-		.name = "runtime",
-	},
-	{
-		.subcmd_id   = CMD_GET_HEAP,
-		.name = "heap",
-	},
+		{
+				.subcmd_id	= CMD_GET_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_GET_TASKS,
+				.name		= "tasks",
+		},
+		{
+				.subcmd_id	= CMD_GET_RUNTIME,
+				.name		= "runtime",
+		},
+		{
+				.subcmd_id	= CMD_GET_HEAP,
+				.name		= "heap",
+		},
+		{
+				.subcmd_id	= CMD_GET_MINHEAP,
+				.name		= "minheap",
+		},
+		{
+				.subcmd_id	= CMD_GET_TYPES,
+				.name		= "types",
+		},
 };
 char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
@@ -155,6 +197,19 @@ int8_t cmdGet(const CMD_t *cmd) {
 	return 0;
 }
 
+/**
+ * Exec command.
+ */
+static const struct subcmd_opt CMD_EXEC_OPTS[] = {
+		{
+				.subcmd_id	= CMD_EXEC_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_EXEC_RADIO,
+				.name		= "rf",
+		},
+};
 int8_t cmdExec(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_EXEC_RADIO: {
@@ -175,12 +230,23 @@ int8_t cmdRF(const CMD_t *cmd) {
 	return 0;
 }
 
-
 /**
- * Handle all task related commands.
- * @param cmd
- * @return
+ * Task related commands.
  */
+static const struct subcmd_opt CMD_TASK_OPTS[] = {
+		{
+				.subcmd_id	= CMD_TASK_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_TASK_RESUME,
+				.name		= "resume",
+		},
+		{
+				.subcmd_id	= CMD_TASK_SUSPEND,
+				.name		= "suspend",
+		},
+};
 int8_t cmdTask(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		/**
@@ -279,10 +345,26 @@ int8_t cmdTask(const CMD_t *cmd) {
 }
 
 /**
- * Handle all command scheduling related commands.
- * @param cmd
- * @return
+ * Scheduling related commands.
  */
+static const struct subcmd_opt CMD_SCHED_OPTS[] = {
+		{
+				.subcmd_id	= CMD_SCHED_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_SCHED_ADD,
+				.name		= "add",
+		},
+		{
+				.subcmd_id	= CMD_SCHED_REMOVE,
+				.name		= "remove",
+		},
+		{
+				.subcmd_id	= CMD_SCHED_SHOW,
+				.name		= "show",
+		},
+};
 int8_t cmdSched(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_SCHED_NONE: {
@@ -316,17 +398,32 @@ int8_t cmdSched(const CMD_t *cmd) {
 }
 
 /**
- * Handle all state related commands.
- * @param cmd
- * @return
+ * State related commands.
  */
+static const struct subcmd_opt CMD_STATE_OPTS[] = {
+		{
+				.subcmd_id	= CMD_STATE_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_STATE_GET,
+				.name		= "get",
+		},
+		{
+				.subcmd_id	= CMD_STATE_SET,
+				.name		= "set",
+		},
+		{
+				.subcmd_id	= CMD_STATE_PREV,
+				.name		= "prev",
+		},
+};
 int8_t cmdState(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		/**
-		 * nothing
+		 * Fall through (do a CMD_STATE_GET)
 		 */
 		case CMD_STATE_NONE: {
-			return 1;
 		}
 		/**
 		 * Get current state
@@ -373,70 +470,60 @@ int8_t cmdState(const CMD_t *cmd) {
 }
 
 /**
- * Command table
+ * Command table.
+ *
+ * If adding a new entry, make sure all fields are initialized:
+ * 		- .name is required to be set to something
  */
 static const struct cmd_opt CMD_OPTS[] = {
 		{
-				.cmd_id = CMD_HELP,
-				.func = cmdHelp,
-#ifdef _DEBUG
-				.name = "help",
-				.subcmds = CMD_HELP_OPTS,
-				.num_subcmds = LEN(CMD_HELP_OPTS),
-#endif
+				.cmd_id			= CMD_HELP,
+				.func			= cmdHelp,
+				.name			= "help",
+				.subcmds		= CMD_HELP_OPTS,
+				.num_subcmds 	= LEN(CMD_HELP_OPTS),
 		},
 		{
-				.cmd_id = CMD_GET,
-				.func = cmdGet,
-#ifdef _DEBUG
-				.name = "get",
-				.subcmds = CMD_GET_OPTS,
-				.num_subcmds = LEN(CMD_GET_OPTS),
-#endif
+				.cmd_id			= CMD_GET,
+				.func			= cmdGet,
+				.name			= "get",
+				.subcmds		= CMD_GET_OPTS,
+				.num_subcmds	= LEN(CMD_GET_OPTS),
 		},
 		{
-				.cmd_id = CMD_EXEC,
-				.func = cmdExec,
-#ifdef _DEBUG
-				.name = "exec",
-				.subcmds = NULL,
-				.num_subcmds = 0,
-#endif
+				.cmd_id			= CMD_EXEC,
+				.func			= cmdExec,
+				.name			= "exec",
+				.subcmds		= CMD_EXEC_OPTS,
+				.num_subcmds	= LEN(CMD_EXEC_OPTS),
 		},
 		{
-				.cmd_id = CMD_RF,
-				.func = cmdRF,
-#ifdef _DEBUG
-				.name = "rf",
-				.subcmds = NULL,
-				.num_subcmds = 0,
-#endif
+				.cmd_id			= CMD_RF,
+				.func			= cmdRF,
+				.name			= "rf",
+				.subcmds		= NULL,
+				.num_subcmds	= 0,
 		},
 		{
-				.cmd_id = CMD_TASK,
-				.func = cmdTask,
-#ifdef _DEBUG
-				.subcmds = NULL,
-				.num_subcmds = 0,
-#endif
+				.cmd_id			= CMD_TASK,
+				.func			= cmdTask,
+				.name			= "task",
+				.subcmds		= CMD_TASK_OPTS,
+				.num_subcmds	= LEN(CMD_TASK_OPTS),
 		},
 		{
-				.cmd_id = CMD_SCHED,
-				.name = "sched",
-				.func = cmdSched,
-#ifdef _DEBUG
-				.subcmds = NULL,
-				.num_subcmds = 0,
-#endif
+				.cmd_id			= CMD_SCHED,
+				.name			= "sched",
+				.func			= cmdSched,
+				.subcmds		= CMD_SCHED_OPTS,
+				.num_subcmds	= LEN(CMD_SCHED_OPTS),
 		},
 		{
-				.cmd_id = CMD_STATE,
-				.name = "state",
-				.func = cmdState,
-#ifdef _DEBUG
-				.subcmds = NULL,
-				.num_subcmds = 0,
-#endif
+				.cmd_id			= CMD_STATE,
+				.name			= "state",
+				.func			= cmdState,
+				.subcmds		= CMD_STATE_OPTS,
+				.num_subcmds	= LEN(CMD_STATE_OPTS),
 		}
 };
 
@@ -460,7 +547,7 @@ void __unused() {
 int8_t checkAndRunCommand(const CMD_t *cmd) {
 	const struct cmd_opt *cmd_opt = NULL;
 	FOR_EACH(cmd_opt, CMD_OPTS) {
-		if (cmd->cmd_id == cmd_opt->cmd_id) {
+		if (cmd_opt->cmd_id == cmd->cmd_id) {
 			cmd_opt->func(cmd);
 			return 1;
 		}
@@ -493,11 +580,14 @@ int8_t checkAndRunCommandStr(char *cmd) {
 
 	/**
 	 * Compare the second word if it exists (which is the user's intended sub-command)
-	 * with all known sub-commands for that command. Save the sub-command ID if a match is found.
+	 * with all known sub-commands for that command.
+	 *
+	 * Save the sub-command ID if a match is found, otherwise subcmd_id will be set to
+	 * CMD_UNDEFINED (for an unrecognized sub-command) or CMD_DEFAULT (if no sub-command given).
 	 */
 	intendedCmd = strtok(NULL, delim);
 	const struct subcmd_opt *subcmd_opt = NULL;
-	uint8_t subcmd_id = CMD_UNDEFINED;
+	uint8_t subcmd_id = intendedCmd ? CMD_UNDEFINED : CMD_DEFAULT;
 	for (subcmd_opt = cmd_opt->subcmds; subcmd_opt != NULL &&
 										intendedCmd != NULL &&
 										subcmd_opt < &cmd_opt->subcmds[cmd_opt->num_subcmds]; subcmd_opt++)

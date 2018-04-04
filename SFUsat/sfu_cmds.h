@@ -14,7 +14,6 @@
 #include "sfu_state.h" // so we can have the state enum
 
 
-#define CMD_UNDEFINED	0xFF
 /**
  * Magic numbers to identify a command.
  * - Definition order does not matter.
@@ -31,13 +30,6 @@
 #define CMD_SCHED		0x0A
 #define CMD_STATE		0x0C
 
-//#define CMD_HELP_NONE		GENERATE_ID("CMD_HELP_NONE")
-//#define CMD_HELP_GET		GENERATE_ID("CMD_HELP_GET")
-//#define CMD_HELP_EXEC		GENERATE_ID("CMD_HELP_EXEC")
-//#define CMD_HELP_RF			GENERATE_ID("CMD_HELP_RF")
-//#define CMD_HELP_TASK		GENERATE_ID("CMD_HELP_TASK")
-//#define CMD_HELP_SCHED		GENERATE_ID("CMD_HELP_SCHED")
-//#define CMD_HELP_STATE		GENERATE_ID("CMD_HELP_STATE")
 /**
  * Magic numbers to identify the sub-commands of a command.
  * - Definition order does not matter.
@@ -47,6 +39,9 @@
  *		- 0x00 is used for default behavior (e.g., when a command is called with no sub-command, subcmd id 0x00 will be used)
  * - Must fit within a uint8_t (0x00 to 0xFF).
  */
+#define CMD_DEFAULT			0x00
+#define CMD_UNDEFINED		0xFF
+
 #define CMD_HELP_NONE		0x00
 #define CMD_HELP_GET		0x02
 #define CMD_HELP_EXEC		0x04
