@@ -88,12 +88,11 @@ TransitionFunc_t * const TRANSITION_TABLE[NUM_STATES][NUM_STATES] = {
 
 
 State_t runState(State_t currstate, InstanceData_t *data) {
-	printStateInfo(currstate,data);
-
 	State_t newState = STATE_TABLE[currstate](data);
 
 	TransitionFunc_t *transition = TRANSITION_TABLE[currstate][newState];
 	if (transition) {
+		printStateInfo(currstate,data);
 		transition(data);
 		data->previous_state = currstate;
 		data->enter_time = 0x32; // dummy value, will actually want to read RTC

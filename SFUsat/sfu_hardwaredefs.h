@@ -47,7 +47,11 @@
 /**
  * Radio
  */
-#define TASK_RADIO_REG 			mibspiREG3
+#define RF_SPI_REG 				spiREG3
+#define RF_CONFIG_CS_HOLD 		TRUE		// CS false = high during data transfer
+#define RF_CONFIG_WDEL 			TRUE		// wdelay
+#define RF_CONFIG_DFSEL 		SPI_FMT_0 	// data format
+#define RF_CONFIG_CSNR 			0x00 		// chip select to use
 
 /**
  * IRQs
@@ -103,7 +107,11 @@
 /**
  * Radio
  */
-#define TASK_RADIO_REG 			mibspiREG3
+#define RF_SPI_REG 				spiREG3
+#define RF_CONFIG_CS_HOLD 		TRUE		// CS false = high during data transfer
+#define RF_CONFIG_WDEL 			TRUE		// wdelay
+#define RF_CONFIG_DFSEL 		SPI_FMT_0 	// data format
+#define RF_CONFIG_CSNR 			0x00 		// chip select to use
 
 /**
  * IRQs
@@ -159,7 +167,11 @@
 /**
  * Radio
  */
-#define TASK_RADIO_REG 			spiREG3
+#define RF_SPI_REG 				spiREG3
+#define RF_CONFIG_CS_HOLD 		TRUE		// CS false = high during data transfer
+#define RF_CONFIG_WDEL 			TRUE		// wdelay
+#define RF_CONFIG_DFSEL 		SPI_FMT_0 	// data format
+#define RF_CONFIG_CSNR 			0x00 		// chip select to use
 
 /**
  * IRQs

@@ -320,7 +320,7 @@ void vRadioCHIME(void *pvParameters){
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff; //table 23 of CC1101 Datasheet
 	/*char buffer[30];
 	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, statusByte, dest[1]);
@@ -332,7 +332,7 @@ static uint8 readRegister(uint8 addr) {
 static void writeRegister(uint8 addr, uint8 val) {
 	uint16 src[] = {addr | WRITE_BIT, val};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff;
 }
 
@@ -347,7 +347,7 @@ static void writeRegister(uint8 addr, uint8 val) {
 static void strobe(uint8 addr) {
 	uint16 src[] = {addr};
 	uint16 dest[] = {0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 1, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 1, src, dest);
 	statusByte = dest[0] & 0xff;
 	char buffer[30];
 	snprintf(buffer, 30, "S 0x%02x\r\n < 0x%02x", src[0], statusByte);
@@ -517,15 +517,15 @@ void gio_notification_RF(gioPORT_t *port, uint32 bit){
 
 BaseType_t initRadio() {
 	//what task should SPI initialization occure in?
-	spiDataConfig.CS_HOLD = TRUE;
-	spiDataConfig.WDEL = TRUE;
-    spiDataConfig.DFSEL = SPI_FMT_0;
+	spiDataConfig.CS_HOLD = RF_CONFIG_CS_HOLD;
+	spiDataConfig.WDEL = RF_CONFIG_WDEL;
+    spiDataConfig.DFSEL = RF_CONFIG_DFSEL;
     /*
      * Encoded SPI Transfer Group Chip Select
      * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
-    spiDataConfig.CSNR = SPI_CS_0;
+    spiDataConfig.CSNR = RF_CONFIG_CSNR;
 
     uint8 *stat = readAllStatusRegisters();
     char buffer[30];

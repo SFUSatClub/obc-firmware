@@ -12,8 +12,12 @@
 #include "sfu_rtc.h"
 #include "sfu_state.h"
 
+#include "flash_mibspi.h"
+#include "sfu_startup.h"
 
-
+//  ---------- SFUSat Tests (optional) ----------
+#include "sfu_triumf.h"
+#include "unit_tests/unit_tests.h"
 
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
@@ -30,6 +34,44 @@ TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
+	/**
+	 * Hardware initialization
+	 */
+	serialInit();
+	gioInit();
+	spiInit();
+	flash_mibspi_init();
+
+	// ---------- SFUSat INIT ----------
+	rtcInit();
+	stateMachineInit(); // we start in SAFE mode
+
+
+	// ---------- BRINGUP/PRELIMINARY PHASE ----------
+	serialSendln("SFUSat Started!");
+
+	watchdog_busywait(3000); // to allow time for serial to connect up to script
+	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+	printStartupType();
+
+	// ---------- INIT RTOS FEATURES ----------
+	// TODO: encapsulate these
+	//  xQueue = xQueueCreate(5, sizeof(char *));
+	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	serialSendQ("created queue");
+
+	xFlashMutex = xSemaphoreCreateMutex();
+	xRTCMutex = xSemaphoreCreateMutex();
+	// ---------- INIT TESTS ----------
+	// TODO: if tests fail, actually do something
+	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	test_flash();
+	test_adc_init();
+	test_triumf_init();
+	//    uint32_t time;
+	//    time = no_rtos_test_getCurrentRTCTime();
+
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
@@ -89,8 +131,6 @@ void vMainTask(void *pvParameters) {
 	serialSendln("main tasks created");
 
 	while (1) {
-		serialSendQ("main");
-
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};
