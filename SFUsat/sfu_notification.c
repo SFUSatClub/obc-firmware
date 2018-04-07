@@ -9,10 +9,12 @@
 #include "flash_mibspi.h"
 #include "sfu_hardwaredefs.h"
 #include "unit_tests/unit_tests.h"
-#include "examples/sfusat_examples.h"
+//#include "examples/sfusat_examples.h"
+#include "sfu_task_radio.h"
 
 void gioNotification(gioPORT_t *port, uint32 bit){
-	gio_notification_example(port, bit); // for example
+	//gio_notification_example(port, bit); // for example
+	gio_notification_RF(port, bit);
 }
 
 void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group){
