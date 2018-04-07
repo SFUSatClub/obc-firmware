@@ -11,7 +11,7 @@
 
 #include "sfu_triumf.h"
 #include "sfu_uart.h"
-void triumf_init(){
+void test_triumf_init(){
 	  if(flash_test_JEDEC()){
 	    	serialSendln("Passed flash JEDEC test!");
 	    }

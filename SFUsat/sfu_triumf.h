@@ -16,7 +16,7 @@
 
 #define ERASE_START 1 // configure whether we erase flash upon boot
 
-void triumf_init();
+void test_triumf_init();
 
 
 #endif /* SFUSAT_SFU_TRIUMF_H_ */
