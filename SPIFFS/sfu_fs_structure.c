@@ -12,6 +12,7 @@
 #include "sfu_uart.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+TaskHandle_t xSPIFFSHandle = NULL; // RA
 
 // * Todo:
 // * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
@@ -28,7 +29,12 @@ void sfu_fs_lifecycle(void *pvParameters) {
 	sfu_fs_init();
 	while (1) {
 		if(fs_num_increments == 0){
+			sfusat_spiffs_init(); // doing this at the start of task_main was no good
 			sfu_create_files_wrapped();
+			vTaskDelay(2000);
+
+			serialSendQ("Write start");
+			xTaskCreate(fs_rando_write, "rando write", 1500, NULL, 3, &xSPIFFSHandle);
 		}
 
 		vTaskDelay(FSYS_LOOP_INTERVAL);
@@ -42,9 +48,9 @@ void fs_rando_write(void *pvParameters){
 	 * - used to show that file sizes do grow
 	 */
 	while(1){
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		vTaskDelay(pdMS_TO_TICKS(4000));
 		char randomData[5];
-		sfu_write_fname(FSYS_CURRENT, "foo %s", randomData);
+		sfu_write_fname(FSYS_WUT, "foo %s", randomData);
 	}
 }
 
@@ -184,10 +190,11 @@ void sfu_create_files() {
 			snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
 		}
-		clearBuf(genBuf, 20);
+		//clearBuf(genBuf, 20);
 		snprintf(genBuf, 11, "Create: %s", nameBuf);
 // Todo: this often prints garbage (it does with two files). Task getting suspended before we have the chance to pass data by copy into the queue?
 		serialSendQ((const char*)genBuf);
+//		serialSendQ("created");
 	}
 //		xSemaphoreGive(spiffsTopMutex);
 //	} else {
@@ -242,10 +249,11 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
 	spiffs_file fd;
-	create_filename(nameBuf, f_suffix);
 
 // Formatting done, enter mutex and open + write the file
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		create_filename(nameBuf, f_suffix);
+
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND | SPIFFS_RDWR, 0);
 

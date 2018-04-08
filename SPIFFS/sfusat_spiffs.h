@@ -16,7 +16,7 @@
 spiffs fs; // Note: this was static but that prevents access
 spiffs_config cfg;
 
-volatile char sfu_prefix; // holds our prefix, gets mapped to fs.user_data
+char sfu_prefix; // holds our prefix, gets mapped to fs.user_data
 
 
 #define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while
