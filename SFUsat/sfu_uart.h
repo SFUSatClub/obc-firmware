@@ -19,6 +19,7 @@
 #include "sci.h" // by HALcoGen
 
 #include "sfu_tasks.h"
+extern unsigned char currChar;
 
 void serialInit();
 void serialSendCh(char charToSend);

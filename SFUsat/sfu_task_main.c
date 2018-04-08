@@ -37,7 +37,6 @@ void vMainTask(void *pvParameters) {
 	/**
 	 * Hardware initialization
 	 */
-	serialInit();
 	gioInit();
 	spiInit();
 	flash_mibspi_init();
@@ -66,9 +65,9 @@ void vMainTask(void *pvParameters) {
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
+	//test_flash();
 	test_adc_init();
-	test_triumf_init();
+	//test_triumf_init();
 	//    uint32_t time;
 	//    time = no_rtos_test_getCurrentRTCTime();
 
@@ -90,7 +89,7 @@ void vMainTask(void *pvParameters) {
 //	xTaskCreate(vFlashRead2, "read", 600, NULL, 4, &xFlashReadHandle);
 //	xTaskCreate(vFlashWrite, "write", 600, NULL, FLASH_WRITE_DEFAULT_PRIORITY, &xFlashWriteHandle);
 
-	xTaskCreate(vRadioTask, "radio", 800, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	//xTaskCreate(vRadioTask, "radio", 800, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	//vTaskSuspend(xRadioTaskHandle);
 	//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 

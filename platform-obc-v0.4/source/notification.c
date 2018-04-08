@@ -58,6 +58,8 @@
 #include "sys_dma.h"
 
 /* USER CODE BEGIN (0) */
+#include "sfu_uart.h"
+
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(uint32 channel)
@@ -144,6 +146,10 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (29) */
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
 /* USER CODE END */
 }
 

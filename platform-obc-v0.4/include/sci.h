@@ -118,7 +118,7 @@ typedef struct sci_config_reg
 /* Configuration registers initial value for SCI*/
 #define SCI_GCR0_CONFIGVALUE       0x00000001U   
 #define SCI_GCR1_CONFIGVALUE       ((uint32)((uint32)1U << 5U) \
-                                   |(uint32)((uint32)(2U-1U) << 4U) \
+                                   |(uint32)((uint32)(1U-1U) << 4U) \
                                    |(uint32)((uint32)0U << 3U) \
                                    |(uint32)((uint32)0U << 2U) \
                                    |(uint32)((uint32)1U << 1U) \
