@@ -4,13 +4,16 @@
  *  Created on: Mar 13, 2018
  *      Author: Richard
  *
- *      USAGE:
+ *      USAGE - do the following in task_main:
  *      	sfusat_spiffs_init();
  *      	xTaskCreate(spiffs_check_task, "check spiffs", 1400, NULL, 4, &xSPIFFSCheck);
  *			xTaskCreate(spiffs_write_check_test, "write spiffs", 1000, NULL, 3, &xSPIFFSHandle);
  *
  *		You should see us constantly write to a file and should see its size growing.
  *		It'll write about 60 bytes between runs of the check task.
+ *
+ *		NOTE: bring these up if there are some deep FS issues. Otherwise, prefer our test tasks in
+ *		sfu_fs_structure, since they use our wrappers and overall fs structure.
  */
 
 #ifndef SFUSAT_TEST_SEQUENCES_TEST_SPIFFS_RTOS_H_

@@ -13,11 +13,12 @@
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
 TaskHandle_t xSPIFFSHandle = NULL; // RA
+TaskHandle_t xSPIFFSRead = NULL; // RA
 
 // * Todo:
-// * remove create from file writes, add error handler that will attempt to create files if they don't exist or something
+// add error handler that will attempt to create files if they don't exist or something
 // * delete oldest function (calls this), called by rescue
-// * add a counter for number of rollovers we do - this will also be used to not delete files until after the first fillup.
+// fs rescue task
 
 
 // -------------- Tasks for testing --------------------
@@ -31,15 +32,18 @@ void sfu_fs_lifecycle(void *pvParameters) {
 		if(fs_num_increments == 0){
 			sfusat_spiffs_init(); // doing this at the start of task_main was no good
 			sfu_create_files_wrapped();
-			vTaskDelay(2000);
-
-			serialSendQ("Write start");
-			xTaskCreate(fs_rando_write, "rando write", 1500, NULL, 3, &xSPIFFSHandle);
+//			vTaskDelay(2000);
+			fs_test_tasks(); // optional
 		}
-
 		vTaskDelay(FSYS_LOOP_INTERVAL);
 		delete_oldest(); // this handles deletion and creation
 	}
+}
+
+void fs_test_tasks(){
+	/* some tasks that can be used to demonstrate fs functionality */
+	xTaskCreate(fs_rando_write, "rando write", 1500, NULL, 3, &xSPIFFSHandle);
+	xTaskCreate(fs_read_task, "FS read", 1500, NULL, 4, xSPIFFSRead);
 }
 
 void fs_rando_write(void *pvParameters){

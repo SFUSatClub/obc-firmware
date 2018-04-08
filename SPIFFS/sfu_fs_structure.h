@@ -54,6 +54,7 @@ uint32_t fs_num_increments;
 void sfu_fs_lifecycle(void *pvParameters);
 void fs_rando_write(void *pvParameters);
 void fs_read_task(void *pvParameters);
+void fs_test_tasks();
 
 // Functions
 void sfu_fs_init();

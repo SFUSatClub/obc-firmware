@@ -139,17 +139,11 @@ int main(void)
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 //	test_flash();
 	init_adc_test();
-//    triumf_init();
 	flash_erase_chip();
-//    sfusat_spiffs_init();
-//
-////	my_spiffs_mount();
-//   test_spiffs();
-//    read_write_example();
+
 
 // ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(50, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(50, sizeof(portCHAR));
 	serialSendQ("created queue");
