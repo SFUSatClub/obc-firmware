@@ -56,6 +56,7 @@
 #define CMD_GET_HEAP		0x06
 #define CMD_GET_MINHEAP		0x08
 #define CMD_GET_TYPES		0x0A
+#define CMD_GET_EPOCH		0x0C
 
 #define CMD_EXEC_NONE		0x00
 #define CMD_EXEC_RADIO		0x02

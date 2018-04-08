@@ -11,6 +11,7 @@
 #include "sfu_scheduler.h"
 #include "sfu_state.h"
 #include "sfu_utils.h"
+#include "sfu_rtc.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -61,6 +62,7 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  heap    -- Show size of free heap\n"
 							  "  minheap -- Show lowest size of free heap ever reached\n"
 							  "  types   -- Show size of various types (debugging)\n"
+							  "	 epoch   -- Show current OBC epoch\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_EXEC,
@@ -150,6 +152,10 @@ static const struct subcmd_opt CMD_GET_OPTS[] = {
 				.subcmd_id	= CMD_GET_TYPES,
 				.name		= "types",
 		},
+		{
+				.subcmd_id	= CMD_GET_EPOCH,
+				.name		= "epoch",
+		},
 };
 char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
@@ -189,6 +195,12 @@ int8_t cmdGet(const CMD_t *cmd) {
 					"sizeof(long): %lu bytes\n"
 					"sizeof(long long): %lu bytes\n"
 					, intSize, intPtrSize, longSize, longLongSize);
+			serialSend(buffer);
+			return 1;
+		}
+		case CMD_GET_EPOCH: {
+			size_t time = getCurrentTime();
+			sprintf(buffer, "Epoch: %i", time);
 			serialSend(buffer);
 			return 1;
 		}
