@@ -33,7 +33,7 @@ void sfu_fs_lifecycle(void *pvParameters) {
 			sfusat_spiffs_init(); // doing this at the start of task_main was no good
 			sfu_create_files_wrapped();
 //			vTaskDelay(2000);
-			fs_test_tasks(); // optional
+			fs_test_tasks(); // optional, useful if no other tasks are writing to files
 		}
 		vTaskDelay(FSYS_LOOP_INTERVAL);
 		delete_oldest(); // this handles deletion and creation
