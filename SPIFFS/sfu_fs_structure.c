@@ -25,11 +25,13 @@ void sfu_fs_lifecycle(void *pvParameters) {
 	 * - inits, deletes the files in the system as we will in flight
 	 * - another task is required to write/read the files as would be done normally
 	 */
-
 	sfu_fs_init();
-	sfu_create_files();
 	while (1) {
-		vTaskDelay(pdMS_TO_TICKS(10000));
+		if(fs_num_increments == 0){
+			sfu_create_files_wrapped();
+		}
+
+		vTaskDelay(FSYS_LOOP_INTERVAL);
 		delete_oldest(); // this handles deletion and creation
 	}
 }
@@ -40,12 +42,21 @@ void fs_rando_write(void *pvParameters){
 	 * - used to show that file sizes do grow
 	 */
 	while(1){
+		vTaskDelay(pdMS_TO_TICKS(2000));
 		char randomData[5];
-		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
-		vTaskDelay(pdMS_TO_TICKS(1500));
+		sfu_write_fname(FSYS_CURRENT, "foo %s", randomData);
 	}
 }
 
+void fs_read_task(void *pvParameters){
+	uint8_t data[20];
+	while(1){
+		vTaskDelay(pdMS_TO_TICKS(6000));
+		serialSendQ("RD");
+		sfu_read_fname(FSYS_CURRENT, data, 20);
+		serialSendQ((const char*)data);
+	}
+}
 // ------------ Core Functions -------------------------
 void sfu_fs_init() {
 	// Todo: grab this from FEE or from config file
@@ -60,7 +71,6 @@ void delete_oldest() {
 
 	// take the mutex since we don't want any writes while we're messing with this
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		// increment prefix
 		increment_prefix();
 
 		// delete the files with the current prefix since we're replacing it
@@ -79,7 +89,6 @@ void increment_prefix() {
 	/* increment_prefix
 	 * - increments the fs prefix once we've filled up the files for the day
 	 */
-
 	// CALL WITHIN MUTEX
 	if (*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)) { // if we're at the end, roll back around
 		sfu_prefix = PREFIX_START;
@@ -172,7 +181,6 @@ void sfu_create_files() {
 		}
 
 		if (SPIFFS_close(&fs, fd) < 0) {
-//				clearBuf(genBuf, 20);
 			snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
 		}
@@ -185,6 +193,15 @@ void sfu_create_files() {
 //	} else {
 //		serialSendQ("Create can't get top mutex");
 //	}
+}
+
+void sfu_create_files_wrapped(){
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		sfu_create_files();
+		xSemaphoreGive(spiffsTopMutex);
+	} else {
+		serialSendQ("FCnm");
+	}
 }
 
 
@@ -230,7 +247,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 // Formatting done, enter mutex and open + write the file
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
-		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND|  SPIFFS_RDWR, 0);
+		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND | SPIFFS_RDWR, 0);
 
 		if (fd < 0) { 	// if there's an error opening
 			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
@@ -238,7 +255,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 		} else { 		// otherwise, write
 			serialSendQ("fname_write");
 			if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
-				snprintf(buf, 20, "FNwe: %i", SPIFFS_errno(&fs));
+				snprintf(buf, 20, "FNww: %i", SPIFFS_errno(&fs));
 				serialSendQ(buf);
 			}
 			if (SPIFFS_close(&fs, fd) < 0) {
@@ -249,6 +266,33 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 		}
 		xSemaphoreGive(spiffsTopMutex);
 	} else {
+		serialSendQ("FNwe: can't get top mutex");
+	}
+}
+
+void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
+	char nameBuf[2] = { '\0' };
+	char buf[20] = {'\0'};
+	spiffs_file fd;
+	create_filename(nameBuf, f_suffix);
+
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDONLY, 0);
+
+		if (fd < 0) { 	// if there's an error opening
+			snprintf(buf, 20, "FRno: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		else { // read the file
+		  if (SPIFFS_read(&fs, fd, outbuf, size) < 0) {
+			  snprintf(buf, 20, "FRnr: %i", SPIFFS_errno(&fs));
+			  serialSendQ(buf);
+		  }
+		}
+		xSemaphoreGive(spiffsTopMutex);
+	}
+	else {
 		serialSendQ("FNwe: can't get top mutex");
 	}
 }

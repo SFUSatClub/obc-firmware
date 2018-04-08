@@ -15,6 +15,7 @@
 #include "rtos_queue.h"
 #include "rtos_semphr.h"
 #include "sfu_utils.h"
+#include "sfu_fs_structure.h"
 
 
 void spiffs_read_task(void *pvParameters) {
@@ -71,7 +72,7 @@ void spiffs_read_task(void *pvParameters) {
 void sfusat_spiffs_init() {
 	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
-	sfu_prefix = 'a'; // TODO: figure out the correct prefix
+	sfu_prefix = PREFIX_START;
 	fs.user_data = &sfu_prefix;
 	my_spiffs_mount();
 }
@@ -98,7 +99,7 @@ static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
 		flash_read_arbitrary(addr, size, dst);
 		xSemaphoreGive(spiffsHALMutex);
 	} else {
-		printf("Read, can't get mutex");
+		serialSendQ("Read, can't get mutex");
 	}
 	return SPIFFS_OK;
 }
@@ -110,7 +111,7 @@ static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
 		}
 		xSemaphoreGive(spiffsHALMutex);
 	} else {
-		printf("Write can't get mutex");
+		serialSendQ("Write can't get mutex");
 	}
 
 	return SPIFFS_OK;
@@ -138,7 +139,7 @@ static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
 		}
 		xSemaphoreGive(spiffsHALMutex);
 	} else {
-		printf("Erase can't get mutex");
+		serialSendQ("Erase can't get mutex");
 	}
 	return SPIFFS_OK;
 }
