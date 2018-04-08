@@ -49,8 +49,8 @@ void vMainTask(void *pvParameters) {
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
 
-	watchdog_busywait(3000); // to allow time for serial to connect up to script
-	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+//	watchdog_busywait(3000); // to allow time for serial to connect up to script
+//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
@@ -66,7 +66,7 @@ void vMainTask(void *pvParameters) {
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	//test_flash();
-	test_adc_init();
+//	test_adc_init();
 	//test_triumf_init();
 	//    uint32_t time;
 	//    time = no_rtos_test_getCurrentRTCTime();
