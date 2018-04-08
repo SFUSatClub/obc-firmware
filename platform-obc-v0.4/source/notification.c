@@ -146,10 +146,10 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (29) */
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
+//	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
+//	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+//    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
 /* USER CODE END */
 }
 

@@ -52,10 +52,10 @@ void serialSendln(const char* stringToSend){
 }
 
 
-//void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt handler callback
-//	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-//	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
-//	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-//    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
-//}
+void sciNotification(sciBASE_t *sci, unsigned flags){ // this is the interrupt handler callback
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xQueueSendToBackFromISR(xSerialRXQueue, &currChar, &xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
+}
 
