@@ -44,4 +44,10 @@ void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group){
     }
 }
 
+/* NOTE:
+ * sciNotification is defined in sfu_uart.c
+ * It is impractical to relocate to here, so it will stay.
+ *
+ * Richard - Feb 26, 2018
+ */
 

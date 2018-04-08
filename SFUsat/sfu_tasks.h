@@ -39,9 +39,6 @@ extern QueueHandle_t xQueue;
 
 void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
-void vFlashRead(void *pvParameters);
-void vFlashWrite(void *pvParameters);
-void vFlashRead2(void *pvParameters);
 void vADCRead(void *pvParameters);
 
 

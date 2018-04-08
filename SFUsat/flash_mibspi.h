@@ -42,10 +42,6 @@ uint16_t TG4_RX[4];
 uint16_t TG3_RX[20]; // transfer group RX buffers must have same number of elements as the transfer group
 uint16 TG1_RX[2];
 uint16_t dummyBytes_16[16];
-uint32_t addressWritten;
-uint32_t lastRead;
-
-SemaphoreHandle_t xFlashMutex;
 
 volatile uint32_t address; // stores flash address to write to
 
@@ -57,8 +53,8 @@ void flash_erase_sector(uint32_t address);
 uint16_t flash_status();
 void flash_busy_erasing_chip();
 void flash_read_16(uint32_t address, uint16_t *inBuffer);
-void flash_read_16_rtos(uint32_t address, uint16_t *inBuffer);
-void flash_write_16_rtos(uint32_t address, uint16_t *inBuffer);
+//void flash_read_16_rtos(uint32_t address, uint16_t *inBuffer);
+//void flash_write_16_rtos(uint32_t address, uint16_t *inBuffer);
 uint32_t getEmptySector(); // finds the first section with 16 1's in it
 
 
