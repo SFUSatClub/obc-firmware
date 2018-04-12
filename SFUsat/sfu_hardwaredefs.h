@@ -36,7 +36,7 @@
 /**
  * General Functionality
  */
-#define RTI_CLK_SPEED_HZ 30000000 // 30 MHz - for RTOS tick
+#define RTI_CLK_SPEED_HZ		30000000	// 30 MHz - for RTOS tick
 #define DEBUG_LED_PORT			gioPORTA
 #define DEBUG_LED_PIN			6
 #define WATCHDOG_TICKLE_PORT	gioPORTA
@@ -97,7 +97,7 @@
 /**
  * General Functionality
  */
- #define RTI_CLK_SPEED_HZ 80000000 // 80 MHz - for RTOS tick
+#define RTI_CLK_SPEED_HZ		80000000	// 80 MHz - for RTOS tick
 #define DEBUG_LED_PORT 			gioPORTA
 #define DEBUG_LED_PIN 			6
 #define WATCHDOG_TICKLE_PORT 	gioPORTA
@@ -158,7 +158,7 @@
 /**
  * General Functionality
  */
-#define RTI_CLK_SPEED_HZ 40000000 //Note: this is not used in RTOS config for this platform.
+#define RTI_CLK_SPEED_HZ		40000000	//Note: this is not used in RTOS config for this platform.
 #define DEBUG_LED_PORT 			gioPORTA
 #define DEBUG_LED_PIN 			2
 #define WATCHDOG_TICKLE_PORT 	gioPORTA

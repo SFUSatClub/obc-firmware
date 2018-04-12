@@ -44,31 +44,19 @@
 
 /* USER CODE BEGIN (0) */
 //  ---------- TI/External System ----------
-#include "sys_core.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
-#include "rtos_queue.h"
+#include "sys_core.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 #include "sys_pmu.h"
 #endif
 
-// ---------- TI/External Hardware ----------
-#include "adc.h"
-#include "gio.h"
-#include "mibspi.h"
-
 //  ---------- SFUSat Hardware ----------
-#include "sfu_spi.h"
 #include "sfu_uart.h"
 
-
 //  ---------- SFUSat System ----------
-
 #include "sfu_tasks.h"
-#include "sfu_state.h"
 #include "sfu_utils.h"
-#include "sfu_rtc.h"
-
 
 /* USER CODE END */
 

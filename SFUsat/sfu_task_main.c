@@ -41,14 +41,16 @@ void vMainTask(void *pvParameters) {
 	 */
 	serialInit();
 	gioInit();
-  adcInit();
+	adcInit();
 	spiInit();
 	flash_mibspi_init();
 
 	// ---------- SFUSat INIT ----------
+	/**
+	 * TODO: Launchpad may not like to run rtcInit/other hardware inits; ifdef them out
+	 */
 	rtcInit();
 	stateMachineInit(); // we start in SAFE mode
-
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
@@ -64,7 +66,6 @@ void vMainTask(void *pvParameters) {
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-	xFlashMutex = xSemaphoreCreateMutex();
 	xRTCMutex = xSemaphoreCreateMutex();
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
@@ -90,10 +91,9 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
 
-
-//	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-//	vTaskSuspend(xRadioTaskHandle);
-//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
