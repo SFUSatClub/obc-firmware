@@ -44,34 +44,20 @@
 
 /* USER CODE BEGIN (0) */
 //  ---------- TI/External System ----------
-#include "sys_core.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
-#include "rtos_queue.h"
+#include "sys_core.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 #include "sys_pmu.h"
 #endif
 
-// ---------- TI/External Hardware ----------
-#include "adc.h"
-#include "gio.h"
-#include "mibspi.h"
-
 //  ---------- SFUSat Hardware ----------
-#include "sfu_spi.h"
 #include "sfu_uart.h"
-#include "flash_mibspi.h"
 
 //  ---------- SFUSat System ----------
-#include "sfu_startup.h"
 #include "sfu_tasks.h"
-#include "sfu_state.h"
 #include "sfu_utils.h"
-#include "sfu_rtc.h"
 
-//  ---------- SFUSat Tests (optional) ----------
-#include "sfu_triumf.h"
-#include "unit_tests/unit_tests.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -111,59 +97,43 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-// ---------- SETUP/INIT HARDWARE ----------
-	_enable_IRQ(); // global interrupt enable
+
+	/*
+	 * Enable interrupts.
+	 */
+	_enable_IRQ();
     _enable_interrupt_();
 
-	serialInit();
-	gioInit();
-	spiInit();
-    flash_mibspi_init();
+    /**
+     * Task vMainTask is where all of the top level tasks will be created from.
+     *
+     * vMaintask is created with portPRIVILEGE_BIT set in order for the processor to
+     * remain in Privileged mode. The Memory Protection Unit (MPU) will therefore be
+     * disabled for this task, allowing it to do things such as, e.g., configuring the
+     * system's peripherals.
+     *
+     * https://www.freertos.org/FreeRTOS-MPU-memory-protection-unit.html
+     */
+    xTaskCreate(vMainTask, "main", 800, NULL, portPRIVILEGE_BIT | MAIN_TASK_PRIORITY, NULL);
 
-// ---------- SFUSat INIT ----------
-	rtcInit();
-	stateMachineInit(); // we start in SAFE mode
-
-// ---------- BRINGUP/PRELIMINARY PHASE ----------
-	serialSendln("SFUSat Started!");
-
-	watchdog_busywait(3000); // to allow time for serial to connect up to script
-	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-	printStartupType();
-
-// ---------- INIT TESTS & Examples ----------
-	// TODO: if tests fail, actually do something
-	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-	test_flash();
-	init_adc_test();
-    triumf_init();
-
-//	if(flash_test_JEDEC()){ // kind of redundant now
-//		serialSendln("Passed flash JEDEC test!");
-//	}
-
-	gio_interrupt_example_rtos_init();
-
-// ---------- INIT RTOS FEATURES ----------
-	// TODO: encapsulate these
-//  xQueue = xQueueCreate(5, sizeof(char *));
-	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
-	serialSendQ("created queue");
-
-    xFlashMutex = xSemaphoreCreateMutex();
-    xRTCMutex = xSemaphoreCreateMutex();
-
-// ---------- SETUP/START RTOS ----------
-    // vMainTask starts up all of the top level tasks (except tests and examples). From those, other tasks are spawned as necessary.
-	xTaskCreate(vMainTask, "main", 800, NULL, MAIN_TASK_PRIORITY, NULL);
-
+    /**
+     * Start the FreeRTOS scheduler.
+     */
 	vTaskStartScheduler();
 
-	while(1){
-		// keep running the scheduler
-	}
+	/*
+	 * Keep running the scheduler.
+	 */
+	while(1) {}
 
+	/**
+	 * Push/pop the following pragmas to prevent them from having an effect anywhere else.
+	 *
+	 * Suppress diag 112 "statement is unreachable" since Halcogen always generates the
+	 * return statement below outside of our control (outside of USER CODE segments).
+	 */
+#pragma diag_push
+#pragma diag_suppress 112
 	/* USER CODE END */
 
     return 0;
@@ -172,6 +142,10 @@ int main(void)
 
 /* USER CODE BEGIN (4) */
 
+/**
+ * Restore warnings.
+ */
+#pragma diag_pop
 
 #if (configGENERATE_RUN_TIME_STATS == 1)
 BaseType_t getRunTimeCounterValue() {

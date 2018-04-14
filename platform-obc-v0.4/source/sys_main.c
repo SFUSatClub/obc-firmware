@@ -44,35 +44,19 @@
 
 /* USER CODE BEGIN (0) */
 //  ---------- TI/External System ----------
-#include "sys_core.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
-#include "rtos_queue.h"
+#include "sys_core.h"
 #if (configGENERATE_RUN_TIME_STATS == 1)
 #include "sys_pmu.h"
 #endif
 
-// ---------- TI/External Hardware ----------
-#include "adc.h"
-#include "gio.h"
-#include "mibspi.h"
-
 //  ---------- SFUSat Hardware ----------
-#include "sfu_spi.h"
 #include "sfu_uart.h"
-#include "flash_mibspi.h"
 
 //  ---------- SFUSat System ----------
-#include "sfu_startup.h"
 #include "sfu_tasks.h"
-#include "sfu_state.h"
 #include "sfu_utils.h"
-#include "sfu_rtc.h"
-
-//  ---------- SFUSat Tests (optional) ----------
-#include "unit_tests/unit_tests.h"
-#include "sfusat_spiffs.h"
-#include "printf.h"
 
 /* USER CODE END */
 
@@ -82,19 +66,20 @@
 
 /* USER CODE BEGIN (1) */
 
-void vApplicationStackOverflowHook(TaskHandle_t pxTask, signed char *pcTaskName) {
-	(void) pcTaskName;
-	(void) pxTask;
-	serialSend((char *) pcTaskName);
+void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName )
+{
+	( void ) pcTaskName;
+	( void ) pxTask;
+	serialSend((char *)pcTaskName);
 	serialSendln(" has overflowed");
 
 	/* Run time stack overflow checking is performed if
-	 configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
-	 function is called if a stack overflow is detected. */
+    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
+    function is called if a stack overflow is detected. */
 	taskDISABLE_INTERRUPTS();
-	for (;;)
-		;
+	for( ;; );
 }
+
 
 /* USER CODE END */
 
@@ -107,59 +92,48 @@ void vApplicationStackOverflowHook(TaskHandle_t pxTask, signed char *pcTaskName)
 */
 
 /* USER CODE BEGIN (2) */
-
 /* USER CODE END */
 
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-// ---------- SETUP/INIT HARDWARE ----------
-	_enable_IRQ(); // global interrupt enable
-	_enable_interrupt_();
 
-	serialInit();
-	gioInit();
-	adcInit();
-	spiInit();
-	flash_mibspi_init();
+	/*
+	 * Enable interrupts.
+	 */
+	_enable_IRQ();
+    _enable_interrupt_();
 
-// ---------- SFUSat INIT ----------
-	rtcInit();
-	stateMachineInit(); // we start in SAFE mode
+    /**
+     * Task vMainTask is where all of the top level tasks will be created from.
+     *
+     * vMaintask is created with portPRIVILEGE_BIT set in order for the processor to
+     * remain in Privileged mode. The Memory Protection Unit (MPU) will therefore be
+     * disabled for this task, allowing it to do things such as, e.g., configuring the
+     * system's peripherals.
+     *
+     * https://www.freertos.org/FreeRTOS-MPU-memory-protection-unit.html
+     */
+    xTaskCreate(vMainTask, "main", 800, NULL, portPRIVILEGE_BIT | MAIN_TASK_PRIORITY, NULL);
 
-// ---------- BRINGUP/PRELIMINARY PHASE ----------
-	printf("SFUSat Started!");
-
-//	watchdog_busywait(3000); // to allow time for serial to connect up to script
-	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-	printStartupType();
-
-// ---------- INIT TESTS ----------
-	// TODO: if tests fail, actually do something
-	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-//	test_flash();
-	init_adc_test();
-	flash_erase_chip();
-
-
-// ---------- INIT RTOS FEATURES ----------
-	// TODO: encapsulate these
-	xSerialTXQueue = xQueueCreate(50, sizeof(portCHAR *));
-	xSerialRXQueue = xQueueCreate(50, sizeof(portCHAR));
-	serialSendQ("created queue");
-
-	xRTCMutex = xSemaphoreCreateMutex();
-
-// ---------- SETUP/START RTOS ----------
-	// vMainTask starts up all of the top level tasks. From those, other tasks are spawned as necessary.
-	xTaskCreate(vMainTask, "main", 1000, NULL, MAIN_TASK_PRIORITY, NULL);
-
+    /**
+     * Start the FreeRTOS scheduler.
+     */
 	vTaskStartScheduler();
 
-	while (1) {
-		// keep running the scheduler
-	}
+	/*
+	 * Keep running the scheduler.
+	 */
+	while(1) {}
 
+	/**
+	 * Push/pop the following pragmas to prevent them from having an effect anywhere else.
+	 *
+	 * Suppress diag 112 "statement is unreachable" since Halcogen always generates the
+	 * return statement below outside of our control (outside of USER CODE segments).
+	 */
+#pragma diag_push
+#pragma diag_suppress 112
 	/* USER CODE END */
 
     return 0;
@@ -167,6 +141,11 @@ int main(void)
 
 
 /* USER CODE BEGIN (4) */
+
+/**
+ * Restore warnings.
+ */
+#pragma diag_pop
 
 #if (configGENERATE_RUN_TIME_STATS == 1)
 BaseType_t getRunTimeCounterValue() {
@@ -177,7 +156,7 @@ void configureTimerForRunTimeStats() {
 	_pmuEnableCountersGlobal_();
 	_pmuSetCountEvent_(pmuCOUNTER0, PMU_CYCLE_COUNT);
 	_pmuSetCountEvent_(pmuCOUNTER1, PMU_CYCLE_COUNT);
-	_pmuStartCounters_(pmuCOUNTER0 | pmuCOUNTER1 | pmuCOUNTER2);
+	_pmuStartCounters_(pmuCOUNTER0|pmuCOUNTER1|pmuCOUNTER2);
 }
 #endif
 /* USER CODE END */

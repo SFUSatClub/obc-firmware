@@ -132,6 +132,7 @@ void vSerialTask(void *pvParameters) {
 				}
 				char *commandPtr = malloc(toAllocate);
 				strcpy(commandPtr, rxBuffer);
+				serialSend("> ");
 				serialSendln(commandPtr);
 				commands[commandsIdx] = commandPtr;
 				commandsIdx++;

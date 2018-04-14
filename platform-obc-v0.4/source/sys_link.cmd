@@ -38,14 +38,16 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN (0) */
-// We need to override the halcogen generated sys_link, so we do it with this #define.
-#define SYS_LINK_OVERRIDE 1
-#if SYS_LINK_OVERRIDE == 1
-/* Linker Settings   (SFUSat)                                                          */
+/* USER CODE END */
+
+
+/*----------------------------------------------------------------------------*/
+/* Linker Settings                                                            */
 
 --retain="*(.intvecs)"
 
-/* Memory Map                                                                 */
+/* USER CODE BEGIN (1) */
+#define IGNORE_HALCOGEN_MEMORY_MAP
 
 MEMORY
 {
@@ -55,11 +57,29 @@ MEMORY
     STACKS  (RW) : origin=0x08000000 length=0x00000800
     KRAM    (RW) : origin=0x08000800 length=0x00000800
     RAM     (RW) : origin=(0x08000800+0x00000800) length=(0x0001F800 - 0x00000800)
-
-
 }
+
+#ifndef IGNORE_HALCOGEN_MEMORY_MAP
+/* USER CODE END */
+
 /*----------------------------------------------------------------------------*/
-/* Section Configuration                                                      */
+/* Memory Map                                                                 */
+
+MEMORY
+{
+    VECTORS (X)  : origin=0x00000000 length=0x00000020
+    FLASH0  (RX) : origin=0x00008020 length=0x000B7FE0
+    STACKS  (RW) : origin=0x08000000 length=0x00000800
+    RAM     (RW) : origin=0x08000800 length=0x0001f800
+
+/* USER CODE BEGIN (2) */
+/* USER CODE END */
+}
+
+/* USER CODE BEGIN (3) */
+#endif /* IGNORE_HALCOGEN_MEMORY_MAP */
+
+#define IGNORE_HALCOGEN_SECTIONS_CONFIG
 
 SECTIONS
 {
@@ -77,39 +97,9 @@ SECTIONS
     .bss          : {} > RAM
     .data         : {} > RAM
     .sysmem  : {} > RAM // RA: added to get rid of warning. If we run into issues, investigate what this does
-
 }
 
-#else
-
-// ------- This is the standard halcogen stuff, which is incompatible with our needs
-
-/* USER CODE END */
-
-
-/*----------------------------------------------------------------------------*/
-/* Linker Settings                                                            */
-
---retain="*(.intvecs)"
-
-/* USER CODE BEGIN (1) */
-/* USER CODE END */
-
-/*----------------------------------------------------------------------------*/
-/* Memory Map                                                                 */
-
-MEMORY
-{
-    VECTORS (X)  : origin=0x00000000 length=0x00000020
-    FLASH0  (RX) : origin=0x00008020 length=0x000B7FE0
-    STACKS  (RW) : origin=0x08000000 length=0x00000800
-    RAM     (RW) : origin=0x08000800 length=0x0001F800
-
-/* USER CODE BEGIN (2) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (3) */
+#ifndef IGNORE_HALCOGEN_SECTIONS_CONFIG
 /* USER CODE END */
 
 /*----------------------------------------------------------------------------*/
@@ -132,6 +122,7 @@ SECTIONS
 }
 
 /* USER CODE BEGIN (5) */
+#endif /* IGNORE_HALCOGEN_SECTIONS_CONFIG */
 /* USER CODE END */
 
 
@@ -139,8 +130,5 @@ SECTIONS
 /* Misc                                                                       */
 
 /* USER CODE BEGIN (6) */
-
-
-#endif
 /* USER CODE END */
 /*----------------------------------------------------------------------------*/

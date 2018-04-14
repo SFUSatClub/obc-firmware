@@ -6,7 +6,7 @@
     <dilfile>halcogen.dil</dilfile>
     <tools>ti</tools>
   </DEVICE>
- <VERSION>
+  <VERSION>
     <version>04.06.00</version>
   </VERSION>
   <HET>
@@ -183,7 +183,8 @@
       <HDRRTI>
         <NAME>rti.h</NAME>
       </HDRRTI>
-      <SRCRTI/>
+      <SRCRTI>
+</SRCRTI>
       <HDRGIO_R>
         <NAME>reg_gio.h</NAME>
       </HDRGIO_R>
@@ -359,7 +360,7 @@
         <PATH>include\rti.h</PATH>
       </HDRRTI>
       <SRCRTI>
-        <PATH/>
+        <PATH></PATH>
       </SRCRTI>
     </FILENAMES>
   </RTI>
@@ -583,4 +584,3 @@
     </FILENAMES>
   </FEE>
 </SETTINGS>
- 

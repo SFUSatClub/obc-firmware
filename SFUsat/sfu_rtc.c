@@ -14,6 +14,9 @@
 #include <assert.h>
 #include <math.h>
 
+// Command modes
+#define READ 0x80
+#define WRITE 0x00
 
 
 // contains the cumulative seconds in months so we can easily calculate epochs

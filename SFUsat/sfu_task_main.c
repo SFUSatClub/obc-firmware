@@ -13,8 +13,16 @@
 #include "sfu_state.h"
 #include "printf.h"
 #include "sfusat_spiffs.h"
-#include "test_sequences/test_spiffs_rtos.h"
 #include "sfu_fs_structure.h"
+#include "flash_mibspi.h"
+#include "sfu_startup.h"
+
+//  ---------- SFUSat Tests (optional) ----------
+#include "sfu_triumf.h"
+#include "unit_tests/unit_tests.h"
+
+
+
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -28,7 +36,47 @@ TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
 
 void vMainTask(void *pvParameters) {
-	setStateRTOS_mode(); // tell state machine we're in RTOS control so it can print correctly
+	/**
+	 * Hardware initialization
+	 */
+	serialInit();
+	gioInit();
+	adcInit();
+	spiInit();
+	flash_mibspi_init();
+
+	// ---------- SFUSat INIT ----------
+	/**
+	 * TODO: Launchpad may not like to run rtcInit/other hardware inits; ifdef them out
+	 */
+	rtcInit();
+	stateMachineInit(); // we start in SAFE mode
+
+	// ---------- BRINGUP/PRELIMINARY PHASE ----------
+	serialSendln("SFUSat Started!");
+
+	//watchdog_busywait(3000); // to allow time for serial to connect up to script
+	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+	printStartupType();
+
+	// ---------- INIT RTOS FEATURES ----------
+	// TODO: encapsulate these
+	//  xQueue = xQueueCreate(5, sizeof(char *));
+	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
+	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	serialSendQ("created queue");
+
+	xRTCMutex = xSemaphoreCreateMutex();
+	// ---------- INIT TESTS ----------
+	// TODO: if tests fail, actually do something
+	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	// test_flash();
+	test_adc_init();
+// 	test_triumf_init();
+	flash_erase_chip();
+
+	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
+
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run
 			"blinky", 							// Text name for the task. This is to facilitate debugging only.
@@ -38,15 +86,14 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );				// Task handles are above
 
 	//NOTE: Task priorities are #defined in sfu_tasks.h
-	xTaskCreate(vSerialTask, "serial", 600, NULL, 5, &xSerialTaskHandle);
-	xTaskCreate(vStateTask, "state", 800, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
+	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
+	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
 
-
-//	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-//	vTaskSuspend(xRadioTaskHandle);
-//	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
@@ -85,7 +132,6 @@ void vMainTask(void *pvParameters) {
 	serialSendln("main tasks created");
 
 	while (1) {
-//		serialSendQ("main");
 		CMD_t g;
 		if (getAction(&g)) {
 			char buffer[16] = {0};
