@@ -15,6 +15,8 @@
 
 #include "flash_mibspi.h"
 #include "sfu_utils.h"
+#include "sfusat_spiffs.h"
+
 
 
 void mibspi_write_byte(uint16_t toWrite){
@@ -65,11 +67,9 @@ void flash_erase_sector(uint32_t address){
 	    sendOut[1] = (address & 0xFF0000) >> 16;
 	    sendOut[2] = (address & 0xFF00) >> 8;
 	    sendOut[3] = (address) & 0xFF;
-//	    sendOut[4] = 0x00;
-//	    sendOut[5] = 0x00;
 
-	    mibspi_write_byte(WRITE_ENABLE);
-	    mibspi_send(FLASH_4_BYTE_GROUP, sendOut);
+			mibspi_write_byte(WRITE_ENABLE);
+			mibspi_send(FLASH_4_BYTE_GROUP, sendOut);
 }
 
 void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packet, uint16_t databytes){
@@ -104,30 +104,30 @@ void flash_read_16(uint32_t address, uint16_t *outBuffer){
         outBuffer[i] = TG3_RX[i + 4];
     }
 }
-
-void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
-	// in the RTOS so use a mutex
-	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
-	{
-		construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
-		mibspi_receive(FLASH_20_BYTE_GROUP,TG3_RX);
-
-		// strip off the first 4 bytes of the receive, since those are the responses to the command and address
-		int i = 0;
-		for(i = 0; i < 16; i++){
-			outBuffer[i] = TG3_RX[i + 4];
-		}
-	}
-	xSemaphoreGive( xFlashMutex );
-}
-
-void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
-	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
-	{
-		construct_send_packet_16(FLASH_WRITE, address, outBuffer);
-	}
-	xSemaphoreGive( xFlashMutex );
-}
+//
+//void flash_read_16_rtos(uint32_t address, uint16_t *outBuffer){
+//	// in the RTOS so use a mutex
+//	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
+//	{
+//		construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
+//		mibspi_receive(FLASH_20_BYTE_GROUP,TG3_RX);
+//
+//		// strip off the first 4 bytes of the receive, since those are the responses to the command and address
+//		int i = 0;
+//		for(i = 0; i < 16; i++){
+//			outBuffer[i] = TG3_RX[i + 4];
+//		}
+//	}
+//	xSemaphoreGive( xFlashMutex );
+////}
+//
+//void flash_write_16_rtos(uint32_t address, uint16_t *outBuffer){
+//	xSemaphoreTake( xFlashMutex, pdMS_TO_TICKS(60) );
+//	{
+//		construct_send_packet_16(FLASH_WRITE, address, outBuffer);
+//	}
+//	xSemaphoreGive( xFlashMutex );
+//}
 
 boolean rw16_test(uint32_t address){
     // this function writes 16 test bytes to the specified address. Chip should be erased first.
@@ -190,27 +190,28 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 	uint32_t inIndex; // the place in the input data buffer
 	uint32_t numDummy;
 
-	outIndex = 0; // the place in each frame
-	for(inIndex = 0; inIndex < size; inIndex ++){
-		sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
-		outIndex++;
-		if(outIndex == 16){ // (16 not 15 since we increment it right above) - every 16, send out and increment address for the next one
-			construct_send_packet_16(FLASH_WRITE, address, sendOut);
-			  while(flash_status() != 0){ // wait for the write to complete
-			    }
-			outIndex = 0;
-			address += 16;
-		}
-	}
-
-	// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
-	if(outIndex != 0){
-		for(numDummy = 16 - outIndex; numDummy > 0; numDummy--){
-			sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+		outIndex = 0; // the place in each frame
+		for(inIndex = 0; inIndex < size; inIndex ++){
+			sendOut[outIndex] = src[inIndex]; // put the next char into the send buffer
 			outIndex++;
+			if(outIndex == 16){ // (16 not 15 since we increment it right above) - every 16, send out and increment address for the next one
+				construct_send_packet_16(FLASH_WRITE, address, sendOut);
+				  while(flash_status() != 0){ // wait for the write to complete
+					}
+				outIndex = 0;
+				address += 16;
+			}
 		}
-		construct_send_packet_16(FLASH_WRITE, address, sendOut);
-	}
+
+		// Handle packing in dummy bytes for cases where data isn't a multiple of 16 bytes
+		if(outIndex != 0){
+			for(numDummy = 16 - outIndex; numDummy > 0; numDummy--){
+				sendOut[outIndex] = 0xff; // empty or unprogrammed value for flash is 1
+				outIndex++;
+			}
+			construct_send_packet_16(FLASH_WRITE, address, sendOut);
+		}
+
 }
 
 void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest){
@@ -225,17 +226,18 @@ void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest){
 
 	flash_read_16(address, readBuffer); // read first 16 bytes
 
-	for(readCounter = 0; readCounter < size; readCounter++){ // loop through entire size and stick the bytes into the dest array
-		dest[readCounter] = readBuffer[inIndex];
-		inIndex++;
+		for(readCounter = 0; readCounter < size; readCounter++){ // loop through entire size and stick the bytes into the dest array
+			dest[readCounter] = readBuffer[inIndex];
+			inIndex++;
 
-		// Read the next 16 bytes
-		if(inIndex == 16){ // since we increment it above
-			inIndex = 0;
-			address += 16;
-			flash_read_16(address, readBuffer); // read first 16 bytes
+			// Read the next 16 bytes
+			if(inIndex == 16){ // since we increment it above
+				inIndex = 0;
+				address += 16;
+				flash_read_16(address, readBuffer); // read first 16 bytes
+			}
 		}
-	}
+
 }
 
 boolean flash_test_JEDEC(void){

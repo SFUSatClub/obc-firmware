@@ -18,14 +18,10 @@ void test_triumf_init(){
 
 #if ERASE_START
 	    flash_erase_chip();
-	    addressWritten = 0;
-	    lastRead = addressWritten;
-
 #endif
 
 #if !ERASE_START
-	    addressWritten = getEmptySector();
-	    lastRead = addressWritten;
+
 #endif
 
 
