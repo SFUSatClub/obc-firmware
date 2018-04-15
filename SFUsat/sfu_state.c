@@ -188,3 +188,12 @@ uint8_t stateCheckEnterSafe(InstanceData_t *data){
 	// check for bad errors. If so, enter safe as well.
 }
 
+
+/* ------------ Wrappers ----------------------
+ * 	- provide nice interfaces to getting some state information
+ */
+
+uint32_t stateEntryTime(){
+	// return the time we enter the current state
+	return state_persistent_data.enter_time;
+}

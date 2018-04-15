@@ -54,7 +54,7 @@ void setStateRTOS_mode();
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 bool getStateRTOS_mode();
-
+uint32_t stateEntryTime();
 extern State_t cur_state;
 extern InstanceData_t state_persistent_data;
 

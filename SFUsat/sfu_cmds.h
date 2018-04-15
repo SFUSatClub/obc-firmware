@@ -82,6 +82,7 @@
 #define CMD_STATE_GET		0x02
 #define CMD_STATE_PREV		0x04
 #define CMD_STATE_SET		0x06
+#define CMD_STATE_ENTRY		0x08
 
 #define CMD_ACK_NONE		0x00
 

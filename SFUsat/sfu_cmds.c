@@ -107,6 +107,8 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "    Set the current state\n"
 							  "  prev\n"
 							  "    Show previous state\n"
+							  "  entry\n"
+							  "    Show time we entered current state\n"
 		},
 		{
 				.subcmd_id	= CMD_ACK,
@@ -452,6 +454,10 @@ static const struct subcmd_opt CMD_STATE_OPTS[] = {
 				.subcmd_id	= CMD_STATE_PREV,
 				.name		= "prev",
 		},
+		{
+				.subcmd_id	= CMD_STATE_ENTRY,
+				.name		= "entry",
+		},
 };
 int8_t cmdState(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
@@ -497,6 +503,14 @@ int8_t cmdState(const CMD_t *cmd) {
 		 */
 		case CMD_STATE_PREV: {
 			printPrevState(cur_state,&state_persistent_data);
+			return 1;
+		}
+		/*
+		 * Return the time we entered the current state
+		 */
+		case CMD_STATE_ENTRY: {
+			char buf[11];
+			snprintf(buf, 11, "%i",stateEntryTime());
 			return 1;
 		}
 	}
