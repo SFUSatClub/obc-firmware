@@ -130,8 +130,7 @@ int main(void)
 
 // ---------- SFUSat INIT ----------
 //	rtcInit();
-    gio_interrupt_example_rtos_init();
-	stateMachineInit(); // we start in SAFE mode
+//	stateMachineInit(); // we start in SAFE mode
 
 // ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");

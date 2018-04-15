@@ -18,6 +18,7 @@
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
+#include "examples/sfusat_examples.h"
 
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
@@ -43,6 +44,7 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
+    gio_interrupt_example_rtos_init();
 	stateMachineInit(); // we start in SAFE mode
 
 
