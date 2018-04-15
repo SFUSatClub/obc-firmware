@@ -10,6 +10,7 @@
 
 #include "sfu_state.h"
 #include "sfu_uart.h"
+#include "sfu_rtc.h"
 
 State_t cur_state;
 InstanceData_t state_persistent_data;
@@ -95,7 +96,7 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 		printStateInfo(currstate,data);
 		transition(data);
 		data->previous_state = currstate;
-		data->enter_time = 0x32; // dummy value, will actually want to read RTC
+		data->enter_time = getCurrentTime(); // dummy value, will actually want to read RTC
 		// TODO: confirm state switch out over radio
 	}
 
