@@ -20,6 +20,7 @@
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
+#include "examples/sfusat_examples.h"
 
 
 
@@ -39,7 +40,6 @@ void vMainTask(void *pvParameters) {
 	/**
 	 * Hardware initialization
 	 */
-	serialInit();
 	gioInit();
 	adcInit();
 	spiInit();
@@ -50,13 +50,15 @@ void vMainTask(void *pvParameters) {
 	 * TODO: Launchpad may not like to run rtcInit/other hardware inits; ifdef them out
 	 */
 	rtcInit();
+    gio_interrupt_example_rtos_init();
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
 
-	//watchdog_busywait(3000); // to allow time for serial to connect up to script
-	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+//	watchdog_busywait(3000); // to allow time for serial to connect up to script
+//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
+
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
@@ -70,6 +72,7 @@ void vMainTask(void *pvParameters) {
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+
 	// test_flash();
 	test_adc_init();
 // 	test_triumf_init();

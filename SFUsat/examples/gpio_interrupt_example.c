@@ -47,7 +47,7 @@ void gio_interrupt_example_rtos_init(void){
 	xGioInterruptTaskHandle = NULL;
 
 	if(gioExampleSem != NULL){ // setup the task to handle the ISR
-		xTaskCreate(vGioInterruptTask, "GIO Interrupt", 200, NULL, 3, xGioInterruptTaskHandle);
+		xTaskCreate(vGioInterruptTask, "GIO Int", 200, NULL, 3, xGioInterruptTaskHandle);
 	}
 
 	gioEnableNotification(GIO_IRQ_PORT, GIO_IRQ_PIN); // enable the notification callback for this particular pin

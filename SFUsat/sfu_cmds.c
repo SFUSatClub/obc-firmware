@@ -11,6 +11,7 @@
 #include "sfu_scheduler.h"
 #include "sfu_state.h"
 #include "sfu_utils.h"
+#include "sfu_rtc.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -51,6 +52,7 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  task  -- Task-related commands\n"
 							  "  sched -- Schedule-related commands\n"
 							  "  state -- State-related commands\n"
+							  "  ack   -- Acks."
 		},
 		{
 				.subcmd_id	= CMD_HELP_GET,
@@ -61,6 +63,7 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  heap    -- Show size of free heap\n"
 							  "  minheap -- Show lowest size of free heap ever reached\n"
 							  "  types   -- Show size of various types (debugging)\n"
+							  "	 epoch   -- Show current OBC epoch\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_EXEC,
@@ -105,6 +108,11 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  prev\n"
 							  "    Show previous state\n"
 		},
+		{
+				.subcmd_id	= CMD_ACK,
+				.name		= "Ack",
+				.info		= "acks. "
+		}
 };
 
 int8_t cmdHelp(const CMD_t *cmd) {
@@ -150,6 +158,10 @@ static const struct subcmd_opt CMD_GET_OPTS[] = {
 				.subcmd_id	= CMD_GET_TYPES,
 				.name		= "types",
 		},
+		{
+				.subcmd_id	= CMD_GET_EPOCH,
+				.name		= "epoch",
+		},
 };
 char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
@@ -192,6 +204,12 @@ int8_t cmdGet(const CMD_t *cmd) {
 			serialSend(buffer);
 			return 1;
 		}
+		case CMD_GET_EPOCH: {
+			size_t time = getCurrentTime();
+			sprintf(buffer, "Epoch: %i", time);
+			serialSend(buffer);
+			return 1;
+		}
 	}
 	serialSendQ("get: unknown sub-command");
 	return 0;
@@ -220,6 +238,10 @@ int8_t cmdExec(const CMD_t *cmd) {
 	return 0;
 }
 
+/*
+ * RF Command
+ */
+
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_EXEC_RADIO: {
@@ -227,6 +249,19 @@ int8_t cmdRF(const CMD_t *cmd) {
 			return 1;
 		}
 	}
+	return 0;
+}
+
+/**
+ * Ack command
+ */
+
+int8_t cmdAck(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_ACK_NONE){
+			serialSendQ("Ack!");
+			return 1;
+		}
+
 	return 0;
 }
 
@@ -524,6 +559,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdState,
 				.subcmds		= CMD_STATE_OPTS,
 				.num_subcmds	= LEN(CMD_STATE_OPTS),
+		},
+		{
+				.cmd_id			= CMD_ACK,
+				.name			= "ack",
+				.func			= cmdAck,
+				.subcmds		= NULL,
+				.num_subcmds	= 0,
 		}
 };
 

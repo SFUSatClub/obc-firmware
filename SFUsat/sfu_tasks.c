@@ -153,6 +153,8 @@ void vSerialTask(void *pvParameters) {
 				serialSendln("WARNING: lots of uart rx");
 			}
 		}
+//	    sciReceive(UART_PORT, 1, &currChar); // place into receive mode
+
 	}
 }
 // to send long strings?
