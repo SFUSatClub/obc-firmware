@@ -29,6 +29,7 @@
 #define CMD_TASK		0x08
 #define CMD_SCHED		0x0A
 #define CMD_STATE		0x0C
+#define CMD_ACK			0x0F
 
 /**
  * Magic numbers to identify the sub-commands of a command.
@@ -82,6 +83,7 @@
 #define CMD_STATE_PREV		0x04
 #define CMD_STATE_SET		0x06
 
+#define CMD_ACK_NONE		0x00
 
 /**
  * Maximum command argument size.
