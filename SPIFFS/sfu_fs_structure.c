@@ -32,7 +32,6 @@ void sfu_fs_lifecycle(void *pvParameters) {
 		if(fs_num_increments == 0){
 			sfusat_spiffs_init(); // doing this at the start of task_main was no good
 			sfu_create_files_wrapped();
-//			vTaskDelay(2000);
 			fs_test_tasks(); // optional, useful if no other tasks are writing to files
 		}
 		vTaskDelay(FSYS_LOOP_INTERVAL);

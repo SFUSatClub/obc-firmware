@@ -33,6 +33,7 @@
 #define FLASH_READ_DEFAULT_PRIORITY 3
 #define FLASH_WRITE_DEFAULT_PRIORITY 4
 #define TESTS_PRIORITY 3
+#define STDTELEM_PRIORITY 4
 
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
@@ -49,6 +50,7 @@ void vSerialSenderTask(void *pvParameters);
 
 void vTickleTask(void *pvParameters);
 void vMonitorTask(void *pvParameters);
+void vStdTelemTask(void *pvParameters);
 
 // RTOS queue example
 void vSenderTask( void *pvParameters );

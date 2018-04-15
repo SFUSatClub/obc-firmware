@@ -10,6 +10,8 @@
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
 #include "adc.h"
+#include "sfu_state.h"
+#include "sfusat_spiffs.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -63,6 +65,39 @@ void vStateTask(void *pvParameters) {
 	}
 }
 
+/**
+ * STDTelem
+ * - this is responsible for collecting and sending out our regular telemetry packets
+ * - these have defined content including:
+ * - this is what we'll be sending out most of the time, unless we decide to issue commands
+ *   to downlink other data if we decide we want it.
+ * 		- state, time we enter state
+ * 		- temperatures
+ * 		- battery
+ * 		- filesystem size, file prefix
+ * 		- epoch at send
+ */
+void vStdTelemTask(void *pvParameters){
+	char buf[50] = {'\0'};
+	while(1){
+		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c",
+				getCurrentTime(), 					// epoch at send
+				cur_state, 							// state
+				stateEntryTime(), 					// time we entered state
+				xPortGetMinimumEverFreeHeapSize(), 	// min heap
+				fs.free_blocks,						// filesys free blocks
+				*(char *) fs.user_data				// filesys prefix
+		);
+		serialSendQ(buf);
+		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
+		// TODO: add temps, voltages, currents
+		// TODO: send out from radio
+		/* for large, time consuming things like voltages and currents, we can have the normal read tasks
+		 * send their info to a queue with depth 1. This task will pick up that (most recent) data whenever it runs,
+		 * allowing these values to be updated in the background by their respective tasks.
+		 */
+	}
+}
 
 /**
  * This task is responsible for the handling of all UART related functions.

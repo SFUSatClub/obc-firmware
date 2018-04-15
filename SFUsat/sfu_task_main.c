@@ -31,6 +31,7 @@ TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFSLifecycle = NULL; // RA - filesystem lifecycle (FS tests are initialized in here too)
+TaskHandle_t xSTDTelemTaskHandle = NULL;
 
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
@@ -97,6 +98,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vStdTelemTask, "telem", 600, NULL, STDTELEM_PRIORITY, &xSTDTelemTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
