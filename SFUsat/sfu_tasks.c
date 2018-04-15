@@ -17,6 +17,8 @@ QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
+TaskHandle_t xStateEntryHandle = NULL;
+
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
 	// The loop of the task will run repeatedly until the task is preempted. So delay or suspend the task once you're done processing.
@@ -284,5 +286,19 @@ void vTickleTask(void *pvParameters){
 
 void vMonitorTask(void *pvParameters){
 	serialSendQ("Chip is being reset.");
+}
+
+/* vStateEntry sends out the time we entered the current state.
+ * - its creation is mapped to command "state entry"
+ * - required because command handler shouldn't be doing lots of work
+ * 		- we should be spinning up tasks to do the work, as we do here
+ */
+void vStateEntry(void *pvParameters){
+	char buf[14] = {'\0'};
+	while(1){
+		snprintf(buf, 14, "SE: %i",stateEntryTime());
+		serialSendQ((const char *)buf);
+		vTaskDelete(NULL); // NULL causes the calling task to be deleted
+	}
 }
 

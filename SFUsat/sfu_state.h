@@ -11,6 +11,10 @@
 
 #include "sys_common.h"
 #include "sfu_utils.h"
+#include "FreeRTOS.h"
+#include "rtos_task.h"
+
+extern TaskHandle_t xStateEntryHandle;
 
 // create the list of state enums, and strings so we can print out the state. https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
 #define FOREACH_STATE(state) \

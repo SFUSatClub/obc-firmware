@@ -509,8 +509,7 @@ int8_t cmdState(const CMD_t *cmd) {
 		 * Return the time we entered the current state
 		 */
 		case CMD_STATE_ENTRY: {
-			char buf[11];
-			snprintf(buf, 11, "%i",stateEntryTime());
+			xTaskCreate(vStateEntry, "state entry", 200, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateEntryHandle);
 			return 1;
 		}
 	}

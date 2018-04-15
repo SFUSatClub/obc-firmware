@@ -14,7 +14,6 @@
 
 State_t cur_state;
 InstanceData_t state_persistent_data;
-
 /* -------------- doStateX Functions ------------------------
 These handle the checks required to transition from one state to the next.
 Return to current state is always last so that checks are performed frequently. */
@@ -197,3 +196,6 @@ uint32_t stateEntryTime(){
 	// return the time we enter the current state
 	return state_persistent_data.enter_time;
 }
+
+
+

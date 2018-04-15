@@ -23,7 +23,7 @@
 #include "examples/sfusat_examples.h"
 
 
-
+// Perpetual tasks - these run all the time
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -33,9 +33,11 @@ TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFSLifecycle = NULL; // RA - filesystem lifecycle (FS tests are initialized in here too)
 TaskHandle_t xSTDTelemTaskHandle = NULL;
 
+// Radio tasks
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
+
 
 /* MainTask for all platforms except launchpad */
 #if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
