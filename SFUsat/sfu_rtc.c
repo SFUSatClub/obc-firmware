@@ -123,6 +123,7 @@ uint8_t convertBCD(uint8_t input) {
         return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
     }else{
         return 0;
+        //Log error here
     }
 }
 
@@ -159,7 +160,13 @@ uint8_t rtc_get_day(void) {
 }
 
 uint8_t rtc_get_year(void) {
-	return convertBCD(rtcReadRegister(CLOCK_YEARS));
+    uint8_t year = 0;
+    if (input > 7){
+        return 0;
+        //Log error here
+    }
+    year = (0b00000001 & input) * 1 + ((0b00000010 & input) >> 1) * 2 + ((0b00000100 & input) >> 2) * 4;
+    return year;
 }
 
 uint32_t getCurrentRTCTime() {
