@@ -88,7 +88,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="SFUsat/test_sequences|SFUsat/examples|platform-obc-v0.4|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="SFUsat/test_sequences|platform-obc-v0.4|platform-obc-v0.3" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
