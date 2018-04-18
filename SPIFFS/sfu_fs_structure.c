@@ -22,7 +22,7 @@ TaskHandle_t xSPIFFSRead = NULL; // RA
 
 
 // -------------- Tasks for testing --------------------
-void sfu_fs_lifecycle(void *pvParameters) {
+void vFilesystemTask(void *pvParameters) {
 	/* lifecycle
 	 * - inits, deletes the files in the system as we will in flight
 	 * - another task is required to write/read the files as would be done normally

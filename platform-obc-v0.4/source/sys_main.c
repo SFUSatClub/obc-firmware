@@ -103,7 +103,6 @@ int main(void)
 	 */
 	_enable_IRQ();
     _enable_interrupt_();
-	serialInit();
 
     /**
      * Task vMainTask is where all of the top level tasks will be created from.

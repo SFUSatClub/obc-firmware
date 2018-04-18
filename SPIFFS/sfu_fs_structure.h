@@ -51,7 +51,7 @@
 uint32_t fs_num_increments;
 
 // Tasks
-void sfu_fs_lifecycle(void *pvParameters);
+void vFilesystemTask(void *pvParameters);
 void fs_rando_write(void *pvParameters);
 void fs_read_task(void *pvParameters);
 void fs_test_tasks();
