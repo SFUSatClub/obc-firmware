@@ -114,6 +114,11 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_ACK,
 				.name		= "Ack",
 				.info		= "acks. "
+		},
+		{
+				.subcmd_id	= CMD_WD,
+				.name		= "wd",
+				.info		= "Suspends watchdog tickle tasks.\n"
 		}
 };
 
@@ -261,6 +266,33 @@ int8_t cmdRF(const CMD_t *cmd) {
 int8_t cmdAck(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_ACK_NONE){
 			serialSendQ("Ack!");
+			return 1;
+		}
+
+	return 0;
+}
+
+/**
+ * Watchdog command
+ */
+static const struct subcmd_opt CMD_WD_OPTS[] = {
+		{
+				.subcmd_id	= CMD_WD_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_WD_RESET,
+				.name		= "reset",
+		},
+};
+
+int8_t cmdWd(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_WD_RESET){
+			serialSendQ("Suspending watchdog task!");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+		else{
 			return 1;
 		}
 
@@ -579,6 +611,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdAck,
 				.subcmds		= NULL,
 				.num_subcmds	= 0,
+		},
+		{
+				.cmd_id			= CMD_WD,
+				.name			= "wd",
+				.func			= cmdWd,
+				.subcmds		= CMD_WD_OPTS,
+				.num_subcmds	= LEN(CMD_WD_OPTS),
 		}
 };
 

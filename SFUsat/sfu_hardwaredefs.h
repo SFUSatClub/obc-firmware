@@ -39,8 +39,8 @@
 #define RTI_CLK_SPEED_HZ		30000000	// 30 MHz - for RTOS tick
 #define DEBUG_LED_PORT			gioPORTA
 #define DEBUG_LED_PIN			6
-#define WATCHDOG_TICKLE_PORT	gioPORTA
-#define WATCHDOG_TICKLE_PIN		7
+#define WATCHDOG_TICKLE_PORT	gioPORTB
+#define WATCHDOG_TICKLE_PIN		0
 #define DEMO_ADC_REG			adcREG1
 #define DEMO_ADC_PIN			1
 #define UART_PORT				sciREG

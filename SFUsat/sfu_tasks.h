@@ -48,7 +48,7 @@ extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
 void vSerialSenderTask(void *pvParameters);
 
-void vTickleTask(void *pvParameters);
+void vExternalTickleTask(void *pvParameters);
 void vMonitorTask(void *pvParameters);
 void vStdTelemTask(void *pvParameters);
 void vStateEntry(void *pvParameters); // prints the time we entered current state

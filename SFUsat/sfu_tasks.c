@@ -274,13 +274,12 @@ void vReceiverTask(void *pvParameters) {
 	}
 }
 
-void vTickleTask(void *pvParameters){
-	for (;;){
-		//serialSendQ("tickle");
+void vExternalTickleTask(void *pvParameters){
+	while(1){
 		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 1);
 		vTaskDelay(1); // delay 1ms
 		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 0);
-		vTaskDelay(500); // repeat this cycle every 500ms
+		vTaskDelay(400); // repeat this cycle every 400ms
 	}
 }
 
