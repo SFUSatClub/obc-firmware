@@ -2,7 +2,7 @@
  * sfu_rtc.h
  *
  *  Created on: Jun 12, 2017
- *      Author: steven + richard
+ *      Author: Steven + Richard + Victor
  */
 
 #ifndef SFUSAT_SFU_RTC_H_
@@ -48,6 +48,11 @@ uint8_t rtc_get_startup_status();
 
 void rtcReset(); // triggers the reset register (does not affect time)
 void rtcResetTime(); // resets time to jan 1, year 2000
+
+// Command Modes
+#define RTC_READ 0x80
+#define RTC_WRITE 0x00
+
 
 // RTC Registers
 #define CTRL_1
