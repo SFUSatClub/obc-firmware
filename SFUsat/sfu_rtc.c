@@ -122,7 +122,7 @@ uint8_t convertBCD(uint8_t input) {
         return 0;
         //Log error here
     }
-
+}
 
 uint8_t rtc_get_seconds(void) {
 	return convertBCD(rtcReadRegister(CLOCK_SECONDS));
