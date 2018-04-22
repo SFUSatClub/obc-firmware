@@ -159,6 +159,10 @@ uint8_t rtc_get_day(void) {
 	return day;
 }
 
+/* Get Year
+ * Note: we won't deal with years > 7, since that's greater than the mission lifespan by 3x.
+*/
+
 uint8_t rtc_get_year(void) {
     uint8_t year = 0;
     if (input > 7){

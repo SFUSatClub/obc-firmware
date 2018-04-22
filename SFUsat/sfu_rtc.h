@@ -2,7 +2,7 @@
  * sfu_rtc.h
  *
  *  Created on: Jun 12, 2017
- *      Author: steven + richard
+ *      Author: Steven + Richard + Victor
  */
 
 #ifndef SFUSAT_SFU_RTC_H_
