@@ -2,7 +2,7 @@
  * sfu_rtc.c
  *
  *  Created on: Jun 12, 2017
- *      Author: steven + richard
+ *      Author: Steven + Richard + Victor
  */
 
 #include "gio.h"
@@ -134,7 +134,7 @@ uint8_t rtc_get_seconds(void) {
 uint8_t rtc_get_minutes(void) {
 	return convertBCD(rtcReadRegister(CLOCK_MINUTES));
 
-	//    uint16_t txBuffer[] = {READ | CLOCK_MINUTES};
+	//    uint16_t txBuffer[] = {RTC_READ | CLOCK_MINUTES};
 	//    uint16_t rxBuffer[1] = {0x00};
 	//    rtcTransmitAndReceive(1, txBuffer, rxBuffer);
 	//    return MSBconvertBCD(rxBuffer);
@@ -162,9 +162,10 @@ uint8_t rtc_get_day(void) {
 /* Get Year
  * Note: we won't deal with years > 7, since that's greater than the mission lifespan by 3x.
 */
-
 uint8_t rtc_get_year(void) {
     uint8_t year = 0;
+	uint8_t input = 0;
+	input = rtcReadRegister(CLOCK_YEARS);
     if (input > 7){
         return 0;
         //Log error here
@@ -274,14 +275,14 @@ uint32_t no_rtos_test_getCurrentRTCTime() {
 // ------------------------ SPI HANDLERS -----------------------------
 
 void rtcWriteRegister(uint16_t registerToWrite, uint16_t valueToWrite) {
-	uint16_t txBuffer[2] = { WRITE | registerToWrite, valueToWrite };
+	uint16_t txBuffer[2] = { RTC_WRITE | registerToWrite, valueToWrite };
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
 	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer);
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 0); // deactivate CS
 }
 
 uint8_t rtcReadRegister(uint16_t registerToRead) {
-	uint16_t txBuffer[1] = { READ | registerToRead };
+	uint16_t txBuffer[1] = { RTC_READ | registerToRead };
 	uint16_t rxBuffer[1] = { 0x0000 };
 	rtcTransmitAndReceive(1, txBuffer, rxBuffer);
 
@@ -290,11 +291,11 @@ uint8_t rtcReadRegister(uint16_t registerToRead) {
 
 void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff) {
 
-	//    Usage:
-	//uint16_t txBuffer[] = {READ | CLOCK_MINUTES};
-	//    uint16_t rxBuffer[1] = {0x00};
-	//    spiTransmitAndReceiveData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer, rxBuffer); // middle argument must be 2 or it doesn't go into receive
-
+/*	  Usage:
+			uint16_t txBuffer[] = {RTC_READ | CLOCK_MINUTES};
+	    	uint16_t rxBuffer[1] = {0x00};
+	    	spiTransmitAndReceiveData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer, rxBuffer); // middle argument must be 2 or it doesn't go into receive
+*/
 	// this is required because the RTC chip select is active high (nonstandard polarity)
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
 	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, blocksize, srcbuff);
