@@ -36,9 +36,10 @@ void vADCRead(void *pvParameters) {
 	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
 	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
 
-    adcData_t adc_data[24]; // there are 24 channels
-    char sendBuf[20];
+
 	while (1) {
+	    adcData_t adc_data[24]; // there are 24 channels
+	    char sendBuf[20];
 		// start conversion (it's inside test_adc)
 		// take a semaphore here
 
@@ -48,9 +49,7 @@ void vADCRead(void *pvParameters) {
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-//		printf("ADC Value: %d", adc_data[2].value);
-		    snprintf(sendBuf, 20,"ADC Value: %d",adc_data[2].value);
-//		    printf("hello adc");
+		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
 		  serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
@@ -133,6 +132,7 @@ void vSerialTask(void *pvParameters) {
 				}
 				char *commandPtr = malloc(toAllocate);
 				strcpy(commandPtr, rxBuffer);
+				serialSend("> ");
 				serialSendln(commandPtr);
 				commands[commandsIdx] = commandPtr;
 				commandsIdx++;
@@ -153,6 +153,8 @@ void vSerialTask(void *pvParameters) {
 				serialSendln("WARNING: lots of uart rx");
 			}
 		}
+//	    sciReceive(UART_PORT, 1, &currChar); // place into receive mode
+
 	}
 }
 // to send long strings?

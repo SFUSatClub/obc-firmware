@@ -10,6 +10,10 @@
 #include "sfu_uart.h"
 #include "sfu_smartrf_cc1101.h"
 
+//Interrupt stuff
+#include "rtos_semphr.h"
+#include "rtos_task.h"
+
 typedef enum {
 	IOCFG0,
 	IOCFG1,
@@ -194,21 +198,83 @@ QueueHandle_t xRadioCHIMEQueue;
 
 static uint8 statusByte;
 
+typedef struct RadioDAT {
+	uint8 srcsz;
+	uint8 srcdat[100];
+} RadioDAT_t;
+
+
+/**
+ * Forward declarations
+ */
+static uint8 readRegister(uint8 addr);
+static int readFromRxFIFO(uint8 *dest, uint8 size);
+static void strobe(uint8 addr);
+
+//Declarations for RF Interrupt
+SemaphoreHandle_t gioRFSem;
+TaskHandle_t xRFInterruptTaskHandle;
+
 void vRadioTask(void *pvParameters) {
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
 	initRadio();
+
+	strobe(SRX);
+
 	while (1) {
 		serialSendln("radio task");
-		vTaskDelay(pdMS_TO_TICKS(5000));
-		initRadio();
+
+	    char buffer[30];
+
+	    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
+	    	uint8 packetLen  = 64;
+	        uint8 test[100] = { 0 };
+	        int i = 2;
+	        test[0] = packetLen;
+	        test[1] = 0x10;
+	        while (i < packetLen) {
+	        	test[i] = i;
+	        	i++;
+	        }
+
+
+		if(0){ //1 for tx
+
+	    switch(writeToTxFIFO(test, packetLen)){
+	    	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
+	    			serialSendln(buffer);
+	    			break;
+	    	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
+	        		serialSendln(buffer);
+	        		break;
+	    	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+					serialSendln(buffer);
+	    }
+	//
+	        strobe(STX);
+
+		}
+
+	    strobe(SNOP);
+
+	    //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
+
+	    if(readRegister(RXBYTES) != 0){
+	    	readFromRxFIFO(test, 5);
+	    	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
+	    	serialSendln(buffer);
+	    }
+
+
+		vTaskDelay(pdMS_TO_TICKS(5000)); // do we need this?
 	}
 }
 
 // TX task
 void vRadioTX(void *pvParameters) {
-	struct RadioDAT Radio_container;
+	RadioDAT_t Radio_container;
 	Radio_container.srcsz = 100;
 	uint8 idx = 0;
 	for (idx = 0; idx < Radio_container.srcsz; idx++){
@@ -254,7 +320,7 @@ void vRadioCHIME(void *pvParameters){
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff; //table 23 of CC1101 Datasheet
 	/*char buffer[30];
 	snprintf(buffer, 30, "R 0x%02x\r\n < 0x%02x 0x%02x", addr, statusByte, dest[1]);
@@ -266,7 +332,7 @@ static uint8 readRegister(uint8 addr) {
 static void writeRegister(uint8 addr, uint8 val) {
 	uint16 src[] = {addr | WRITE_BIT, val};
 	uint16 dest[] = {0x00, 0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 2, src, dest);
 	statusByte = dest[0] & 0xff;
 }
 
@@ -281,7 +347,7 @@ static void writeRegister(uint8 addr, uint8 val) {
 static void strobe(uint8 addr) {
 	uint16 src[] = {addr};
 	uint16 dest[] = {0x00};
-	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 1, src, dest);
+	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 1, src, dest);
 	statusByte = dest[0] & 0xff;
 	char buffer[30];
 	snprintf(buffer, 30, "S 0x%02x\r\n < 0x%02x", src[0], statusByte);
@@ -342,7 +408,13 @@ static int readFromRxFIFO(uint8 *dest, uint8 size) {
 static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
+		char buffer[30];
+		//snprintf(buffer, "addr %02x, config %02x,", SMARTRF_ADDRS[i], config[i]);
 		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+
+
+		//snprintf(buffer, 30, "new reg content = %02x", readRegister(SMARTRF_ADDRS[i++]));
+		//serialSendln(buffer);
 		i++;
 	}
 }
@@ -394,31 +466,70 @@ static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8
     return checkConfig(SMARTRF_VALS_TX);
 }
 
+static void switchRadioMode(){
+	//
+	serialSendQ("Switch here");
+}
+
+
+void vRFInterruptTask(void *pvParameters){
+	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+
+	//pulled from example
+	while(1){
+		xSemaphoreTake(gioRFSem, portMAX_DELAY);
+		serialSendQ("It's an RF one!");
+		//gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the blinky LED
+		switchRadioMode();
+	}
+}
+
+void rf_interrupt_init(void){
+	//pulled from example
+	gioRFSem = xSemaphoreCreateBinary();
+	xRFInterruptTaskHandle = NULL;
+
+	if(gioRFSem != NULL){ // setup the task to handle the ISR
+		xTaskCreate(vRFInterruptTask, "RF Interrupt", 200, NULL, 3, xRFInterruptTaskHandle);
+	}
+
+	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN); // enable the notification callback for this particular pin
+}
+
+void gio_notification_RF(gioPORT_t *port, uint32 bit){
+	// This gets called by the ISR callback (notification). Doesn't need to be in another function, but this just keeps things tidy
+	// See FreeRTOS tutorial guide pg. 200
+
+	//pulled from Example
+
+	BaseType_t xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+
+	if(port == GIO_IRQ_PORT && bit == GIO_IRQ_PIN){ // Always need to check which pin actually triggered the interrupt
+
+		xSemaphoreGiveFromISR(gioRFSem, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
+}
+
+
+
+
 BaseType_t initRadio() {
 	//what task should SPI initialization occure in?
-	spiDataConfig.CS_HOLD = TRUE;
-	spiDataConfig.WDEL = TRUE;
-    spiDataConfig.DFSEL = SPI_FMT_0;
+	spiDataConfig.CS_HOLD = RF_CONFIG_CS_HOLD;
+	spiDataConfig.WDEL = RF_CONFIG_WDEL;
+    spiDataConfig.DFSEL = RF_CONFIG_DFSEL;
     /*
      * Encoded SPI Transfer Group Chip Select
      * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
-    spiDataConfig.CSNR = SPI_CS_0;
+    spiDataConfig.CSNR = RF_CONFIG_CSNR;
 
     uint8 *stat = readAllStatusRegisters();
     char buffer[30];
 
-    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
-    	uint8 packetLen  = 64;
-        uint8 test[100] = { 0 };
-        int i = 2;
-        test[0] = packetLen;
-        test[1] = 0x10;
-        while (i < packetLen) {
-        	test[i] = i;
-        	i++;
-        }
 
 
 
@@ -437,43 +548,14 @@ BaseType_t initRadio() {
     	serialSendln(buffer);
     }
 
-    	strobe(SNOP);
 
-    	if(0){
+    strobe(SNOP);
+//attach irq
 
-        switch(writeToTxFIFO(test, packetLen)){
-        	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
-        			serialSendln(buffer);
-        			break;
-        	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
-            		serialSendln(buffer);
-            		break;
-        	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
-    				serialSendln(buffer);
-        }
+    strobe(SRX);
+//move here ##
 
-        strobe(STX);
-
-    	}
-
-        strobe(SNOP);
-        /*
-        while((statusByte & STATE) == (STATE_TX << 4)){strobe(SNOP);} //recommended to use interrupt on GDO0 instead of status polling
-        if(readRegister(TXBYTES) == 0){
-        	snprintf(buffer, 30, "Transmission Complete");
-        }else{
-        	snprintf(buffer, 30, "TX Error");
-        }
-        	serialSendln(buffer);
-        	*/
-        //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
-
-        if(readRegister(RXBYTES) != 0){
-        	readFromRxFIFO(test, 5);
-        	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
-        	serialSendln(buffer);
-        }
-
+//Move ##
 	return pdPASS;
 }
 

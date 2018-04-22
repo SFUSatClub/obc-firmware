@@ -76,3 +76,17 @@ void clearBuf(char *buf,uint32_t length){
 	memset(buf, '\0', length);
 }
 
+uint32_t adc_to_mA(uint32_t adcval){
+	/* Based on the following data:
+	 * Current Draw   |   ADC
+	 * -----------------------------
+	 *   133 mA       |   600
+	 *   86 mA        |   590
+	 *
+	 *   Linear fit: current = 4.7 * ADC - 2687
+	 *   Converting to something we can do fixed point: 47 * ADC - 26870
+	 */
+
+	return (47*adcval-26870)/10;
+}
+

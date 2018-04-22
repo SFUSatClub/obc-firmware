@@ -5,7 +5,11 @@
  *      Author: Richard
  */
 #include "test_spiffs_rtos.h"
+#include "sfu_uart.h"
+#include "sfu_rtc.h"
 void spiffs_write_check_test(void *pvParameters) {
+	/* we probably won't really use this - prefer tests within sfu_fs_structure since they use our wrappers */
+
 	uint32_t counter;
 	counter = 0;
 //	int32_t check_result;
@@ -37,6 +41,8 @@ void spiffs_write_check_test(void *pvParameters) {
 }
 
 void spiffs_check_task(void *pvParameters) {
+	/* task to test out spiffs operation - use this if our FS seems to be totally blown up */
+
 	spiffs_stat s;
 	uint32_t total, used, counter;
 	counter = 0;
@@ -97,7 +103,7 @@ void sfu_file_write(char* file_name, char *fmt, ...) {
 	uint32_t x;
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
-	x = 4294967292; // replace with RTC read
+	x = getCurrentRTCTime(); // replace with RTC read
 
 	va_list argptr;
 	va_start(argptr, fmt);

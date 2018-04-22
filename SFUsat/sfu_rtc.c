@@ -11,10 +11,7 @@
 #include "sfu_rtc.h"
 #include "sfu_hardwaredefs.h"
 
-#include <assert.h>
-#include <stdio.h>
 #include <math.h>
-
 
 // contains the cumulative seconds in months so we can easily calculate epochs
 const uint32_t cumulativeSecondsInMonth[12] = { 0, 2678400, 5097600, 7776000, 10368000, 13046400, 15638400, 18316800,
@@ -125,7 +122,7 @@ uint8_t convertBCD(uint8_t input) {
         return 0;
         //Log error here
     }
-}
+
 
 uint8_t rtc_get_seconds(void) {
 	return convertBCD(rtcReadRegister(CLOCK_SECONDS));

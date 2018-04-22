@@ -106,10 +106,6 @@ void rtcResetTime(); // resets time to jan 1, year 2000
 
 // Not included: USER RAM registers
 
-// Command modes
-#define READ 0x80
-#define WRITE 0x00
-
 uint8_t convertBCD(uint8_t input);
 void rtcWriteRegister(uint16_t registerToWrite, uint16_t valueToWrite);
 uint8_t rtcReadRegister(uint16_t registerToRead);

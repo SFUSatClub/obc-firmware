@@ -20,6 +20,7 @@
 #include "printf.h"
 
 #include "sfu_tasks.h"
+extern unsigned char currChar;
 
 void serialInit();
 void serialSendCh(char charToSend);

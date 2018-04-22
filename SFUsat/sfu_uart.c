@@ -16,6 +16,7 @@ unsigned char currChar = '\0';
 
 void serialInit(){
     sciInit(); //initialize the SCI driver
+    sciEnableNotification(UART_PORT, SCI_RX_INT);
     sciReceive(UART_PORT, 1, &currChar); // place into receive mode
 }
 
@@ -31,6 +32,8 @@ BaseType_t serialSendQFromISR(char * toSend) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	BaseType_t xStatus = xQueueSendToBackFromISR(xSerialTXQueue, &toSend, &xHigherPriorityTaskWoken);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	   sciReceive(UART_PORT, 1, &currChar);
+
 	return xStatus;
 }
 
@@ -47,7 +50,7 @@ void serialSendln(const char* stringToSend){
     sciSend(UART_PORT, strlen(stringToSend), (unsigned char *)stringToSend);
     sciSend(UART_PORT, 2, "\r\n");
 
-    sciReceive(UART_PORT, 1, &currChar);
+   sciReceive(UART_PORT, 1, &currChar);
 }
 
 

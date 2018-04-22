@@ -28,11 +28,11 @@ void spi_transmit(uint32 blocksize, uint16 *srcbuff) {
 void spi_transmit_text(const char* txt) {
     const unsigned int numBytes = strlen(txt);
     const unsigned int remainder = numBytes % 2;
-    const unsigned int numUint16s = (numBytes / 2) + (remainder == 0 ? 0 : 1);
+    const unsigned int numUint16s = (numBytes / 2) + remainder;
     uint16 *srcbuff = (uint16 *)malloc(sizeof(uint16) * numUint16s);
-    strcpy((char*)srcbuff, txt);
+    strncpy((char*)srcbuff, txt, numBytes);
     spiTransmitData(spiREG3, &spiDataConfig, numUint16s, srcbuff);
-    serialSend("SPI_Transmit: ");
-    serialSendQ(srcbuff);
+    serialSendQ("SPI_Transmit: ");
+    serialSendQ((const char*)srcbuff);
     free(srcbuff);
 }

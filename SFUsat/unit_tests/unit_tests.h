@@ -11,7 +11,7 @@
 #include "gio.h"
 
 // ADC Tests
-void init_adc_test();
+void test_adc_init();
 uint32_t test_adc(uint8_t channel);
 
 // Flash test
