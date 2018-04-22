@@ -21,6 +21,8 @@
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
+#include "i2c.h"
+#include "stlm75.h"
 
 
 // Perpetual tasks - these run all the time
@@ -45,6 +47,13 @@ void vMainTask(void *pvParameters) {
 	/**
 	 * Hardware initialization
 	 */
+
+//	sfu_i2cInit();
+	i2cInit();
+//hcg_test();
+		obc_temp_test();
+
+
 	serialInit();
 	gioInit();
 	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
