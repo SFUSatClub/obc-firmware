@@ -34,7 +34,7 @@ uint16_t read_temp(uint8_t addr){
 
 	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
 	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
-	i2cSetCount(i2cREG1, 3); 							// the total number of bytes to transact before sending stop bit
+	i2cSetCount(i2cREG1, 1); 							// the total number of bytes to transact before sending stop bit
 	i2cSetMode(i2cREG1, I2C_MASTER);
 	i2cSetStop(i2cREG1);
 	i2cSetStart(i2cREG1);
@@ -42,11 +42,12 @@ uint16_t read_temp(uint8_t addr){
 //	while(i2cIsBusBusy(i2cREG1) == true);
 
 	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
+	i2cSetCount(i2cREG1, 2); 							// the total number of bytes to transact before sending stop bit
 	i2cSetDirection(i2cREG1, I2C_RECEIVER);
 	i2cSetMode(i2cREG1, I2C_MASTER);
 	i2cReceive(i2cREG1, 2, data);
 	i2cSetStop(i2cREG1);
-
+	i2cClearSCD(i2cREG1);
 	temp_deg_c = data[0] << 8; 							// MSBits
 	temp_deg_c = temp_deg_c | data[1]; 					// LSBits
 	temp_deg_c = ((temp_deg_c & 0xFF10) >> 5) * 0.125; // mask off in case there's garbage, shift over so we're correctly right-aligned, scale due to 0.125ºC resolution
