@@ -49,6 +49,9 @@ uint16_t read_temp(uint8_t addr){
 	sfu_i2cReceive(i2cREG1, 2, data);
 	i2cSetStop(i2cREG1);
 	i2cClearSCD(i2cREG1);
+		        while (I2C->STR & I2C_BUSBUSY);	// goes low when stop has gone through			[TRM pg. 1492]
+		        while (I2C->MDR & I2C_MASTER);	// goes low when we're good to transmit again 	[TRM pg. 1498]
+
 	temp_deg_c = data[0] << 8; 							// MSBits
 	temp_deg_c = temp_deg_c | data[1]; 					// LSBits
 	temp_deg_c = ((temp_deg_c & 0xFF10) >> 5) * 0.125; // mask off in case there's garbage, shift over so we're correctly right-aligned, scale due to 0.125ºC resolution

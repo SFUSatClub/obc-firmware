@@ -38,14 +38,19 @@ int8_t sfu_i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data){
 				return I2C_TIMEOUT_FAIL;
 			}
 
-//	            while ((i2c->STR & (uint32)I2C_TX_INT) == 0U)
-//	            {
-//	            	timeout_count++;
-//	            }
+			// If a NACK occurred, SCL is held low and STP bit cleared: http://processors.wiki.ti.com/index.php/I2C_Tips
+					if ( i2c->STR & (uint32_t)I2C_NACK_INT ){
+						i2cSetStop(i2cREG1);
+						i2c->STR = I2C_NACKSNT; // write 1 to clear
+						return I2C_ERR_NACK;
+					}
+
 	            i2c->DXR = (uint32)(*data);
 	            data++;
 	            length--;
 	        }
+
+	    // these don't work here
 //	        while (I2C->STR & I2C_BUSBUSY);	// goes low when stop has gone through			[TRM pg. 1492]
 //	        while (I2C->MDR & I2C_MASTER);	// goes low when we're good to transmit again 	[TRM pg. 1498]
 	return I2C_OK;
