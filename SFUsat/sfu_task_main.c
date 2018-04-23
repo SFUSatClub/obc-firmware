@@ -68,7 +68,7 @@ void vMainTask(void *pvParameters) {
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
-	serialSendln("SFUSat Started!");
+	serialSendQ("SFUSat Started!");
 
 // TODO: confirm whether these are required or not
 //	watchdog_busywait(3000); // to allow time for serial to connect up to script

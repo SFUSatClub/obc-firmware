@@ -10,6 +10,7 @@
 #include "i2c.h"
 #include "stlm75.h"
 #include "reg_i2c.h"
+#include "sfu_i2c.h"
 
 /* sanity check that the OBC temp sensor returns something */
 uint16_t obc_temp_test(){
@@ -38,14 +39,14 @@ uint16_t read_temp(uint8_t addr){
 	i2cSetMode(i2cREG1, I2C_MASTER);
 	i2cSetStop(i2cREG1);
 	i2cSetStart(i2cREG1);
-	i2cSend(i2cREG1, 1, &cmd);
+	sfu_i2cSend(i2cREG1, 1, &cmd);
 //	while(i2cIsBusBusy(i2cREG1) == true);
 
 	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
 	i2cSetCount(i2cREG1, 2); 							// the total number of bytes to transact before sending stop bit
 	i2cSetDirection(i2cREG1, I2C_RECEIVER);
 	i2cSetMode(i2cREG1, I2C_MASTER);
-	i2cReceive(i2cREG1, 2, data);
+	sfu_i2cReceive(i2cREG1, 2, data);
 	i2cSetStop(i2cREG1);
 	i2cClearSCD(i2cREG1);
 	temp_deg_c = data[0] << 8; 							// MSBits
