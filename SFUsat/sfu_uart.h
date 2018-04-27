@@ -17,8 +17,10 @@
 #include <stdio.h>
 
 #include "sci.h" // by HALcoGen
+#include "printf.h"
 
 #include "sfu_tasks.h"
+extern unsigned char currChar;
 
 void serialInit();
 void serialSendCh(char charToSend);

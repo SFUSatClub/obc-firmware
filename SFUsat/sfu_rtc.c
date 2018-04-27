@@ -2,7 +2,7 @@
  * sfu_rtc.c
  *
  *  Created on: Jun 12, 2017
- *      Author: steven + richard
+ *      Author: Steven + Richard + Victor
  */
 
 #include "gio.h"
@@ -11,10 +11,7 @@
 #include "sfu_rtc.h"
 #include "sfu_hardwaredefs.h"
 
-#include <assert.h>
-
-
-
+#include <math.h>
 
 // contains the cumulative seconds in months so we can easily calculate epochs
 const uint32_t cumulativeSecondsInMonth[12] = { 0, 2678400, 5097600, 7776000, 10368000, 13046400, 15638400, 18316800,
@@ -119,10 +116,12 @@ uint32_t setEpochOffset(uint32_t inputOffset) {
 }
 
 uint8_t convertBCD(uint8_t input) {
-	// the time data from the rtc is in BCD format, https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
-	assert(((input & 0xF0) >> 4) < 10);  // More significant nybble is valid
-	assert((input & 0x0F) < 10);         // Less significant nybble is valid
-	return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
+    if (((input & 0xF0 >> 4) < 10) && ((input & 0x0F) < 10)){
+        return ((input & 0xF0) >> 4) * 10 + (input & 0x0F);
+    }else{
+        return 0;
+        //Log error here
+    }
 }
 
 uint8_t rtc_get_seconds(void) {
@@ -132,7 +131,7 @@ uint8_t rtc_get_seconds(void) {
 uint8_t rtc_get_minutes(void) {
 	return convertBCD(rtcReadRegister(CLOCK_MINUTES));
 
-	//    uint16_t txBuffer[] = {READ | CLOCK_MINUTES};
+	//    uint16_t txBuffer[] = {RTC_READ | CLOCK_MINUTES};
 	//    uint16_t rxBuffer[1] = {0x00};
 	//    rtcTransmitAndReceive(1, txBuffer, rxBuffer);
 	//    return MSBconvertBCD(rxBuffer);
@@ -157,8 +156,19 @@ uint8_t rtc_get_day(void) {
 	return day;
 }
 
+/* Get Year
+ * Note: we won't deal with years > 7, since that's greater than the mission lifespan by 3x.
+*/
 uint8_t rtc_get_year(void) {
-	return convertBCD(rtcReadRegister(CLOCK_YEARS));
+    uint8_t year = 0;
+	uint8_t input = 0;
+	input = rtcReadRegister(CLOCK_YEARS);
+    if (input > 7){
+        return 0;
+        //Log error here
+    }
+    year = (0b00000001 & input) * 1 + ((0b00000010 & input) >> 1) * 2 + ((0b00000100 & input) >> 2) * 4;
+    return year;
 }
 
 uint32_t getCurrentRTCTime() {
@@ -262,14 +272,14 @@ uint32_t no_rtos_test_getCurrentRTCTime() {
 // ------------------------ SPI HANDLERS -----------------------------
 
 void rtcWriteRegister(uint16_t registerToWrite, uint16_t valueToWrite) {
-	uint16_t txBuffer[2] = { WRITE | registerToWrite, valueToWrite };
+	uint16_t txBuffer[2] = { RTC_WRITE | registerToWrite, valueToWrite };
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
 	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer);
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 0); // deactivate CS
 }
 
 uint8_t rtcReadRegister(uint16_t registerToRead) {
-	uint16_t txBuffer[1] = { READ | registerToRead };
+	uint16_t txBuffer[1] = { RTC_READ | registerToRead };
 	uint16_t rxBuffer[1] = { 0x0000 };
 	rtcTransmitAndReceive(1, txBuffer, rxBuffer);
 
@@ -278,11 +288,11 @@ uint8_t rtcReadRegister(uint16_t registerToRead) {
 
 void rtcTransmitAndReceive(uint32 blocksize, uint16 * srcbuff, uint16 * destbuff) {
 
-	//    Usage:
-	//uint16_t txBuffer[] = {READ | CLOCK_MINUTES};
-	//    uint16_t rxBuffer[1] = {0x00};
-	//    spiTransmitAndReceiveData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer, rxBuffer); // middle argument must be 2 or it doesn't go into receive
-
+/*	  Usage:
+			uint16_t txBuffer[] = {RTC_READ | CLOCK_MINUTES};
+	    	uint16_t rxBuffer[1] = {0x00};
+	    	spiTransmitAndReceiveData(RTC_SPI_REG, &rtc_spiConfig, 2, txBuffer, rxBuffer); // middle argument must be 2 or it doesn't go into receive
+*/
 	// this is required because the RTC chip select is active high (nonstandard polarity)
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 1); // go high because we're about to send stuff
 	spiTransmitData(RTC_SPI_REG, &rtc_spiConfig, blocksize, srcbuff);

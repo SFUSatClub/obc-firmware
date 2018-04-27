@@ -8,7 +8,8 @@
 #include "sfu_rtc.h"
 #include "sfu_utils.h"
 #include "unit_tests/unit_tests.h"
-
+#include "printf.h"
+#include "adc.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -20,67 +21,6 @@ void blinky(void *pvParameters) { // blinks LED at 10Hz
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 200ms. Use the macro
-	}
-}
-
-void vFlashRead(void *pvParameters) {
-	char printBuffer[16];
-	uint16_t memBuffer[16];
-	uint32_t i;
-	uint32_t j;
-
-	while (1) {
-		if((addressWritten > 16) && ((addressWritten-16) % 256 == 0)){ // need to be over 16 since 16 - 16 % 256 = 0
-			for(j = (addressWritten - 16 - 256); j < addressWritten - 16; j += 16){
-				flash_read_16_rtos(j, memBuffer);
-				for(i = 0; i < 16 ; i++){
-					printBuffer[i] = (char)(memBuffer[i]);
-
-				}
-				serialSendQ(printBuffer);
-			}
-			vTaskDelay(pdMS_TO_TICKS(3000));
-		}
-		vTaskDelay(pdMS_TO_TICKS(300));
-	}
-}
-
-void vFlashRead2(void *pvParameters) {
-	char printBuffer[16];
-	uint16_t memBuffer[16];
-	uint32_t i;
-	while (1) {
-		if((lastRead != addressWritten)){ // if we have a new one to read
-				flash_read_16_rtos((addressWritten-16), memBuffer);
-				for(i = 0; i < 16 ; i++){
-					printBuffer[i] = (char)(memBuffer[i]);
-				}
-				serialSendQ(printBuffer);
-		}
-		lastRead = addressWritten;
-		vTaskDelay(pdMS_TO_TICKS(300));
-	}
-}
-
-void vFlashWrite(void *pvParameters) {
-	uint32_t localEpoch;
-	uint16_t writeBuffer[16] = {83, 70, 85, 115, 97, 116, 32, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
-	char thing[10];
-	while (1) {
-//		serialSendQ("RTC");
-		localEpoch = no_rtos_test_getCurrentRTCTime();
-
-		itoa2(localEpoch, thing, 10, 0);
-		writeBuffer[7] = (uint16_t)thing[0];
-		writeBuffer[8] =(uint16_t)thing[1];
-		writeBuffer[9] = (uint16_t)thing[2];
-		writeBuffer[10] =(uint16_t)thing[3];
-		writeBuffer[11] =(uint16_t)thing[4];
-
-		flash_write_16_rtos(addressWritten, writeBuffer);
-
-		addressWritten += 16;
-		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -96,26 +36,22 @@ void vADCRead(void *pvParameters) {
 	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
 	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
 
-	uint32_t value;
-	char buffer[10];
-	unsigned int numChars, send_value; //Declare variables
 
 	while (1) {
+	    adcData_t adc_data[24]; // there are 24 channels
+	    char sendBuf[20];
 		// start conversion (it's inside test_adc)
-
 		// take a semaphore here
-	value = test_adc(2);
 
-	// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
+		    adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
+		    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
+		    adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
-	numChars = ltoa(value,(char *)buffer);
-	buffer[numChars]=':';
+		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-	// 12 bit adc; value takes 4 bytes max
-	ltoa(send_value,(char *)buffer + numChars + 1);
-	serialSendQ(buffer);
-
-	vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
+		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
+		  serialSendQ(sendBuf);
+		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
 
@@ -196,6 +132,7 @@ void vSerialTask(void *pvParameters) {
 				}
 				char *commandPtr = malloc(toAllocate);
 				strcpy(commandPtr, rxBuffer);
+				serialSend("> ");
 				serialSendln(commandPtr);
 				commands[commandsIdx] = commandPtr;
 				commandsIdx++;
@@ -211,11 +148,13 @@ void vSerialTask(void *pvParameters) {
 			}
 
 			rxPrevRcvdChar = rxCurrRcvdChar;
-			//serialSendCh(rxCurrRcvdChar);
+			serialSendCh(rxCurrRcvdChar);
 			if (uxQueueMessagesWaiting(xSerialRXQueue) > 5) {
 				serialSendln("WARNING: lots of uart rx");
 			}
 		}
+//	    sciReceive(UART_PORT, 1, &currChar); // place into receive mode
+
 	}
 }
 // to send long strings?

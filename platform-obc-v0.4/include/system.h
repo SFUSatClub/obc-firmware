@@ -115,7 +115,7 @@ enum systemClockSource
 *
 *   PLL 1 clock source exported from HALCoGen GUI
 */
-#define PLL1_FREQ    160.00F
+#define PLL1_FREQ    60.00F
 
 /** @def LPO_LF_FREQ
 *   @brief LPO Low Freq Oscillator source exported from HALCoGen GUI
@@ -143,28 +143,28 @@ enum systemClockSource
 *
 *   GCLK domain frequency exported from HALCoGen GUI
 */
-#define GCLK_FREQ    160.000F
+#define GCLK_FREQ    60.000F
 
 /** @def HCLK_FREQ
 *   @brief HCLK domain frequency exported from HALCoGen GUI
 *
 *   HCLK domain frequency exported from HALCoGen GUI
 */
-#define HCLK_FREQ    160.000F
+#define HCLK_FREQ    60.000F
 
 /** @def RTI_FREQ
 *   @brief RTI Clock frequency exported from HALCoGen GUI
 *
 *   RTI Clock frequency exported from HALCoGen GUI
 */
-#define RTI_FREQ     80.000F
+#define RTI_FREQ     30.000F
 
 /** @def AVCLK1_FREQ
 *   @brief AVCLK1 Domain frequency exported from HALCoGen GUI
 *
 *   AVCLK Domain frequency exported from HALCoGen GUI
 */
-#define AVCLK1_FREQ  80.000F
+#define AVCLK1_FREQ  0.080F
 
 /** @def AVCLK2_FREQ
 *   @brief AVCLK2 Domain frequency exported from HALCoGen GUI
@@ -192,14 +192,14 @@ enum systemClockSource
 *
 *   VCLK1 Domain frequency exported from HALCoGen GUI
 */
-#define VCLK1_FREQ   80.000F
+#define VCLK1_FREQ   30.000F
 
 /** @def VCLK2_FREQ
 *   @brief VCLK2 Domain frequency exported from HALCoGen GUI
 *
 *   VCLK2 Domain frequency exported from HALCoGen GUI
 */
-#define VCLK2_FREQ   80.000F
+#define VCLK2_FREQ   30.000F
 
 /** @def VCLK3_FREQ
 *   @brief VCLK3 Domain frequency exported from HALCoGen GUI
@@ -213,7 +213,7 @@ enum systemClockSource
 *
 *   VCLK4 Domain frequency exported from HALCoGen GUI
 */
-#define VCLK4_FREQ   80.000F
+#define VCLK4_FREQ   0.000F
 
 
 /** @def SYS_PRE1
@@ -309,7 +309,7 @@ typedef struct system_config_reg
 #define SYS_CDDIS_CONFIGVALUE   ( (uint32)((uint32)0U << 4U )\
                                 | (uint32)((uint32)0U << 5U )\
                                 | (uint32)((uint32)0U << 8U )\
-								| (uint32)((uint32)0U << 9U )\
+								| (uint32)((uint32)1U << 9U )\
                                 | (uint32)((uint32)1U << 10U)\
                                 | (uint32)((uint32)0U << 11U) )
                       
@@ -318,7 +318,7 @@ typedef struct system_config_reg
                                 | (uint32)((uint32)SYS_PLL1 << 0U) )
                                 
 #define SYS_VCLKASRC_CONFIGVALUE    ( (uint32)((uint32)SYS_VCLK << 8U)\
-                                    | (uint32)((uint32)SYS_VCLK << 0U) )
+                                    | (uint32)((uint32)SYS_LPO_LOW << 0U) )
                                     
 #define SYS_RCLKSRC_CONFIGVALUE     ( (uint32)((uint32)1U << 24U)\
                                     | (uint32)((uint32)SYS_VCLK << 16U)\
@@ -336,7 +336,7 @@ typedef struct system_config_reg
                                     | (uint32)((uint32)0x1FU << 24U) \
                                     | (uint32)0x00000000U \
                                     | (uint32)((uint32)(6U - 1U)<< 16U)\
-                                    | (uint32)(0x7700U))
+                                    | (uint32)(0x2C00U))
                                     
 #define SYS_PLLCTL1_CONFIGVALUE_2   (((SYS_PLLCTL1_CONFIGVALUE_1) & 0xE0FFFFFFU) | (uint32)((uint32)(1U - 1U) << 24U))
                                     
@@ -377,7 +377,7 @@ typedef struct system_config_reg
                                     
 #define SYS_SYSECR_CONFIGVALUE      0x00004000U
 #define SYS2_STCCLKDIV_CONFIGVALUE  0U
-#define SYS2_CLK2CNTL_CONFIGVALUE   ((uint32)(0x00000001U) | (uint32)((uint32)1U << 8U))
+#define SYS2_CLK2CNTL_CONFIGVALUE   ((uint32)(0x00000001U) | (uint32)((uint32)0U << 8U))
 #define SYS2_CLKSLIP_CONFIGVALUE    0x5U
 #define SYS2_EFC_CTLEN_CONFIGVALUE  0x5U
     
@@ -431,7 +431,7 @@ typedef struct tcmflash_config_reg
 } tcmflash_config_reg_t;
 
 /* Configuration registers initial value */
-#define TCMFLASH_FRDCNTL_CONFIGVALUE        (0x00000000U | (uint32)((uint32)3U << 8U) | (uint32)((uint32)1U << 4U) |  1U)
+#define TCMFLASH_FRDCNTL_CONFIGVALUE        (0x00000000U | (uint32)((uint32)1U << 8U) | (uint32)((uint32)0U << 4U) |  1U)
 #define TCMFLASH_FEDACCTRL1_CONFIGVALUE     0x000A0005U
 #define TCMFLASH_FEDACCTRL2_CONFIGVALUE     0U
 #define TCMFLASH_FEDACSDIS_CONFIGVALUE      0U

@@ -104,7 +104,7 @@ void setupPLL(void)
                         |  (uint32)((uint32)0x1FU << 24U)
                         |  (uint32)0x00000000U
                         |  (uint32)((uint32)(6U - 1U)<< 16U)
-                        |  (uint32)(0x7700U);
+                        |  (uint32)(0x2C00U);
 
     /**   - Setup pll control register 2
     *     - Setup spreading rate
@@ -169,14 +169,14 @@ void setupFlash(void)
 
     /** - Setup flash read mode, address wait states and data wait states */
     flashWREG->FRDCNTL =  0x00000000U
-                       | (uint32)((uint32)3U << 8U)
-                       | (uint32)((uint32)1U << 4U)
+                       | (uint32)((uint32)1U << 8U)
+                       | (uint32)((uint32)0U << 4U)
                        |  1U;
 
     /** - Setup flash access wait states for bank 7 */
     FSM_WR_ENA_HL    = 0x5U;
     EEPROM_CONFIG_HL = 0x00000002U
-                     | (uint32)((uint32)9U << 16U) ;
+                     | (uint32)((uint32)2U << 16U) ;
 
 /* USER CODE BEGIN (7) */
 /* USER CODE END */
@@ -236,7 +236,7 @@ void mapClocks(void)
     systemREG1->CDDIS = (uint32)((uint32)0U << 4U ) /* AVCLK1 , 1 - OFF, 0 - ON */
                       | (uint32)((uint32)0U << 5U ) /* AVCLK2 , 1 - OFF, 0 - ON */
                       | (uint32)((uint32)0U << 8U ) /* VCLK3 , 1 - OFF, 0 - ON */
-                      | (uint32)((uint32)0U << 9U ) /* VCLK4 , 1 - OFF, 0 - ON */
+                      | (uint32)((uint32)1U << 9U ) /* VCLK4 , 1 - OFF, 0 - ON */
                       | (uint32)((uint32)1U << 10U) /* AVCLK3 , 1 - OFF, 0 - ON */
                       | (uint32)((uint32)0U << 11U); /* AVCLK4 , 1 - OFF, 0 - ON */
 
@@ -278,7 +278,7 @@ void mapClocks(void)
 
     /** - Setup asynchronous peripheral clock sources for AVCLK1 and AVCLK2 */
     systemREG1->VCLKASRC = (uint32)((uint32)SYS_VCLK << 8U)
-                         | (uint32)((uint32)SYS_VCLK << 0U);
+                         | (uint32)((uint32)SYS_LPO_LOW << 0U);
 
     /** - Setup synchronous peripheral clock dividers for VCLK1, VCLK2, VCLK3 */
     systemREG1->CLKCNTL  = (systemREG1->CLKCNTL & 0xF0FFFFFFU)
@@ -287,7 +287,7 @@ void mapClocks(void)
                          | (uint32)((uint32)1U << 16U);
 
     systemREG2->CLK2CNTL = (systemREG2->CLK2CNTL & 0xFFFFF0FFU)
-                         | (uint32)((uint32)1U << 8U);
+                         | (uint32)((uint32)0U << 8U);
 
 /* USER CODE BEGIN (13) */
 /* USER CODE END */

@@ -10,6 +10,10 @@
 #include "sfu_uart.h"
 #include "sfu_smartrf_cc1101.h"
 
+//Interrupt stuff
+#include "rtos_semphr.h"
+#include "rtos_task.h"
+
 typedef enum {
 	IOCFG0,
 	IOCFG1,
@@ -207,6 +211,10 @@ static uint8 readRegister(uint8 addr);
 static int readFromRxFIFO(uint8 *dest, uint8 size);
 static void strobe(uint8 addr);
 
+//Declarations for RF Interrupt
+SemaphoreHandle_t gioRFSem;
+TaskHandle_t xRFInterruptTaskHandle;
+
 void vRadioTask(void *pvParameters) {
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
@@ -400,7 +408,13 @@ static int readFromRxFIFO(uint8 *dest, uint8 size) {
 static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
+		char buffer[30];
+		//snprintf(buffer, "addr %02x, config %02x,", SMARTRF_ADDRS[i], config[i]);
 		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+
+
+		//snprintf(buffer, 30, "new reg content = %02x", readRegister(SMARTRF_ADDRS[i++]));
+		//serialSendln(buffer);
 		i++;
 	}
 }
@@ -452,6 +466,55 @@ static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8
     return checkConfig(SMARTRF_VALS_TX);
 }
 
+static void switchRadioMode(){
+	//
+	serialSendQ("Switch here");
+}
+
+
+void vRFInterruptTask(void *pvParameters){
+	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+
+	//pulled from example
+	while(1){
+		xSemaphoreTake(gioRFSem, portMAX_DELAY);
+		serialSendQ("It's an RF one!");
+		//gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the blinky LED
+		switchRadioMode();
+	}
+}
+
+void rf_interrupt_init(void){
+	//pulled from example
+	gioRFSem = xSemaphoreCreateBinary();
+	xRFInterruptTaskHandle = NULL;
+
+	if(gioRFSem != NULL){ // setup the task to handle the ISR
+		xTaskCreate(vRFInterruptTask, "RF Interrupt", 200, NULL, 3, xRFInterruptTaskHandle);
+	}
+
+	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN); // enable the notification callback for this particular pin
+}
+
+void gio_notification_RF(gioPORT_t *port, uint32 bit){
+	// This gets called by the ISR callback (notification). Doesn't need to be in another function, but this just keeps things tidy
+	// See FreeRTOS tutorial guide pg. 200
+
+	//pulled from Example
+
+	BaseType_t xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+
+	if(port == GIO_IRQ_PORT && bit == GIO_IRQ_PIN){ // Always need to check which pin actually triggered the interrupt
+
+		xSemaphoreGiveFromISR(gioRFSem, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
+}
+
+
+
+
 BaseType_t initRadio() {
 	//what task should SPI initialization occure in?
 	spiDataConfig.CS_HOLD = RF_CONFIG_CS_HOLD;
@@ -485,10 +548,11 @@ BaseType_t initRadio() {
     	serialSendln(buffer);
     }
 
-    	strobe(SNOP);
+
+    strobe(SNOP);
 //attach irq
 
-    	strobe(SRX);
+    strobe(SRX);
 //move here ##
 
 //Move ##

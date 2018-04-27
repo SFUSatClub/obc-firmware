@@ -90,13 +90,13 @@ void sciInit(void)
     sciREG->GCR1 =  (uint32)((uint32)1U << 25U)  /* enable transmit */
                   | (uint32)((uint32)1U << 24U)  /* enable receive */
                   | (uint32)((uint32)1U << 5U)   /* internal clock (device has no clock pin) */
-                  | (uint32)((uint32)(2U-1U) << 4U)  /* number of stop bits */
+                  | (uint32)((uint32)(1U-1U) << 4U)  /* number of stop bits */
                   | (uint32)((uint32)0U << 3U)  /* even parity, otherwise odd */
                   | (uint32)((uint32)0U << 2U)  /* enable parity */
                   | (uint32)((uint32)1U << 1U);  /* asynchronous timing mode */
 
     /** - set baudrate */
-    sciREG->BRS = 42U;  /* baudrate */
+    sciREG->BRS = 15U;  /* baudrate */
 
     /** - transmission length */
     sciREG->FORMAT = 8U - 1U;  /* length */
@@ -192,7 +192,7 @@ void sciSetFunctional(sciBASE_t *sci, uint32 port)
 /* Requirements : HL_SR232 */
 void sciSetBaudrate(sciBASE_t *sci, uint32 baud)
 {
-    float64 vclk = 80.000 * 1000000.0;
+    float64 vclk = 30.000 * 1000000.0;
     uint32 f = ((sci->GCR1 & 2U) == 2U) ? 16U : 1U;
 	uint32 temp;
 	float64 temp2;

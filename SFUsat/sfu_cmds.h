@@ -13,59 +13,77 @@
 #include "map.h"
 #include "sfu_state.h" // so we can have the state enum
 
+
 /**
-* The following macros allow us to construct the enums CMD_IDS, CMD_X_SUBCMDS and
-* arrays CMD_NAMES, CMD_FUNCS by only modifying the macro CMD_TABLE. This allows us
-* to reliably use the same CMD_ID index to reference the components of a command
-* such as their name and function without the maintenance problems of constructing
-* the arrays manually.
-*
-* The CMD_TABLE below should be the only place you'd need to edit to add/remove/change commands.
-*
-* Some explanation:
-*
-* 	_(    A    ,    B    ,    C    ,    D...    ) \
-*
-* 	Symbols in column A make up the CMD_IDS enum.
-* 	Symbols in column B denote the name of the current row's command.
-* 	Symbols in column C denote the function to handle the current row's command.
-* 	Symbols in column D onwards make up the sub-command enum of the current row's command.
-*
-* Usage:
-*
-* 	Get the name of the task command and call it
-* 		const char *name = CMD_NAMES[CMD_GET]; // "get"
-* 		(*CMD_FUNCS[CMD_GET])(numArgs, args); // invokes get command with numArgs and args
-*
-*/
-#define CMD_TABLE(_) \
-	_(CMD_HELP	, "help", 	cmdHelp,	NONE) \
-	_(CMD_GET	, "get", 	cmdGet, 	NONE, TASKS, RUNTIME, HEAP, MINHEAP, TYPES) \
-	_(CMD_EXEC	, "exec", 	cmdExec, 	NONE, RADIO) \
-	_(CMD_TASK	, "task", 	cmdTask, 	NONE, CREATE, DELETE, RESUME, SUSPEND, STATUS, SHOW) \
-	_(CMD_SCHED	, "sched", 	cmdSched, 	NONE, ADD, REMOVE, SHOW) \
-	_(CMD_STATE	, "state", 	cmdState, 	NONE, GET, PREV, SET)
+ * Magic numbers to identify a command.
+ * - Definition order does not matter.
+ * - Exact values do not matter, only that:
+ *		- they are unique among commands
+ *		- 0xFF is not used (reserved for CMD_UNDEFINED to denote an error, e.g., in determining a cmd id)
+ * - Must fit within a uint8_t (0x00 to 0xFF).
+ */
+#define CMD_HELP		0x00
+#define CMD_GET			0x02
+#define CMD_EXEC		0x04
+#define CMD_RF			0x06
+#define CMD_TASK		0x08
+#define CMD_SCHED		0x0A
+#define CMD_STATE		0x0C
+#define CMD_ACK			0x0F
 
-#define CMD_ENUM_SELECTOR(a, b, c, d...) \
-	a,
-#define CMD_NAME_SELECTOR(a, b, c, d...) \
-	b,
-#define CMD_FUNC_SELECTOR(a, b, c, d...) \
-	c,
-#define CMD_SUBCMD_ENUM_SELECTOR0(a, b) \
-	a ## _ ## b,
-#define CMD_SUBCMD_ENUM_SELECTOR(a, b, c, d...) \
-	typedef enum a ## _SUBCMDS { \
-	MAP(CMD_SUBCMD_ENUM_SELECTOR0,a,d) \
-	a ## _NUM_SUBCMDS \
-} a ## _SUBCMD;
+/**
+ * Magic numbers to identify the sub-commands of a command.
+ * - Definition order does not matter.
+ * - Exact value does not matter, only that:
+ *		- they are unique among sub-commands
+ *		- 0xFF is not used (reserved for CMD_UNDEFINED to denote an error, e.g., in determining a cmd id)
+ *		- 0x00 is used for default behavior (e.g., when a command is called with no sub-command, subcmd id 0x00 will be used)
+ * - Must fit within a uint8_t (0x00 to 0xFF).
+ */
+#define CMD_DEFAULT			0x00
+#define CMD_UNDEFINED		0xFF
 
-typedef enum CMD_IDS {
-	CMD_TABLE(CMD_ENUM_SELECTOR)
-	NUM_CMDS
-} CMD_ID;
-CMD_TABLE(CMD_SUBCMD_ENUM_SELECTOR)
+#define CMD_HELP_NONE		0x00
+#define CMD_HELP_GET		0x02
+#define CMD_HELP_EXEC		0x04
+#define CMD_HELP_RF			0x06
+#define CMD_HELP_TASK		0x08
+#define CMD_HELP_SCHED		0x0A
+#define CMD_HELP_STATE		0x0C
 
+#define CMD_GET_NONE		0x00
+#define CMD_GET_TASKS		0x02
+#define CMD_GET_RUNTIME		0x04
+#define CMD_GET_HEAP		0x06
+#define CMD_GET_MINHEAP		0x08
+#define CMD_GET_TYPES		0x0A
+#define CMD_GET_EPOCH		0x0C
+
+#define CMD_EXEC_NONE		0x00
+#define CMD_EXEC_RADIO		0x02
+
+#define CMD_RF_NONE			0x00
+#define CMD_RF_TX			0x02
+
+#define CMD_TASK_NONE		0x00
+#define CMD_TASK_CREATE		0x02
+#define CMD_TASK_DELETE		0x04
+#define CMD_TASK_RESUME		0x06
+#define CMD_TASK_SUSPEND	0x08
+#define CMD_TASK_STATUS		0x0A
+#define CMD_TASK_SHOW		0x0C
+
+#define CMD_SCHED_NONE		0x00
+#define CMD_SCHED_ADD		0x02
+#define CMD_SCHED_REMOVE	0x04
+#define CMD_SCHED_SHOW		0x06
+
+#define CMD_STATE_NONE		0x00
+#define CMD_STATE_GET		0x02
+#define CMD_STATE_PREV		0x04
+#define CMD_STATE_SET		0x06
+
+#define CMD_ACK_NONE		0x00
 
 /**
  * Maximum command argument size.
@@ -134,15 +152,8 @@ typedef struct CMD_SCHED_DATA {
 		CMD_STATE_DATA_t scheduled_cmd_state_data;
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
 	};
-	CMD_ID scheduled_cmd_id;
-	union {
-		uint8_t scheduled_subcmd_id;
-		CMD_HELP_SUBCMD scheduled_subcmd_help_id;
-		CMD_GET_SUBCMD scheduled_subcmd_get_id;
-		CMD_EXEC_SUBCMD scheduled_subcmd_exec_id;
-		CMD_TASK_SUBCMD scheduled_subcmd_task_id;
-		CMD_STATE_SUBCMD scheduled_subcmd_state_id;
-	};
+	uint8_t scheduled_cmd_id;
+	uint8_t scheduled_subcmd_id;
 	unsigned int seconds_from_now;
 } CMD_SCHED_DATA_t;
 
@@ -161,28 +172,15 @@ typedef struct CMD {
 		CMD_STATE_DATA_t cmd_state_data;
 		CMD_SCHED_DATA_t cmd_sched_data;
 	};
-	CMD_ID cmd_id;
-	union {
-		uint8_t subcmd_id;
-		CMD_HELP_SUBCMD subcmd_help_id;
-		CMD_GET_SUBCMD subcmd_get_id;
-		CMD_EXEC_SUBCMD subcmd_exec_id;
-		CMD_TASK_SUBCMD subcmd_task_id;
-		CMD_STATE_SUBCMD subcmd_state_id;
-		CMD_SCHED_SUBCMD subcmd_sched_id;
-	};
+	uint8_t cmd_id;
+	uint8_t subcmd_id;
 	/* 2 bytes slop here */
 } CMD_t;
-
-
-extern const char *CMD_NAMES[];
-extern int8_t (*const CMD_FUNCS[])(const CMD_t *cmd);
-
 
 /**
 * Checks if a string is a valid command, and if so, invokes it.
 *
-* A command is valid if the first word exists in CMD_NAMES.
+* A command is valid if the first word exists in CMD_OPTS.
 * A command can be invoked with 0 to a maximum of 10 arguments.
 * Each command determines the requirements of their own parameters.
 * Commands are space delimited.

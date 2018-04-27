@@ -16,7 +16,7 @@
  * ADC1 > ADC1 Group 1 Channel Selection > Enable Pin x
  */
 
-void init_adc_test(){
+void test_adc_init(){
 	adcInit();
 }
 
