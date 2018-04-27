@@ -35,7 +35,7 @@ typedef enum {
 
 typedef struct ErrorMessage {
 	uint32_t	rtc_epoch_time;
-	char 		description[MESSAGE_LENGTH];
+	char 		message[MESSAGE_LENGTH];
 	Error_t 	error_code;
 	Message_t	message_type;
 } ErrorMessage_t;
