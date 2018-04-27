@@ -12,6 +12,7 @@
 
 #include "FreeRTOS.h"
 #include "rtos_queue.h"
+#include "sys_common.h"
 
 #define QUEUE_LENGTH 20
 #define MESSAGE_LENGTH 128
