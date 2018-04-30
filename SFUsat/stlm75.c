@@ -12,14 +12,29 @@
 #include "reg_i2c.h"
 #include "sfu_i2c.h"
 
+/* To access a register of the device, you write the register pointer bits in the command/pointer
+ * register (lowest 2 bits). This register holds its value between set operations, so you only
+ * set it when you want to start working with a different register.
+ */
+
+// REGISTER ADDRESSES
+#define TEMP_REG 0x00
+#define CONFIG_REG 0x01
+#define HYST_EG 0x02
+#define OVTEMP 0x03
+
+// CHIP COMMANDS
+#define RD_CMD 0x1
+#define WR_CMD 0x0
+
 /* sanity check that the OBC temp sensor returns something */
 uint16_t obc_temp_test(){
-	uint16_t temp;
-	temp = 0x00;
+	int16_t temp;
 	temp = read_temp(OBC_TEMP);
-	temp = temp - 1;
+	if(temp <= -20000 ){
+		// log error
+	}
 	return temp;
-	// convert and stuff bleh
 }
 
 /* Read temperature
@@ -28,10 +43,11 @@ uint16_t obc_temp_test(){
  * - STLM 75 will return two bytes, left aligned ugh
  * - details about scaling were taken from here: https://github.com/jfitter/LM75/blob/master/LM75.cpp
  */
-uint16_t read_temp(uint8_t addr){
+int16_t read_temp(uint8_t addr){
 	uint8_t data[2] = { '\0' };
-	int16_t temp_deg_c;
 	uint8_t cmd = (addr << 1 | RD_CMD);
+	int16_t temp_deg_c = 0;
+	int16_t errcode = 0;
 
 	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
 	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
@@ -49,62 +65,20 @@ uint16_t read_temp(uint8_t addr){
 	sfu_i2cReceive(i2cREG1, 2, data);
 	i2cSetStop(i2cREG1);
 	i2cClearSCD(i2cREG1);
-		        while (I2C->STR & I2C_BUSBUSY);	// goes low when stop has gone through			[TRM pg. 1492]
-		        while (I2C->MDR & I2C_MASTER);	// goes low when we're good to transmit again 	[TRM pg. 1498]
+
+	errcode = sfu_is_bus_busy();
+	if (errcode != I2C_OK) return errcode;
+
+	errcode = sfu_ok_transmit();
+	if (errcode != I2C_OK) return errcode;
 
 	temp_deg_c = data[0] << 8; 							// MSBits
-	temp_deg_c = temp_deg_c | data[1]; 					// LSBits
-	temp_deg_c = ((temp_deg_c & 0xFF10) >> 5) * 0.125; // mask off in case there's garbage, shift over so we're correctly right-aligned, scale due to 0.125ºC resolution
+	temp_deg_c = temp_deg_c | data[1]; 							// LSBits
+	temp_deg_c = ((temp_deg_c & 0xFF10) >> 5) * 0.125; 			// mask off in case there's garbage, shift over so we're correctly right-aligned, scale due to 0.125ºC resolution
 	return temp_deg_c;
 }
 
-void hcg_test(){
-	int repeat = 0; int delay =0;
-	uint8_t TX_Data_Master[10] = { 0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19};
 
-	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
-	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
-	for(repeat = 0; repeat < 2; repeat++)
-		{
-			/* Configure Data count */
-			/* Note: Optional - It is done in Init, unless user want to change */
-			i2cSetCount(i2cREG1, DATA_COUNT);
-			i2cSetMode(i2cREG1, I2C_MASTER);
-			i2cSetStop(i2cREG1);
-			i2cSetStart(i2cREG1);
-			i2cSend(i2cREG1, DATA_COUNT, TX_Data_Master);
-			while(i2cIsBusBusy(i2cREG1) == true);
-			while(i2cIsStopDetected(i2cREG1) == 0);
-			i2cClearSCD(i2cREG1);
-
-			/* Simple Dealya before starting Next Block */
-			/* Depends on how quick the Slave gets ready */
-			for(delay=0;delay<1000000;delay++);
-
-		}
-
-//		///////////////////////////////////////////////////////////////
-//		//        Master Receive Functionality                      //
-//		///////////////////////////////////////////////////////////////
-////
-//		i2cSetSlaveAdd(i2cREG1, Slave_Address);
-//i2cSetDirection(i2cREG1, I2C_RECEIVER);
-//			i2cSetCount(i2cREG1, DATA_COUNT);
-//			i2cSetMode(i2cREG1, I2C_MASTER);
-//			i2cSetStop(i2cREG1);
-//			i2cSetStart(i2cREG1);
-//			i2cReceive(i2cREG1, DATA_COUNT, RX_Data_Master);
-//			while(i2cIsBusBusy(i2cREG1) == true);
-//			while(i2cIsStopDetected(i2cREG1) == 0);
-//			i2cClearSCD(i2cREG1);
-//
-//			/* Simple Dealya before starting Next Block */
-//			/* Depends on how quick the Slave gets ready */
-//			for(delay=0;delay<1000000;delay++);
-//
-//		}
-//
-}
 
 
 //void I2cDriver_init(void)

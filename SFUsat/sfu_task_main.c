@@ -48,11 +48,8 @@ void vMainTask(void *pvParameters) {
 	 * Hardware initialization
 	 */
 
-//	sfu_i2cInit();
 	i2cInit();
-//hcg_test();
-		obc_temp_test();
-
+	obc_temp_test();
 
 	serialInit();
 	gioInit();
@@ -68,7 +65,7 @@ void vMainTask(void *pvParameters) {
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
-	serialSendQ("SFUSat Started!");
+	serialSendln("SFUSat Started!");
 
 // TODO: confirm whether these are required or not
 //	watchdog_busywait(3000); // to allow time for serial to connect up to script

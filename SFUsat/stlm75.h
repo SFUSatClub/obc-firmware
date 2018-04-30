@@ -3,6 +3,9 @@
  *
  *  Created on: Apr 18, 2018
  *      Author: Richard
+ *
+ *      Usage: if temperature read functions return a large negative number (ex: -30077), there was an error
+ *      		- calling function should trigger an entry into safe mode
  */
 
 #ifndef SFUSAT_STLM75_H_
@@ -13,36 +16,14 @@
 #define RF1_TEMP 0x49
 #define RF2_TEMP 0x4A
 
-/* To access a register of the device, you write the register pointer bits in the command/pointer
- * register (lowest 2 bits). This register holds its value between set operations, so you only
- * set it when you want to start working with a different register.
- */
 
-// REGISTER ADDRESSES
-#define TEMP_REG 0x00
-#define CONFIG_REG 0x01
-#define HYST_EG 0x02
-#define OVTEMP 0x03
-
-// CHIP COMMANDS
-#define RD_CMD 0x1
-#define WR_CMD 0x0
-
-//typedef struct g_i2cTransfer_x
-//{
-//    uint32  mode;
-//    uint32  length;
-//    uint8   * data;
-//} g_i2cTransfer_t;
 
 //typedef struct g_i2cTransfer_t g_i2cTransfer_x;
 
 uint16_t obc_temp_test();
-void hcg_test();
-#define DATA_COUNT 3
 
 
-uint16_t read_temp(uint8_t addr);
+int16_t read_temp(uint8_t addr);
 void sfu_i2cInit(void);
 static bool receiveByte(uint8_t * byte);
 static bool sendByte(uint8_t byte);
