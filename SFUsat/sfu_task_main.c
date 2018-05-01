@@ -21,7 +21,7 @@
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
-#include "i2c.h"
+#include "sfu_i2c.h"
 #include "stlm75.h"
 
 
@@ -48,8 +48,6 @@ void vMainTask(void *pvParameters) {
 	 * Hardware initialization
 	 */
 
-	i2cInit();
-	obc_temp_test();
 
 	serialInit();
 	gioInit();
@@ -58,6 +56,7 @@ void vMainTask(void *pvParameters) {
 	adcInit();
 	spiInit();
 	flash_mibspi_init();
+	sfu_i2c_init();
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();

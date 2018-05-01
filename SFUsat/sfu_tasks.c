@@ -12,6 +12,7 @@
 #include "adc.h"
 #include "sfu_state.h"
 #include "sfusat_spiffs.h"
+#include "stlm75.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
@@ -81,14 +82,17 @@ void vStateTask(void *pvParameters) {
  */
 void vStdTelemTask(void *pvParameters){
 	char buf[50] = {'\0'};
+	int16_t OBC_temp;
 	while(1){
-		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c",
+		OBC_temp = read_temp(OBC_TEMP);
+		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c, %i",
 				getCurrentTime(), 					// epoch at send
 				cur_state, 							// state
 				stateEntryTime(), 					// time we entered state
 				xPortGetMinimumEverFreeHeapSize(), 	// min heap
 				fs.free_blocks,						// filesys free blocks
-				*(char *) fs.user_data				// filesys prefix
+				*(char *) fs.user_data,				// filesys prefix
+				OBC_temp
 		);
 		serialSendQ(buf);
 		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
