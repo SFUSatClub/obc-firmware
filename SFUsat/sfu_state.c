@@ -104,10 +104,10 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 };
 
 void stateMachineInit(){
-	serialSendln("STARTING STATE MACHINE");
+//	serialSendln("STARTING STATE MACHINE");
 	cur_state = STATE_SAFE;
 	state_persistent_data.previous_state = STATE_SAFE; // will always start in safe. Then automatically go to low power if necessary.
-	state_persistent_data.enter_time = 0x55; // dummy value, will actually want to read RTC.
+	state_persistent_data.enter_time = getCurrentTime();
 	state_persistent_data.in_RTOS = 0;
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
