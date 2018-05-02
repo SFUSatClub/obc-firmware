@@ -67,6 +67,7 @@ extern "C" {
 #define SPIFFS_ERR_INTERNAL             -10050
 
 #define SPIFFS_ERR_TEST                 -10100
+#define SPIFFS_SFU_ERR_ERASE_SZ			-10060
 
 
 // spiffs file descriptor index type. must be signed

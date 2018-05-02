@@ -14,6 +14,7 @@
 #include "sfu_rtc.h"
 TaskHandle_t xSPIFFSHandle = NULL; // RA
 TaskHandle_t xSPIFFSRead = NULL; // RA
+uint32_t fs_num_increments;
 
 // * Todo:
 // add error handler that will attempt to create files if they don't exist or something

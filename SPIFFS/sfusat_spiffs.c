@@ -17,14 +17,18 @@
 #include "sfu_utils.h"
 #include "sfu_fs_structure.h"
 
+spiffs fs;
+spiffs_config cfg;
+char sfu_prefix; 				// holds our prefix, gets mapped to fs.user_data
+SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
+SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a write and v/v
+
 
 void spiffs_read_task(void *pvParameters) {
 	spiffs_stat s;
 	char buf[30] = { '\0' };
-//	uint32_t readno;
 
 	while (1) {
-
 		if ( xSemaphoreTake( spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
 			my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
 			serialSendQ("Read");
@@ -89,8 +93,7 @@ void my_spiffs_mount() {
 	cfg.hal_write_f = my_spiffs_write;
 	cfg.hal_erase_f = my_spiffs_erase;
 
-	int res = SPIFFS_mount(&fs, &cfg, spiffs_work_buf, spiffs_fds, sizeof(spiffs_fds), spiffs_cache_buf,
-			sizeof(spiffs_cache_buf), 0);
+	int res = SPIFFS_mount(&fs, &cfg, spiffs_work_buf, spiffs_fds, sizeof(spiffs_fds), spiffs_cache_buf,sizeof(spiffs_cache_buf), 0);
 //	printf("mount res: %i\n", res);
 }
 
@@ -129,8 +132,9 @@ static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
 		 * It's also not clear whether SPIFFS handles this loop or not.
 		 */
 
-//	 assert(size % cfg.phys_erase_block == 0); // make sure size is a multiple of our erase page size
-		assert(size % SPIFFS_CFG_PHYS_ERASE_SZ(fs) == 0); // make sure size is a multiple of our erase page size
+		if(size % SPIFFS_CFG_PHYS_ERASE_SZ(fs) != 0){ 	// make sure size is a multiple of our erase page size
+			return SPIFFS_SFU_ERR_ERASE_SZ;
+		}
 
 		uint32_t num_runs;
 		for (num_runs = size / SPIFFS_CFG_PHYS_ERASE_SZ(fs); num_runs > 0; num_runs--) { // erase however many times we need
@@ -221,6 +225,4 @@ void read_write_example() {
 		printf("errno %i\n", SPIFFS_errno(&fs));
 		return;
 	}
-
-	// check it
 }

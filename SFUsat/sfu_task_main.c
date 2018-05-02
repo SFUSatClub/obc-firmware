@@ -107,6 +107,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vStdTelemTask, "telem", 600, NULL, STDTELEM_PRIORITY, &xSTDTelemTaskHandle);
+	xTaskCreate(sfu_fs_lifecycle, "fs life", 400, NULL, 4, &xFSLifecycle);
+	xTaskCreate(fs_rando_write, "rando write", 400, NULL, 2, &xSPIFFSHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
