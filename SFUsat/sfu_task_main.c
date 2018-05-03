@@ -32,7 +32,7 @@ TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
-TaskHandle_t xFSLifecycle = NULL; // RA - filesystem lifecycle (FS tests are initialized in here too)
+TaskHandle_t xFSLifecycle = NULL;
 TaskHandle_t xSTDTelemTaskHandle = NULL;
 
 // Radio tasks
@@ -48,10 +48,9 @@ void vMainTask(void *pvParameters) {
 	 * Hardware initialization
 	 */
 
-
 	serialInit();
 	gioInit();
-	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle); // Start this right away so we don't reset
 
 	adcInit();
 	spiInit();
@@ -65,26 +64,17 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
-
-// TODO: confirm whether these are required or not
-//	watchdog_busywait(3000); // to allow time for serial to connect up to script
-//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-	xRTCMutex = xSemaphoreCreateMutex();
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-
-	// test_flash();
 	test_adc_init();
 	flash_erase_chip();
 
@@ -182,20 +172,14 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
-
-//	watchdog_busywait(3000); // to allow time for serial to connect up to script
-//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-	xRTCMutex = xSemaphoreCreateMutex();
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example

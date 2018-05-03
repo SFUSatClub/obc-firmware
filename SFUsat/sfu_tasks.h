@@ -36,30 +36,15 @@
 #define STDTELEM_PRIORITY 4
 
 extern TaskHandle_t xSerialTaskHandle;
-
-
-extern QueueHandle_t xQueue;
-//xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
+extern QueueHandle_t xSerialTXQueue;
+extern QueueHandle_t xSerialRXQueue;
+void vSerialTask(void *pvParameters);
 
 void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
 void vADCRead(void *pvParameters);
 
-
-extern QueueHandle_t xSerialTXQueue;
-extern QueueHandle_t xSerialRXQueue;
-void vSerialTask(void *pvParameters);
-void vSerialSenderTask(void *pvParameters);
-
 void vExternalTickleTask(void *pvParameters);
-void vMonitorTask(void *pvParameters);
 void vStdTelemTask(void *pvParameters);
-void vStateEntry(void *pvParameters); // prints the time we entered current state
-
-
-// RTOS queue example
-void vSenderTask( void *pvParameters );
-void vReceiverTask( void *pvParameters );
-void periodicSenderTask( void *pvParameters );
 
 #endif /* SFUSAT_SFU_TASKS_H_ */

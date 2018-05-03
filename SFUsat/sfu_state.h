@@ -59,8 +59,10 @@ void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 bool getStateRTOS_mode();
 uint32_t stateEntryTime();
+void printStateEntryTime();
 extern State_t cur_state;
 extern InstanceData_t state_persistent_data;
+
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command

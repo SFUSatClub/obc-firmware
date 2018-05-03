@@ -145,6 +145,12 @@ void printPrevState(State_t currstate, InstanceData_t *data){
 	}
 }
 
+void printStateEntryTime(){
+	char buf[30] = {'\0'};
+	snprintf(buf, 30, "ENTER TIME: %i",stateEntryTime());
+	serialSendQ((const char *)buf);
+}
+
 uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
 	if (state_to_set < NUM_STATES){
 		data->manual_state_switch = state_to_set;

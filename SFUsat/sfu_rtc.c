@@ -89,6 +89,7 @@ void tempAddSecondToHET() {
 
 void rtcInit() {
 	// must call spiInit before this.
+	xRTCMutex = xSemaphoreCreateMutex();
 	rtc_spiConfig.CS_HOLD = RTC_CONFIG_CS_HOLD; //CS false = high during data transfer
 	rtc_spiConfig.WDEL = RTC_CONFIG_WDEL; // wdelay
 	rtc_spiConfig.DFSEL = RTC_CONFIG_DFSEL; // data format

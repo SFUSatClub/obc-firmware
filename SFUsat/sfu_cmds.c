@@ -268,7 +268,6 @@ int8_t cmdAck(const CMD_t *cmd) {
 			serialSendQ("Ack!");
 			return 1;
 		}
-
 	return 0;
 }
 
@@ -541,7 +540,7 @@ int8_t cmdState(const CMD_t *cmd) {
 		 * Return the time we entered the current state
 		 */
 		case CMD_STATE_ENTRY: {
-			xTaskCreate(vStateEntry, "state entry", 200, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateEntryHandle);
+			printStateEntryTime();
 			return 1;
 		}
 	}
