@@ -17,7 +17,8 @@
 extern spiffs fs;
 extern spiffs_config cfg;
 extern char sfu_prefix; // holds our prefix, gets mapped to fs.user_data
-extern SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
+// RA: removed HALMutex in favour of suspendAll so that flash accesses don't get interrupted by the kernel
+//extern SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
 extern SemaphoreHandle_t spiffsTopMutex; // ensures we won't interrupt a read with a write and v/v
 
 #define SPIFFS_READ_TIMEOUT_MS 2000 // number of ms to wait before giving up on a write instruction. Long since these can take quite a while

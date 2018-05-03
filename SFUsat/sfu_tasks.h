@@ -35,6 +35,9 @@
 #define TESTS_PRIORITY 3
 #define STDTELEM_PRIORITY 4
 
+extern TaskHandle_t xSerialTaskHandle;
+
+
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
 

@@ -28,8 +28,9 @@
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 
-extern TaskHandle_t xSPIFFSHandle; // RA
-extern TaskHandle_t xSPIFFSRead; // RA
+extern TaskHandle_t xSPIFFSHandle;
+extern TaskHandle_t xSPIFFSRead;
+
 // SFUSat Configs
 #define SFU_MAX_DATA_WRITE 21 // bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp.
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) // DON'T TOUCH: to size the file write buffer
