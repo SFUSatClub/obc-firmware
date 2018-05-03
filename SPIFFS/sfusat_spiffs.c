@@ -20,7 +20,7 @@
 spiffs fs;
 spiffs_config cfg;
 char sfu_prefix; 					// holds our prefix, gets mapped to fs.user_data
-//SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
+SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
 SemaphoreHandle_t spiffsTopMutex; 	// ensures we won't interrupt a read with a write and v/v
 
 void spiffs_read_task(void *pvParameters) {
@@ -73,7 +73,7 @@ void spiffs_read_task(void *pvParameters) {
 // ---------------- LOW LEVEL ----------------------------------
 
 void sfusat_spiffs_init() {
-//	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
+	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
 	sfu_prefix = PREFIX_START;
 	fs.user_data = &sfu_prefix;
@@ -91,42 +91,35 @@ void my_spiffs_mount() {
 	cfg.hal_read_f = my_spiffs_read;
 	cfg.hal_write_f = my_spiffs_write;
 	cfg.hal_erase_f = my_spiffs_erase;
-	vTaskSuspendAll(  );
 
 	int res = SPIFFS_mount(&fs, &cfg, spiffs_work_buf, spiffs_fds, sizeof(spiffs_fds), spiffs_cache_buf,sizeof(spiffs_cache_buf), 0);
-	xTaskResumeAll();
 //	printf("mount res: %i\n", res);
 }
 
 static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst) {
-//	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
-		vTaskSuspendAll(  );
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS) ) == pdTRUE) {
 		flash_read_arbitrary(addr, size, dst);
-		xTaskResumeAll();
-//		xSemaphoreGive(spiffsHALMutex);
-//	} else {
-//		serialSendQ("Read, can't get mutex");
-//	}
+		xSemaphoreGive(spiffsHALMutex);
+	} else {
+		serialSendQ("Read, can't get mutex");
+	}
 	return SPIFFS_OK;
 }
 
 static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src) {
-//	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
-		vTaskSuspendAll(  );
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) ) == pdTRUE) {
 		flash_write_arbitrary(addr, size, src);
 		while (flash_status() != 0) { // wait for the write to complete
 		}
-		xTaskResumeAll();
-//		xSemaphoreGive(spiffsHALMutex);
-//	} else {
-//		serialSendQ("Write can't get mutex");
-//	}
-
+		xSemaphoreGive(spiffsHALMutex);
+	} else {
+		serialSendQ("Write can't get mutex");
+	}
 	return SPIFFS_OK;
 }
 
 static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
-//	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_ERASE_TIMEOUT_MS) ) == pdTRUE) {
+	if ( xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_ERASE_TIMEOUT_MS) ) == pdTRUE) {
 		/* We erase pages - 4096 bytes
 		 * Logical block size = 65536 bytes
 		 *
@@ -142,23 +135,20 @@ static s32_t my_spiffs_erase(u32_t addr, u32_t size) {
 		}
 
 		uint32_t num_runs;
-		vTaskSuspendAll(  );
 
 		for (num_runs = size / SPIFFS_CFG_PHYS_ERASE_SZ(fs); num_runs > 0; num_runs--) { // erase however many times we need
 			flash_erase_sector(addr);
 			addr = addr + SPIFFS_CFG_PHYS_ERASE_SZ(fs);
 		}
-		xTaskResumeAll();
-//		xSemaphoreGive(spiffsHALMutex);
-//	} else {
-//		serialSendQ("Erase can't get mutex");
-//	}
+		xSemaphoreGive(spiffsHALMutex);
+	} else {
+		serialSendQ("Erase can't get mutex");
+	}
 	return SPIFFS_OK;
 }
 
 void test_spiffs() {
 	// Spiffs must be mounted before running this
-
 	char buf[20];
 
 	printf("Buffer bytes: %i \r\n", SPIFFS_buffer_bytes_for_filedescs(&fs, 10));

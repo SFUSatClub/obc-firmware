@@ -79,7 +79,7 @@ void fs_read_task(void *pvParameters){
 	uint8_t data[20];
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(6000));
-		serialSendQ("RD");
+//		serialSendQ("RD");
 		sfu_read_fname(FSYS_CURRENT, data, 20);
 		serialSendQ((char*)data);
 	}
@@ -189,7 +189,7 @@ void sfu_delete_prefix(const char prefix) {
 void sfu_create_files() {
 	// CALL WITHIN MUTEX
 	char genBuf[20] = { '\0' };
-	char nameBuf[2] = { '\0' };
+	char nameBuf[3] = { '\0' };
 	spiffs_file fd;
 	uint8_t i;
 	my_spiffs_mount();
@@ -257,7 +257,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	 * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
 	 */
 
-	char nameBuf[2] = { '\0' };
+	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
 	va_list argptr;
@@ -297,17 +297,13 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 	/* sfu_read_fname
 	 * 		- given a file suffix (the log type to access), reads <size> bytes from the current log into outbuf
-	 * 		- you can get wonky behaviour calling this at the start of a task. Generally need to serialSendQ() something first
-	 * 			- we're not sure why. See fs_read_task for more details
-	 * 			- hence the suspendAll experiment that was left in place.
 	 */
-	char nameBuf[2] = { '\0' };
+	char nameBuf[3] = { '\0' };
 	char buf[20] = {'\0'};
 	spiffs_file fd;
 	create_filename(nameBuf, f_suffix);
 
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-//		vTaskSuspendAll(  ); // RA: if you enable this again, you need to comment out the serialSendQ()'s
 		my_spiffs_mount();
 		fd = SPIFFS_open(&fs, (const char *)nameBuf, SPIFFS_RDONLY, 0);
 
@@ -321,7 +317,6 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 			  serialSendQ(buf);
 		  }
 		}
-//		xTaskResumeAll(  );
 		xSemaphoreGive(spiffsTopMutex);
 	}
 	else {
