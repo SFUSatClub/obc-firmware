@@ -16,12 +16,12 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
+#include "sfu_logging_queue.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
-
 
 
 TaskHandle_t xSerialTaskHandle = NULL;
@@ -182,6 +182,16 @@ void vMainTask(void *pvParameters) {
 	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
+
+	addlogEntry(logtype_1, detail_1); // element 1 contains rtc time, 0, 0
+
+	LoggingQueueStructure_t pvBuffer;
+	xQueueReceive(xLoggingQueue, &pvBuffer, 0);
+	char genBuf[20] = { '\0' };
+	snprintf(genBuf, 20, "time: %i\n", pvBuffer.rtcEpochTime);
+	serialSendQ(genBuf);
+
 	serialSendQ("created queue");
 
 	xRTCMutex = xSemaphoreCreateMutex();

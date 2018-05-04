@@ -17,7 +17,7 @@ QueueHandle_t xSerialRXQueue;
 
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
-	// The loop of the task will run repeatedly until the task is preempted. So delay or suspend the task once you're done processing.
+	// The loop of the task will run re#include "sfu_logging_queue.h"peatedly until the task is preempted. So delay or suspend the task once you're done processing.
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 200ms. Use the macro

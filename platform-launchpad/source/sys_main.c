@@ -142,8 +142,6 @@ int main(void)
 #pragma diag_suppress 112
 	/* USER CODE END */
 
-	/* USER CODE END */
-
     return 0;
 }
 
