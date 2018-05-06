@@ -24,11 +24,11 @@ uint32_t fs_num_increments;
 
 
 // -------------- Tasks for testing --------------------
+/* lifecycle
+ * - inits, deletes the files in the system as we will in flight
+ * - another task is required to write/read the files as would be done normally
+ */
 void vFilesystemTask(void *pvParameters) {
-	/* lifecycle
-	 * - inits, deletes the files in the system as we will in flight
-	 * - another task is required to write/read the files as would be done normally
-	 */
 	sfu_fs_init();
 	while (1) {
 		if(fs_num_increments == 0){
@@ -49,41 +49,27 @@ void fs_test_tasks(){
 	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
 }
 
+/* random write
+ * - writes some random + nonrandom data into the system log file
+ * - used to show that file sizes do grow
+ */
 void fs_rando_write(void *pvParameters){
-	/* random write
-	 * - writes some random + nonrandom data into the system log file
-	 * - used to show that file sizes do grow
-	 */
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(4000));
 		char randomData[5];
 		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
-
-//		vTaskDelay(pdMS_TO_TICKS(6000));
-//		uint8_t data[20];
-//		sfu_read_fname(FSYS_SYS, data, 20);
-//		serialSendQ((char*)data);
-
 	}
 }
 
-/* RA: if you remove the serialSendQ("RD"), you might start seeing file read errors.
- * 	- we are unsure why this happens
- * 	- originally thought that read task was getting pre-empted by serial or something during the flash access at a bad point
- * 	- tried wrapping the read with suspendAll, same result
- * 	- tried running this at highest priority, same result
- * 	- basically, reads work if you do anything reasonably complicated right before them
- * 	- and it doesn't make sense because the files definitely exist
- */
 void fs_read_task(void *pvParameters){
 	uint8_t data[20];
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(6000));
-//		serialSendQ("RD");
 		sfu_read_fname(FSYS_CURRENT, data, 20);
 		serialSendQ((char*)data);
 	}
 }
+
 // ------------ Core Functions -------------------------
 void sfu_fs_init() {
 	// Todo: grab this from FEE or from config file
@@ -151,12 +137,12 @@ void sfu_delete_prefix(const char prefix) {
 				snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			}
-// Get file stats
+			// Get file stats
 			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
 					snprintf(genBuf, 20, "Fds check error %d", SPIFFS_errno(&fs));
 					serialSendQ(genBuf);
 			}
-// Remove file
+			// Remove file
 			res = SPIFFS_fremove(&fs, fd);
 			if (res < 0) {
 				snprintf(genBuf, 20, "Fdr: %i", SPIFFS_errno(&fs));
@@ -194,7 +180,7 @@ void sfu_create_files() {
 	uint8_t i;
 	my_spiffs_mount();
 
-// Create and write to the file
+	// Create and write to the file
 	for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys and create a file for it
 		create_filename(nameBuf, (char) (FSYS_OFFSET + i));
 		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
@@ -230,14 +216,13 @@ void sfu_create_files_wrapped(){
 }
 
 
+/* write_fd
+ *
+ * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
+ *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
+ * Having a file descriptor means we've already opened the file up
+ */
 void write_fd(spiffs_file fd, char *fmt, ...) {
-	/* write_fd
-	 *
-	 * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
-	 *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
-	 * Having a file descriptor means we've already opened the file up
-	 */
-
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 	va_list argptr;
 	va_start(argptr, fmt);
@@ -251,11 +236,10 @@ void write_fd(spiffs_file fd, char *fmt, ...) {
 	// YOU MUST CLOSE THE FILE
 }
 
-
+/* sfu_write_fname
+ * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
+ */
 void sfu_write_fname(char f_suffix, char *fmt, ...) {
-	/* sfu_write_fname
-	 * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
-	 */
 
 	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
@@ -266,7 +250,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	va_end(argptr);
 	spiffs_file fd;
 
-// Formatting done, enter mutex and open + write the file
+	// Formatting done, enter mutex and open + write the file
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		create_filename(nameBuf, f_suffix);
 
@@ -294,10 +278,10 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	}
 }
 
+/* sfu_read_fname
+ * 		- given a file suffix (the log type to access), reads <size> bytes from the current log into outbuf
+ */
 void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
-	/* sfu_read_fname
-	 * 		- given a file suffix (the log type to access), reads <size> bytes from the current log into outbuf
-	 */
 	char nameBuf[3] = { '\0' };
 	char buf[20] = {'\0'};
 	spiffs_file fd;
@@ -324,22 +308,22 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 	}
 }
 
+/* Lets us write data to the filesystem using printf format specifiers.
+ *
+ * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
+ * 	= #SFU_WRITE_DATA_BUF - 12 characters, as the max to be safe.
+ *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
+ *  end character to allow us to separate file entries.
+ *
+ * File entry format: "<timestamp>|<data>\0"
+ * where:
+ * 		timestamp is max 10 chars (maxed out 32-bit int)
+ * 		| separates timestamp and arbitrary data
+ * 		\0 is the null terminator and also the end of the entry
+ *
+ * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
+ */
 void format_entry(char* buf, char *fmt, va_list argptr) {
-	/* Lets us write data to the filesystem using printf format specifiers.
-	 *
-	 * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
-	 * 	= #SFU_WRITE_DATA_BUF - 12 characters, as the max to be safe.
-	 *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
-	 *  end character to allow us to separate file entries.
-	 *
-	 * File entry format: "<timestamp>|<data>\0"
-	 * where:
-	 * 		timestamp is max 10 chars (maxed out 32-bit int)
-	 * 		| separates timestamp and arbitrary data
-	 * 		\0 is the null terminator and also the end of the entry
-	 *
-	 * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
-	 */
 	uint32_t x;
 	x = getCurrentRTCTime();
 
