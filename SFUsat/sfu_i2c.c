@@ -19,16 +19,21 @@
 #include "sfu_i2c.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
+#include "sfu_utils.h"
+#include "rtos_task.h"
+#include "sfu_uart.h"
 SemaphoreHandle_t xI2CMutex;
+static uint8_t num_resets;
 
 void sfu_i2c_init() {
 	i2cInit();
+	num_resets = 0;
 	xI2CMutex = xSemaphoreCreateMutex();
 	if (xI2CMutex != NULL) {
 		/* The semaphore was created successfully and
 		 can be used. */
 	} else {
-		// reset i2c once, try again, infinite loop afterwards since we're hosed without i2c
+		sfu_reset_i2c(i2cREG1);
 	}
 }
 
@@ -63,7 +68,7 @@ int16_t sfu_i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data) {
 			return I2C_TIMEOUT_FAIL;
 		}
 
-		// If a NACK occurred, SCL is held low and STP bit cleared: http://processors.wiki.ti.com/index.php/I2C_Tips
+		/* If a NACK occurred, SCL is held low and STP bit cleared: http://processors.wiki.ti.com/index.php/I2C_Tips */
 		if (i2c->STR & (uint32_t) I2C_NACK_INT) {
 			i2cSetStop(i2cREG1);
 			i2c->STR = I2C_NACKSNT; // write 1 to clear
@@ -107,4 +112,47 @@ int16_t sfu_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data) {
 		length--;
 	}
 	return I2C_OK;
+}
+
+/* Reset I2C
+ *
+ * - the bus can hang for many reasons. Our error handlers must therefore be able to reset the bus.
+ * - To do this, we reset the I2C peripheral and clock out 10 pulses
+ * - http://www.microchip.com/forums/m175368.aspx
+ *
+ * - Precondition: we should have the mutex
+ *
+ * - num_resets ensures we only attempt to reset 5 times before triggering the watchdog.
+ * - if we reset successfull, num_resets is set to 0 again.
+ */
+int16_t sfu_reset_i2c(i2cBASE_t *i2c){
+	vTaskSuspendAll();						/* don't want any scheduling happening while we reset */
+	i2c->MDR = (uint32)((uint32)0U << 5U); 	/* reset i2c peripheral */
+	i2c->PFNC = (0x01);						/* I2C pins to GPIO mode */
+	i2c->DIR = (0x01);						/* SDA is input [bit 1], SCL is output [bit 0], output = 1 */
+	uint8_t i;
+
+	/* send out some pulses */
+	for(i = 0; i < 10; i++){
+		i2c->DOUT = i2c->DOUT | 0x01; 		/* set SCL high */
+		busyWait(300);
+		i2c->DOUT ^= i2c->DOUT; 			/* set SCL low */
+		busyWait(300);
+	}
+
+	num_resets++;
+	if(num_resets >= 4){
+		while(1);							/* at this point, the watchdog will take care of us */
+	}
+
+	if(i2c->DIN & 0x02 != 0x02){				/* check that the data line has gone high (idle) */
+		sfu_reset_i2c(i2c);					/* we only attempt to try again 4 more times */
+	}
+
+    serialSendln("I2C RESET");
+
+	sfu_i2c_init();
+    xTaskResumeAll();
+	// todo: log error, i2c was reset
+    return I2C_OK;
 }

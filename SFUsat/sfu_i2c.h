@@ -43,6 +43,6 @@ int16_t sfu_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data);
 int16_t sfu_is_bus_busy();
 int16_t sfu_ok_transmit();
 
-int16_t reset_i2c(i2cBASE_t *i2c);
+int16_t sfu_reset_i2c(i2cBASE_t *i2c);
 
 #endif /* SFUSAT_SFU_I2C_H_ */
