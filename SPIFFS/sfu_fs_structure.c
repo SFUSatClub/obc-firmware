@@ -12,8 +12,10 @@
 #include "sfu_uart.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "sfu_tasks.h"
 TaskHandle_t xSPIFFSHandle = NULL; // RA
 TaskHandle_t xSPIFFSRead = NULL; // RA
+uint32_t fs_num_increments;
 
 // * Todo:
 // add error handler that will attempt to create files if they don't exist or something
@@ -30,20 +32,21 @@ void vFilesystemTask(void *pvParameters) {
 	sfu_fs_init();
 	while (1) {
 		if(fs_num_increments == 0){
-			sfusat_spiffs_init(); // doing this at the start of task_main was no good
+			sfusat_spiffs_init();
 			sfu_create_files_wrapped();
-//			vTaskDelay(2000);
-			fs_test_tasks(); // optional, useful if no other tasks are writing to files
+			fs_test_tasks();
 		}
 		vTaskDelay(FSYS_LOOP_INTERVAL);
 		delete_oldest(); // this handles deletion and creation
+		volatile uint32_t level;
+		level = uxTaskGetStackHighWaterMark( NULL);
 	}
 }
 
+/* some tasks that can be used to demonstrate fs functionality */
 void fs_test_tasks(){
-	/* some tasks that can be used to demonstrate fs functionality */
-	xTaskCreate(fs_rando_write, "rando write", 1500, NULL, 3, &xSPIFFSHandle);
-	xTaskCreate(fs_read_task, "FS read", 1500, NULL, 4, xSPIFFSRead);
+	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
+	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
 }
 
 void fs_rando_write(void *pvParameters){
@@ -54,17 +57,31 @@ void fs_rando_write(void *pvParameters){
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(4000));
 		char randomData[5];
-		sfu_write_fname(FSYS_WUT, "foo %s", randomData);
+		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
+
+//		vTaskDelay(pdMS_TO_TICKS(6000));
+//		uint8_t data[20];
+//		sfu_read_fname(FSYS_SYS, data, 20);
+//		serialSendQ((char*)data);
+
 	}
 }
 
+/* RA: if you remove the serialSendQ("RD"), you might start seeing file read errors.
+ * 	- we are unsure why this happens
+ * 	- originally thought that read task was getting pre-empted by serial or something during the flash access at a bad point
+ * 	- tried wrapping the read with suspendAll, same result
+ * 	- tried running this at highest priority, same result
+ * 	- basically, reads work if you do anything reasonably complicated right before them
+ * 	- and it doesn't make sense because the files definitely exist
+ */
 void fs_read_task(void *pvParameters){
 	uint8_t data[20];
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(6000));
-		serialSendQ("RD");
+//		serialSendQ("RD");
 		sfu_read_fname(FSYS_CURRENT, data, 20);
-		serialSendQ((const char*)data);
+		serialSendQ((char*)data);
 	}
 }
 // ------------ Core Functions -------------------------
@@ -99,19 +116,20 @@ void increment_prefix() {
 	/* increment_prefix
 	 * - increments the fs prefix once we've filled up the files for the day
 	 */
+
 	// CALL WITHIN MUTEX
 	if (*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)) { // if we're at the end, roll back around
 		sfu_prefix = PREFIX_START;
-	} else { // else just increment
-		sfu_prefix = sfu_prefix + 1; // increment to next prefix
+	} else { 							// else just increment to next prefix
+		sfu_prefix = sfu_prefix + 1;
 	}
 	fs_num_increments++;
 }
 
 void sfu_delete_prefix(const char prefix) {
-	/*sfu_delete_prefix
-	 * - This function deletes all files with the specified prefix
-	 * - Used to get rid of the oldest set of files when we loop back around
+	/*	sfu_delete_prefix
+	 * 		- This function deletes all files with the specified prefix
+	 * 		- Used to get rid of the oldest set of files when we loop back around
 	 */
 
 	// MUST CALL WITHIN MUTEX
@@ -133,7 +151,6 @@ void sfu_delete_prefix(const char prefix) {
 				snprintf(genBuf, 20, "Fdo: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			}
-
 // Get file stats
 			if (SPIFFS_fstat(&fs, fd, &s) < 0) {
 					snprintf(genBuf, 20, "Fds check error %d", SPIFFS_errno(&fs));
@@ -171,42 +188,39 @@ void sfu_delete_prefix(const char prefix) {
  */
 void sfu_create_files() {
 	// CALL WITHIN MUTEX
-
 	char genBuf[20] = { '\0' };
-	char nameBuf[2] = { '\0' };
+	char nameBuf[3] = { '\0' };
 	spiffs_file fd;
 	uint8_t i;
-//	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-	my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+	my_spiffs_mount();
 
 // Create and write to the file
 	for (i = 0; i < FSYS_NUM_SUBSYS; i++) { // run through each subsys and create a file for it
 		create_filename(nameBuf, (char) (FSYS_OFFSET + i));
 		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_APPEND | SPIFFS_RDWR, 0); // create file with appropriate name
+
 		if (fd < 0) { // check that the create worked
 			snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
 		} else { // write to it
-			write_fd(fd, "Created"); // created, timestamp will be added automatically
+			write_fd(fd, "Created"); // first entry is creation time
 		}
 
 		if (SPIFFS_close(&fs, fd) < 0) {
 			snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
 		}
-		//clearBuf(genBuf, 20);
+		clearBuf(genBuf, 20);
 		snprintf(genBuf, 11, "Create: %s", nameBuf);
-// Todo: this often prints garbage (it does with two files). Task getting suspended before we have the chance to pass data by copy into the queue?
-		serialSendQ((const char*)genBuf);
-//		serialSendQ("created");
+
+		if(serialSendQ((const char*)genBuf) != pdPASS){
+			serialSendQ("CREATE PRINT FAIL");
+		}
 	}
-//		xSemaphoreGive(spiffsTopMutex);
-//	} else {
-//		serialSendQ("Create can't get top mutex");
-//	}
 }
 
 void sfu_create_files_wrapped(){
+	/* Simply a wrapper around create files. We don't want to try to write while we're creating new files */
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		sfu_create_files();
 		xSemaphoreGive(spiffsTopMutex);
@@ -217,7 +231,7 @@ void sfu_create_files_wrapped(){
 
 
 void write_fd(spiffs_file fd, char *fmt, ...) {
-	/* sfu_write_fd
+	/* write_fd
 	 *
 	 * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
 	 *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
@@ -229,8 +243,6 @@ void write_fd(spiffs_file fd, char *fmt, ...) {
 	va_start(argptr, fmt);
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
-
-//	serialSendQ("write");
 
 	if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 		snprintf(buf, 20, "FDwe: %i", SPIFFS_errno(&fs));
@@ -245,7 +257,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	 * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
 	 */
 
-	char nameBuf[2] = { '\0' };
+	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
 	va_list argptr;
@@ -258,14 +270,14 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		create_filename(nameBuf, f_suffix);
 
-		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
+		my_spiffs_mount();
 		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND | SPIFFS_RDWR, 0);
 
 		if (fd < 0) { 	// if there's an error opening
 			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
 			serialSendQ(buf);
-		} else { 		// otherwise, write
-			serialSendQ("fname_write");
+		}
+		else { 		// no error, write to it
 			if (SPIFFS_write(&fs, fd, buf, strlen(buf) + 1) < 0) {
 				snprintf(buf, 20, "FNww: %i", SPIFFS_errno(&fs));
 				serialSendQ(buf);
@@ -283,21 +295,24 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 }
 
 void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
-	char nameBuf[2] = { '\0' };
+	/* sfu_read_fname
+	 * 		- given a file suffix (the log type to access), reads <size> bytes from the current log into outbuf
+	 */
+	char nameBuf[3] = { '\0' };
 	char buf[20] = {'\0'};
 	spiffs_file fd;
 	create_filename(nameBuf, f_suffix);
 
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		my_spiffs_mount(); // need to mount every time because as task gets suspended, we lose the mount
-		 fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDONLY, 0);
+		my_spiffs_mount();
+		fd = SPIFFS_open(&fs, (const char *)nameBuf, SPIFFS_RDONLY, 0);
 
 		if (fd < 0) { 	// if there's an error opening
 			snprintf(buf, 20, "FRno: %i", SPIFFS_errno(&fs));
 			serialSendQ(buf);
 		}
 		else { // read the file
-		  if (SPIFFS_read(&fs, fd, outbuf, size) < 0) {
+		  if (SPIFFS_read(&fs, fd, (uint8_t *)outbuf, size) < 0) {
 			  snprintf(buf, 20, "FRnr: %i", SPIFFS_errno(&fs));
 			  serialSendQ(buf);
 		  }
@@ -317,7 +332,7 @@ void format_entry(char* buf, char *fmt, va_list argptr) {
 	 *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
 	 *  end character to allow us to separate file entries.
 	 *
-	 * File entry format: "timestamp|data\0"
+	 * File entry format: "<timestamp>|<data>\0"
 	 * where:
 	 * 		timestamp is max 10 chars (maxed out 32-bit int)
 	 * 		| separates timestamp and arbitrary data
@@ -330,10 +345,10 @@ void format_entry(char* buf, char *fmt, va_list argptr) {
 
 	va_start(argptr, fmt);
 
-	utoa2(x, buf, 10, 0); // We can store time has hex in the future for byte savings, but it'd be kinda gross.
-	x = strlen(buf); // reuse this
-	buf[x] = '|'; // add a separator between time and data
-	x++; // new strlen after adding sep
+	utoa2(x, buf, 10, 0); 	// We can store time has hex in the future for byte savings, but it'd be kinda gross.
+	x = strlen(buf); 		// reuse this
+	buf[x] = '|'; 			// add a separator between time and data
+	x++; 					// new strlen after adding sep
 
 	if (sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF - 1 - x, fmt, argptr) > (SFU_WRITE_DATA_BUF - 2 - x)) { // 32 - x so that we always end with a \0, 31 - x for warning
 		serialSendQ("Error: file write data too big.");

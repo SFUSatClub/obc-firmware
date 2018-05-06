@@ -31,27 +31,21 @@
 #define STATE_TASK_DEFAULT_PRIORITY			3
 #define ADC_TASK_DEFAULT_PRIORITY			1
 #define FLASH_TASK_DEFAULT_PRIORITY			4
+#define FLASH_READ_DEFAULT_PRIORITY			3
+#define FLASH_WRITE_DEFAULT_PRIORITY		4
 #define TESTS_PRIORITY						3
+#define STDTELEM_PRIORITY					4
 
-extern QueueHandle_t xQueue;
-//xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
+extern TaskHandle_t xSerialTaskHandle;
+extern QueueHandle_t xSerialTXQueue;
+extern QueueHandle_t xSerialRXQueue;
+void vSerialTask(void *pvParameters);
 
 void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
 void vADCRead(void *pvParameters);
 
-
-extern QueueHandle_t xSerialTXQueue;
-extern QueueHandle_t xSerialRXQueue;
-void vSerialTask(void *pvParameters);
-void vSerialSenderTask(void *pvParameters);
-
-void vTickleTask(void *pvParameters);
-void vMonitorTask(void *pvParameters);
-
-// RTOS queue example
-void vSenderTask( void *pvParameters );
-void vReceiverTask( void *pvParameters );
-void periodicSenderTask( void *pvParameters );
+void vExternalTickleTask(void *pvParameters);
+void vStdTelemTask(void *pvParameters);
 
 #endif /* SFUSAT_SFU_TASKS_H_ */

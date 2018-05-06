@@ -30,7 +30,7 @@
 #define CMD_SCHED		0x0A
 #define CMD_STATE		0x0C
 #define CMD_ACK			0x0F
-
+#define CMD_WD			0x10
 /**
  * Magic numbers to identify the sub-commands of a command.
  * - Definition order does not matter.
@@ -82,8 +82,12 @@
 #define CMD_STATE_GET		0x02
 #define CMD_STATE_PREV		0x04
 #define CMD_STATE_SET		0x06
+#define CMD_STATE_ENTRY		0x08
 
 #define CMD_ACK_NONE		0x00
+
+#define CMD_WD_NONE 		0x00
+#define CMD_WD_RESET 		0x02
 
 /**
  * Maximum command argument size.

@@ -25,6 +25,11 @@
 
 #include "spiffs.h"
 #include "sfusat_spiffs.h"
+#include "FreeRTOS.h"
+#include "rtos_task.h"
+
+extern TaskHandle_t xSPIFFSHandle;
+extern TaskHandle_t xSPIFFSRead;
 
 // SFUSat Configs
 #define SFU_MAX_DATA_WRITE 21 // bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp.
@@ -33,13 +38,13 @@
 #define FSYS_NUM_SUBSYS 3 // number of subsystem logs
 
 /* ASCII codes for the subsystem log suffix
- * These are passed to read, write so that we can grab the correct file
- * Stick with ASCII codes so we can easily iterate based on FSYS_OFFSET
- * Not semantic, but go in alphabetical order (makes it easy to create the entire set of files)
+ * 	- These are passed to read, write so that we can grab the correct file
+ * 	- Stick with ASCII codes so we can easily iterate based on FSYS_OFFSET
+ * 	- Not semantic, but go in alphabetical order (makes it easy to create the entire set of files)
  */
-#define FSYS_SYS 65 // A, system log
-#define FSYS_CURRENT 66 // B, current log
-#define FSYS_WUT 67 // C, dummy log
+#define FSYS_SYS 65 	// A, system log
+#define FSYS_ERROR 66 	// B, error log
+#define FSYS_CURRENT 67 // C, current log
 
 #define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(30000) // we create new file sets on this interval
 
@@ -48,7 +53,7 @@
 #define PREFIX_QUANTITY 3 // number of unique prefixes to loop through
 
 // variables
-uint32_t fs_num_increments;
+extern uint32_t fs_num_increments;
 
 // Tasks
 void vFilesystemTask(void *pvParameters);

@@ -21,20 +21,26 @@
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
+#include "sfu_i2c.h"
+#include "stlm75.h"
 
 
-
+// Perpetual tasks - these run all the time
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
 TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
-TaskHandle_t xFilesystemTaskHandle = NULL; // RA - filesystem lifecycle (FS tests are initialized in here too)
+TaskHandle_t xFilesystemTaskHandle = NULL;
+TaskHandle_t xSTDTelemTaskHandle = NULL;
 
+
+// Radio tasks
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
+
 
 /* MainTask for all platforms except launchpad */
 #if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
@@ -42,11 +48,15 @@ void vMainTask(void *pvParameters) {
 	/**
 	 * Hardware initialization
 	 */
+
 	serialInit();
 	gioInit();
+	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle); // Start this right away so we don't reset
+
 	adcInit();
 	spiInit();
 	flash_mibspi_init();
+	sfu_i2c_init();
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
@@ -55,26 +65,17 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
-
-// TODO: confirm whether these are required or not
-//	watchdog_busywait(3000); // to allow time for serial to connect up to script
-//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-	xRTCMutex = xSemaphoreCreateMutex();
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
-
-	// test_flash();
 	test_adc_init();
 	flash_erase_chip();
 
@@ -92,11 +93,10 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
-	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-
+	xTaskCreate(vFilesystemTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
-	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vStdTelemTask, "telem", 800, NULL, STDTELEM_PRIORITY, &xSTDTelemTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
@@ -171,20 +171,14 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
 	serialSendln("SFUSat Started!");
-
-//	watchdog_busywait(3000); // to allow time for serial to connect up to script
-//	simpleWatchdog(); // do this just to be sure we hit the watchdog before entering RTOS
-
 	printStartupType();
 
 	// ---------- INIT RTOS FEATURES ----------
 	// TODO: encapsulate these
-	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	serialSendQ("created queue");
 
-	xRTCMutex = xSemaphoreCreateMutex();
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
@@ -212,7 +206,7 @@ void vMainTask(void *pvParameters) {
 //
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
-	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
+	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
