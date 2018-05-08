@@ -16,13 +16,15 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
+#include "sfu_i2c.h"
+#include "stlm75.h"
+#include "deployables.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
-#include "sfu_i2c.h"
-#include "stlm75.h"
+
 
 
 // Perpetual tasks - these run all the time
@@ -34,7 +36,6 @@ TaskHandle_t xADCTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFilesystemTaskHandle = NULL;
 TaskHandle_t xSTDTelemTaskHandle = NULL;
-
 
 // Radio tasks
 TaskHandle_t xRadioRXHandle = NULL;
@@ -97,6 +98,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vStdTelemTask, "telem", 800, NULL, STDTELEM_PRIORITY, &xSTDTelemTaskHandle);
+	xTaskCreate(deploy_task, "deploy", 128, NULL, 4, &deployTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups

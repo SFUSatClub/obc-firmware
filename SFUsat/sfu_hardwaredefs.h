@@ -16,6 +16,15 @@
 
 /******************************************************************************
  *
+ * System-level config
+ * 	used for configuring things without having to dig into a bunch of headers
+ *
+ *****************************************************************************/
+#define DEPLOY_TESTMODE			/* remove before flight - reduces the deploy activate time */
+
+
+/******************************************************************************
+ *
  * SETTINGS FOR PLATFORM-OBC-V0.4
  *
  *****************************************************************************/
@@ -23,7 +32,6 @@
 /**
  * RTC
  */
-// TODO: confirm this works. Convert to MIBSPI like for flash section
 #define RTC_CS_PORT 			spiPORT5
 #define RTC_CS_PIN 				0
 #define RTC_SPI_REG 			spiREG5
@@ -73,6 +81,22 @@
 #define FLASH_4_BYTE_GROUP 		4 // transfer group with 4 byte length
 #define FLASH_20_BYTE_GROUP		3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 		1 // 0 = SST26, 1 = IS25LP016D
+
+/*
+ * Deployment
+ */
+#define RF_DEPLOY0_PIN			0
+#define RF_DEPLOY0_PORT			gioPORTA
+#define RF_DEPLOY1_PIN			1
+#define RF_DEPLOY1_PORT			gioPORTA
+#define RF_DEPLOY2_PIN			17			/* MIBSPI1SIMO[1], N2HET1[08] (pin 106), [xGPIO8] ---- how to figure this out: https://github.com/SFUSatClub/obc-firmware/wiki/Using-TMS570-Peripheral-Pins-as-GPIO */
+#define RF_DEPLOY2_PORT			mibspiPORT1
+#define	DEPLOY_SELECT_PIN		7			/* gioA7 [xGPIO7]  output */
+#define DEPLOY_SELECT_PORT		gioPORTA
+#define DEPLOY_EN_PIN			4			/* MIBSPI1CS4 [xGPIO6] output	RA: enabled pulldown in HCG since this is active high */
+#define DEPLOY_EN_PORT			mibspiPORT1
+
+
 #endif /* PLATFORM_OBC_V0_4 */
 
 

@@ -12,6 +12,7 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "deployables.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -119,6 +120,13 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY,
+				.name		= "deploy",
+				.info		=  "Deployment disable command."
+								"  disarm\n"
+								"    Disarm deployment\n"
 		}
 };
 
@@ -291,11 +299,31 @@ int8_t cmdWd(const CMD_t *cmd) {
 			vTaskSuspend(xTickleTaskHandle);
 			return 1;
 		}
+	return 1;
+}
+
+/**
+ * Deployables commands
+ */
+static const struct subcmd_opt CMD_DEPLOY_OPTS[] = {
+		{
+				.subcmd_id	= CMD_DEPLOY_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY_DISARM,
+				.name		= "disarm",
+		},
+};
+
+int8_t cmdDeploy(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_DEPLOY_DISARM){
+			deploy_inhibit();
+			return 1;
+		}
 		else{
 			return 1;
 		}
-
-	return 0;
 }
 
 /**
@@ -616,6 +644,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.name			= "wd",
 				.func			= cmdWd,
 				.subcmds		= CMD_WD_OPTS,
+				.num_subcmds	= LEN(CMD_WD_OPTS),
+		},
+		{
+				.cmd_id			= CMD_DEPLOY,
+				.name			= "deploy",
+				.func			= cmdDeploy,
+				.subcmds		= CMD_DEPLOY_OPTS,
 				.num_subcmds	= LEN(CMD_WD_OPTS),
 		}
 };

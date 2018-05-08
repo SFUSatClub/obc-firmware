@@ -31,6 +31,7 @@
 #define CMD_STATE		0x0C
 #define CMD_ACK			0x0F
 #define CMD_WD			0x10
+#define CMD_DEPLOY		0x12
 /**
  * Magic numbers to identify the sub-commands of a command.
  * - Definition order does not matter.
@@ -88,6 +89,9 @@
 
 #define CMD_WD_NONE 		0x00
 #define CMD_WD_RESET 		0x02
+
+#define CMD_DEPLOY_NONE		0x00
+#define CMD_DEPLOY_DISARM 	0x02
 
 /**
  * Maximum command argument size.
