@@ -14,7 +14,7 @@ BaseType_t addlogEntry(LogType_t logType, EncodedMessage_t encodedMessage)
 {
 	LoggingQueueStructure_t input;
 
-	input.rtcEpochTime = 54;///getCurrentRTCTime();
+	input.rtcEpochTime = getCurrentRTCTime(); // modify this to check for launchpad versus obc
 	input.logType = logType;
 	input.encodedMessage = encodedMessage;
 

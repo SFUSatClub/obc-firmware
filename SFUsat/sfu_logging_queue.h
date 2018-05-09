@@ -16,6 +16,8 @@
 #define LOGGING_QUEUE_LENGTH 20
 extern QueueHandle_t xLoggingQueue;
 
+// have task wake up whenever there is something in the queue.
+
 // Type of log (telemetry details, error logging, general information)
 typedef enum {
 	logtype_1,
