@@ -32,6 +32,8 @@
 #define CMD_ACK			0x0F
 #define CMD_WD			0x10
 #define CMD_DEPLOY		0x12
+#define CMD_FILE		0x14
+
 /**
  * Magic numbers to identify the sub-commands of a command.
  * - Definition order does not matter.
@@ -92,6 +94,9 @@
 
 #define CMD_DEPLOY_NONE		0x00
 #define CMD_DEPLOY_DISARM 	0x02
+
+#define CMD_FILE_NONE		0x00
+#define CMD_FILE_DUMP	 	0x02
 
 /**
  * Maximum command argument size.

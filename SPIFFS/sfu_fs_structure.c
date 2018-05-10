@@ -23,6 +23,60 @@ uint32_t fs_num_increments;
 // fs rescue task
 
 
+/* Dump file
+ * - reads a chunk of a file, then prints it out on the UART
+ * - used for downloading an entire file
+ *
+ * */
+void dumpFile(char prefix, char suffix){
+    #define DUMP_BUF_SIZE 30	/* number of bytes to send out at once. Should eventually match radio TX buffer size */
+	spiffs_file fd = -1;
+	spiffs_stat s;
+	int16_t res;
+	char fname[3] = {'\0'};
+	char buf[DUMP_BUF_SIZE + 1] = {'\0'}; /* +1 to allow for null, which is required for UART transmission */
+	fname[0] = prefix;
+	fname[1] = suffix;
+
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		my_spiffs_mount();
+		fd = SPIFFS_open(&fs, (const char *)fname, SPIFFS_RDONLY, 0);
+
+		if (fd < 0) { 	/* if there's an error opening */
+			snprintf(buf, DUMP_BUF_SIZE, "DFno: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		else {
+			res = SPIFFS_fstat(&fs,fd , &s);
+			uint32_t i;
+
+			for(i = 0; i < s.size + 1; i += DUMP_BUF_SIZE){ /* loop through, read and transmit DUMP_BUF_SIZE bytes at a time */
+				res = SPIFFS_lseek(&fs, fd, i, SPIFFS_SEEK_SET);	/* lseek increments file index to i'th byte */
+				if(res < 0){
+					snprintf(buf, DUMP_BUF_SIZE, "DFnr: %i", SPIFFS_errno(&fs));
+				}
+				if (SPIFFS_read(&fs, fd, buf, DUMP_BUF_SIZE) < 0) {
+					snprintf(buf, DUMP_BUF_SIZE, "DFnr: %i", SPIFFS_errno(&fs));
+				}
+
+				/* Read in 20 bytes which can have nulls embedded. Need to remove nulls for transmission as a chunk */
+				uint8_t cnt;
+				for(cnt = 0; cnt < DUMP_BUF_SIZE; cnt ++){
+					if(buf[cnt] == '\0') buf[cnt] = '\7'; /* replace empty with weird character so it's easy to pick out */
+				}
+				buf[DUMP_BUF_SIZE] = '\0';	/* null terminate the chunk so that send function's strlen works */
+				serialSendln(( char*)buf);	/* either send out err msg or the data itself */
+				clearBuf(buf,DUMP_BUF_SIZE);
+			}
+			SPIFFS_close(&fs, fd);
+		}
+		xSemaphoreGive(spiffsTopMutex);
+	}
+	else {
+		serialSendQ("DFwe: can't get top mutex");
+	}
+}
+
 // -------------- Tasks for testing --------------------
 /* lifecycle
  * - inits, deletes the files in the system as we will in flight
@@ -46,7 +100,7 @@ void vFilesystemTask(void *pvParameters) {
 /* some tasks that can be used to demonstrate fs functionality */
 void fs_test_tasks(){
 	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
-	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
+//	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
 }
 
 /* random write
@@ -56,8 +110,9 @@ void fs_test_tasks(){
 void fs_rando_write(void *pvParameters){
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(4000));
-		char randomData[5];
-		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
+//		char randomData[5] = {'d'};
+//		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
+		sfu_write_fname(FSYS_SYS, "foo");
 	}
 }
 
@@ -240,7 +295,6 @@ void write_fd(spiffs_file fd, char *fmt, ...) {
  * - Given a file name (through the #define), write the printf-formatted data to it and timestamp
  */
 void sfu_write_fname(char f_suffix, char *fmt, ...) {
-
 	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
@@ -300,6 +354,7 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 			  snprintf(buf, 20, "FRnr: %i", SPIFFS_errno(&fs));
 			  serialSendQ(buf);
 		  }
+		  SPIFFS_close(&fs, fd);
 		}
 		xSemaphoreGive(spiffsTopMutex);
 	}

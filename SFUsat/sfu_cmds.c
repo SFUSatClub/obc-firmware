@@ -13,6 +13,7 @@
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
 #include "deployables.h"
+#include "sfu_fs_structure.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -53,7 +54,10 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  task  -- Task-related commands\n"
 							  "  sched -- Schedule-related commands\n"
 							  "  state -- State-related commands\n"
-							  "  ack   -- Acks."
+							  "  ack   -- Acks.\n"
+						      "  wd    -- Disable watchdog.\n"
+						      "  deploy -- Inhibit deployment.\n"
+						      "  file   -- File-related commands\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_GET,
@@ -127,6 +131,13 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.info		=  "Deployment disable command."
 								"  disarm\n"
 								"    Disarm deployment\n"
+		},
+		{
+				.subcmd_id	= CMD_FILE,
+				.name		= "file",
+				.info		=  "File commands."
+								"  dump\n"
+								"    Dumps a file.\n"
 		}
 };
 
@@ -319,6 +330,30 @@ static const struct subcmd_opt CMD_DEPLOY_OPTS[] = {
 int8_t cmdDeploy(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_DEPLOY_DISARM){
 			deploy_inhibit();
+			return 1;
+		}
+		else{
+			return 1;
+		}
+}
+
+/**
+ * File System commands
+ */
+static const struct subcmd_opt CMD_FILE_OPTS[] = {
+		{
+				.subcmd_id	= CMD_FILE_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_FILE_DUMP,
+				.name		= "dump",
+		},
+};
+
+int8_t cmdFile(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_FILE_DUMP){
+			dumpFile('a', 'A');
 			return 1;
 		}
 		else{
@@ -652,6 +687,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdDeploy,
 				.subcmds		= CMD_DEPLOY_OPTS,
 				.num_subcmds	= LEN(CMD_WD_OPTS),
+		},
+		{
+				.cmd_id			= CMD_FILE,
+				.name			= "file",
+				.func			= cmdFile,
+				.subcmds		= CMD_FILE_OPTS,
+				.num_subcmds	= LEN(CMD_FILE_OPTS),
 		}
 };
 

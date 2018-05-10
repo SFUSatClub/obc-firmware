@@ -31,6 +31,8 @@
 extern TaskHandle_t xSPIFFSHandle;
 extern TaskHandle_t xSPIFFSRead;
 
+void dumpFile(char prefix, char suffix);
+
 // SFUSat Configs
 #define SFU_MAX_DATA_WRITE 21 // bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp.
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) // DON'T TOUCH: to size the file write buffer
@@ -46,8 +48,7 @@ extern TaskHandle_t xSPIFFSRead;
 #define FSYS_ERROR 66 	// B, error log
 #define FSYS_CURRENT 67 // C, current log
 
-#define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(30000) // we create new file sets on this interval
-
+#define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(90000) // we create new file sets on this interval
 // Prefix stuff
 #define PREFIX_START 97 // a, start of prefixes
 #define PREFIX_QUANTITY 3 // number of unique prefixes to loop through
