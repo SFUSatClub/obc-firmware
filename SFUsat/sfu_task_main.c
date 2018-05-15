@@ -35,6 +35,8 @@ TaskHandle_t xFilesystemTaskHandle = NULL; // RA - filesystem lifecycle (FS test
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
+TaskHandle_t xLoggingTaskHandle = NULL;
+TaskHandle_t xTestLoggingTaskHandle = NULL;
 
 /* MainTask for all platforms except launchpad */
 #if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
@@ -67,6 +69,8 @@ void vMainTask(void *pvParameters) {
 	//  xQueue = xQueueCreate(5, sizeof(char *));
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
+
 	serialSendQ("created queue");
 
 	xRTCMutex = xSemaphoreCreateMutex();
@@ -95,6 +99,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
 
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	xTaskCreate(vLoggingTask, "logging", 300, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLoggingTaskHandle);
+	xTaskCreate(vTestLoggingTask, "test_logging", 128, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xTestLoggingTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
@@ -105,6 +111,7 @@ void vMainTask(void *pvParameters) {
 
 // --------------------------- OTHER TESTING STUFF ---------------------------
 	// Right when we spin up the main task, get the heap (example of a command we can issue)
+
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};
 	addEvent(test_event);
@@ -184,13 +191,13 @@ void vMainTask(void *pvParameters) {
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
-	addlogEntry(logtype_1, detail_1); // element 1 contains rtc time, 0, 0
-
-	LoggingQueueStructure_t pvBuffer;
-	xQueueReceive(xLoggingQueue, &pvBuffer, 0);
-	char genBuf[20] = { '\0' };
-	snprintf(genBuf, 20, "time: %i\n", pvBuffer.rtcEpochTime);
-	serialSendQ(genBuf);
+//	addlogEntry(logtype_1, detail_1);
+//
+//	LoggingQueueStructure_t pvBuffer;
+//	xQueueReceive(xLoggingQueue, &pvBuffer, 0);
+//	char genBuf[20] = { '\0' };
+//	snprintf(genBuf, 20, "time: %i\n", pvBuffer.rtcEpochTime);
+//	serialSendQ(genBuf);
 
 	serialSendQ("created queue");
 

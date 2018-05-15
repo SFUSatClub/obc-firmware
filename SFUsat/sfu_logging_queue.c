@@ -7,22 +7,29 @@
 
 #include "sfu_logging_queue.h"
 #include "sfu_rtc.h"
+#include "sfu_uart.h"
+
 QueueHandle_t xLoggingQueue;
 
 // returns pdPASS when successful otherwise errQUEUE_FULL
-BaseType_t addlogEntry(LogType_t logType, EncodedMessage_t encodedMessage)
+BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 {
 	LoggingQueueStructure_t input;
+	BaseType_t xStatus;
 
-	input.rtcEpochTime = getCurrentRTCTime(); // modify this to check for launchpad versus obc
+	input.rtcEpochTime = 0;//getCurrentRTCTime(); // gets stuck on sfu_rtc getCurrentRTCTime mutex acquire
 	input.logType = logType;
 	input.encodedMessage = encodedMessage;
 
-	if (xQueueSend(xLoggingQueue, &input, 500) == pdPASS)
+	xStatus = xQueueSend(xLoggingQueue, &input, 500);
+	if (xStatus == pdPASS) {
+		serialSendQ("xQueueSend return code 1");
 		return pdPASS;
-	else
+	}
+	else {
+		char genBuf[36] = { '\0' };
+		snprintf(genBuf, 36, "xQueueSend return code %d", xStatus);
+		serialSendQ(genBuf); // 0: errQUEUE_FULL, 1 : pdPASS
 		return errQUEUE_FULL;
+	}
 }
-
-// anytime there is a object in the queue, pull it out, and log it into the file.
-// refer to git wiki for how to write stuff onto a file.

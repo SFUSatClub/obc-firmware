@@ -10,10 +10,13 @@
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
 #include "adc.h"
+#include "sfu_fs_structure.h"
+#include "sfu_logging_queue.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
+QueueHandle_t xLoggingQueue;
 
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
@@ -50,7 +53,7 @@ void vADCRead(void *pvParameters) {
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
 		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
-		  serialSendQ(sendBuf);
+		  //serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
@@ -251,3 +254,26 @@ void vMonitorTask(void *pvParameters){
 	serialSendQ("Chip is being reset.");
 }
 
+// Investigate way to wake up task only when needed
+void vLoggingTask(void *pvParameters){
+	serialSendQ("Started logging task");
+	LoggingQueueStructure_t item;
+	BaseType_t xStatus;
+	for (;;){
+		xStatus = xQueueReceive(xLoggingQueue, &item, 500);
+		if (xStatus == pdPASS) {
+			sfu_write_fname(FSYS_SYS, "Hello world!");
+			serialSendQ("completed simple task");
+		}
+		else
+			serialSendQ("Nothing");
+	}
+}
+
+void vTestLoggingTask(void *pvParameters) {
+	serialSendQ("Started task that adds entries to queue");
+	for (;;){
+		addLogItem(logtype_1, detail_1);
+		vTaskDelay(500); // repeat this cycle every 3000ms
+	}
+}

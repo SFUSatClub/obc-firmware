@@ -32,6 +32,7 @@
 #define ADC_TASK_DEFAULT_PRIORITY			1
 #define FLASH_TASK_DEFAULT_PRIORITY			4
 #define TESTS_PRIORITY						3
+#define LOGGING_TASK_DEFAULT_PRIORITY		3
 
 extern QueueHandle_t xQueue;
 //xTaskHandle vSenderHandle; // task handle for the sender which we can use to delete it
@@ -53,5 +54,9 @@ void vMonitorTask(void *pvParameters);
 void vSenderTask( void *pvParameters );
 void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
+void vLoggingTask( void *pvParameters );
+
+// Testing task
+void vTestLoggingTask( void *pvParameters );
 
 #endif /* SFUSAT_SFU_TASKS_H_ */

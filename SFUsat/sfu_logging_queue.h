@@ -41,6 +41,6 @@ typedef struct LoggingQueueStructure {
 } LoggingQueueStructure_t;
 
 // Methods
-BaseType_t addlogEntry(LogType_t logType, EncodedMessage_t encodedMessage);
+BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage);
 
 #endif // SFUSAT_ERROR_LOGGING_H_
