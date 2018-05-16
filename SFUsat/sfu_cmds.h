@@ -98,18 +98,16 @@
  */
 #define CMD_DATA_MAX_SIZE (14)
 
-typedef enum TASK_IDS {
-	TASK_MAIN,
-	TASK_RADIO,
-	TASK_TICKLE,
+#define TASK_MAIN           (0x00)
+#define TASK_RADIO          (0x01)
+#define TASK_TICKLE         (0x02)
 	/**
 	 * The following tasks are used only in development and not in release.
 	 * They may be #ifdef'd out or removed in the future.
 	 */
-	TASK_SERIAL,
-	TASK_BLINKY,
-	TASK_NUM_IDS,
-} TASK_ID;
+#define TASK_SERIAL         (0x03)
+#define TASK_BLINKY         (0x04)
+#define TASK_NUM_IDS        (5)
 
 typedef struct CMD_TASK_DATA {
 	TASK_ID task_id : 4;
