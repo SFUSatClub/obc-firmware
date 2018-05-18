@@ -8,28 +8,29 @@
 #include "sfu_logging_queue.h"
 #include "sfu_rtc.h"
 #include "sfu_uart.h"
+#include "sfu_fs_structure.h"
 
 QueueHandle_t xLoggingQueue;
 
-// returns pdPASS when successful otherwise errQUEUE_FULL
+// returns pdPASS (1) when successful otherwise errQUEUE_FULL (0)
 BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 {
 	LoggingQueueStructure_t input;
-	BaseType_t xStatus;
 
-	input.rtcEpochTime = 0;//getCurrentRTCTime(); // gets stuck on sfu_rtc getCurrentRTCTime mutex acquire
+	input.rtcEpochTime = getCurrentRTCTime();
 	input.logType = logType;
 	input.encodedMessage = encodedMessage;
 
-	xStatus = xQueueSend(xLoggingQueue, &input, 500);
-	if (xStatus == pdPASS) {
-		serialSendQ("xQueueSend return code 1");
+	if (xQueueSend(xLoggingQueue, &input, 500) == pdPASS)
+	{
+		serialSendQ("Added item to queue");
 		return pdPASS;
 	}
-	else {
-		char genBuf[36] = { '\0' };
-		snprintf(genBuf, 36, "xQueueSend return code %d", xStatus);
-		serialSendQ(genBuf); // 0: errQUEUE_FULL, 1 : pdPASS
-		return errQUEUE_FULL;
+	else
+	{
+		xQueueReceive(xLoggingQueue, &input, 500);
+		char buf[30] = { '\0' };
+		snprintf(buf, 30, "%i", input.rtcEpochTime);
+		serialSendQ(buf);
 	}
 }

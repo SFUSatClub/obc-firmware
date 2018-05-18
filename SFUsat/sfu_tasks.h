@@ -54,7 +54,7 @@ void vMonitorTask(void *pvParameters);
 void vSenderTask( void *pvParameters );
 void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
-void vLoggingTask( void *pvParameters );
+void vLogToFileTask( void *pvParameters );
 
 // Testing task
 void vTestLoggingTask( void *pvParameters );

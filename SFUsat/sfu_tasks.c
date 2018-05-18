@@ -255,25 +255,24 @@ void vMonitorTask(void *pvParameters){
 }
 
 // Investigate way to wake up task only when needed
-void vLoggingTask(void *pvParameters){
-	serialSendQ("Started logging task");
+void vLogToFileTask(void *pvParameters) {
+	serialSendQ("Initialized Log File Task");
 	LoggingQueueStructure_t item;
-	BaseType_t xStatus;
-	for (;;){
-		xStatus = xQueueReceive(xLoggingQueue, &item, 500);
-		if (xStatus == pdPASS) {
-			sfu_write_fname(FSYS_SYS, "Hello world!");
-			serialSendQ("completed simple task");
+
+	for (;;) {
+		if (xQueueReceive(xLoggingQueue, &item, 500) == pdPASS) {
+			sfu_write_fname(FSYS_SYS, "%d, %d", item.logType, item.encodedMessage);
+			serialSendQ("wrote to file");
 		}
 		else
-			serialSendQ("Nothing");
+			serialSendQ("nothing in queue");
 	}
 }
 
 void vTestLoggingTask(void *pvParameters) {
-	serialSendQ("Started task that adds entries to queue");
+	serialSendQ("Initialized Test Logging Task");
 	for (;;){
 		addLogItem(logtype_1, detail_1);
-		vTaskDelay(500); // repeat this cycle every 3000ms
+		vTaskDelay(1000); // repeat this cycle every 3000ms
 	}
 }
