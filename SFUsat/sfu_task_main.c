@@ -88,16 +88,15 @@ void vMainTask(void *pvParameters) {
 			BLINKY_TASK_DEFAULT_PRIORITY,	  	// Priorities are in sfu_tasks.h
 			&xBlinkyTaskHandle );				// Task handles are above
 
-	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-
-	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 600, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
+	vTaskSuspend(xFilesystemTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
 	// TODO: tasks take in the system state and maybe perform differently (ADC will definitely do this)

@@ -177,6 +177,16 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define RCCTRL0_STATUS	(0x3D | BURST_BIT) // Low byte of last RC oscillator calibration result.
 
 /**
+ * Status Register Masks (section 29.3, page 94).
+ *
+ * Use these masks to extract relevant fields when reading from certain status registers above.
+ */
+#define TXFIFO_UNDERFLOW	(0b10000000) // TXBYTES Bits 7    Indicates if TX FIFO has underflowed.
+#define NUM_TXBYTES			(0b01111111) // TXBYTES Bits 6:0  Number of bytes in TX FIFO.
+#define RXFIFO_OVERFLOW		(0b10000000) // RXBYTES Bits 7    Indicates if RX FIFO has overflowed.
+#define NUM_RXBYTES			(0b01111111) // RXBYTES Bits 6:0  Number of bytes in RX FIFO.
+
+/**
  * FIFO Buffers (section 10.2, page 32).
  *
  * FIFO_TX is write-only.
@@ -226,41 +236,53 @@ void vRadioTask(void *pvParameters) {
 	while (1) {
 		serialSendln("radio task");
 
-	    char buffer[30];
+		char buffer[30];
 
-	    //uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
-	    	uint8 packetLen  = 64;
-	        uint8 test[100] = { 0 };
-	        int i = 2;
-	        test[0] = packetLen;
-	        test[1] = 0x10;
-	        while (i < packetLen) {
-	        	test[i] = i;
-	        	i++;
-	        }
-
-
-		if(0){ //1 for tx
-
-	    switch(writeToTxFIFO(test, packetLen)){
-	    	case 1: snprintf(buffer, 30, "Radio FIFO too full, did not write");
-	    			serialSendln(buffer);
-	    			break;
-	    	case 2: snprintf(buffer, 30, "Radio TX FIFO length mismatch");
-	        		serialSendln(buffer);
-	        		break;
-	    	default:snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
-					serialSendln(buffer);
-	    }
-	//
-	        strobe(STX);
-
+		//uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
+		uint8 packetLen = 3;
+		uint8 test[100] = { 0 };
+		int i = 2;
+		test[0] = packetLen;
+		test[1] = 0x10;
+		while (i < packetLen) {
+			test[i] = i;
+			i++;
 		}
 
-	    strobe(SNOP);
+		uint8 txbytes = readRegister(TXBYTES);
+		uint8 tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
+		uint8 tx_numbytes = txbytes & NUM_TXBYTES;
+		snprintf(buffer, 30, "tx_underflowed:%u tx_numbytes:%u", tx_underflowed, tx_numbytes);
+		serialSendln(buffer);
+
+		strobe(SNOP);
+		serialSend("TX FIFO_BYTES_AVAILABLE: ");
+		snprintf(buffer, 30, "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
+		serialSendln(buffer);
+
+		strobe(SNOP | READ_BIT);
+		serialSend("RX FIFO_BYTES_AVAILABLE: ");
+	    snprintf(buffer, 30, "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
+	    serialSendln(buffer);
+
+		if (1) { //1 for tx
+			/**
+			 * Strobe a NOP to ensure last operation was a write.
+			 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
+			 */
+			strobe(SNOP);
+			if (writeToTxFIFO(test, packetLen)) {
+				snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+				serialSendln(buffer);
+			} else {
+				snprintf(buffer, 30, "Radio did not write");
+				serialSendln(buffer);
+			}
+
+			strobe(STX);
+		}
 
 	    //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
-
 	    if(readRegister(RXBYTES) != 0){
 	    	readFromRxFIFO(test, 5);
 	    	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
@@ -303,19 +325,6 @@ void vRadioTX(void *pvParameters) {
 	//TODO: check last packet was transmitted
 
 }
-
-// RX task
-void vRadioRX(void *pvParameters){
-	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	initRadio(); // required?
-}
-
-// CHIME task
-void vRadioCHIME(void *pvParameters){
-	xRadioCHIMEQueue = xQueueCreate(10, sizeof(portCHAR *));
-	initRadio(); // required?
-}
-
 
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
@@ -363,12 +372,12 @@ static void strobe(uint8 addr) {
  *
  * @param src Data buffer to send
  * @param size Size of src (number of bytes)
- * @return 1 on successful write, 0 on failure
+ * @return 0 on failure, 1 on successful write, 2 on unexpected size
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
-	uint8 numBytesInFIFO = FIFO_LENGTH;
+	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
 	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
-	if (size > numBytesInFIFO || size == 0) { return 1; }
+	if (size > numBytesInFIFO || size == 0) { return 0; }
 	/*
 	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
 	 * or update this continuously with the radio's count of FIFO_BYTES_AVAILABLE via most recent statusByte.
@@ -379,8 +388,7 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 		writeRegister(FIFO_TX, src[idx++]); //FIFO_TX single byte access
 		numBytesInFIFO--;
 	}
-	if(readRegister(TXBYTES) != size) {return 2;} //check that TX_FIFO is filled with the correct amount of data
-	return 0; //TODO: Is this the best practice for returning error codes? should >0 be for nominal and <0 for errors?
+	return 1;
 }
 
 /**
