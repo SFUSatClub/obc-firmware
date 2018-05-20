@@ -98,8 +98,8 @@ void vMainTask(void *pvParameters) {
 	//xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
 
-	xTaskCreate(vTestLoggingTask, "test logging", 400, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xTestLoggingTaskHandle);
-	xTaskCreate(vLogToFileTask, "logging", 400, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
+	xTaskCreate(vLogToFileTask, "logging", 1000, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
+	xTaskCreate(vTestLoggingTask, "test logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xTestLoggingTaskHandle);
 
 	//xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	//vTaskSuspend(xRadioTaskHandle);

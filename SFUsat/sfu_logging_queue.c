@@ -12,25 +12,25 @@
 
 QueueHandle_t xLoggingQueue;
 
-// returns pdPASS (1) when successful otherwise errQUEUE_FULL (0)
+// Adds an item to xLoggingQueue. Can only be called after xLoggingQueue
+// is defined in sfu_task_main.c
+// Returns pdPASS (1) when successful otherwise errQUEUE_FULL (0)
 BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 {
 	LoggingQueueStructure_t input;
+	BaseType_t xStatus;
 
 	input.rtcEpochTime = getCurrentRTCTime();
 	input.logType = logType;
 	input.encodedMessage = encodedMessage;
 
-	if (xQueueSend(xLoggingQueue, &input, 500) == pdPASS)
-	{
+	xStatus = xQueueSend(xLoggingQueue, &input, 500);
+
+	// debugging purposes
+	if (xStatus == pdPASS)
 		serialSendQ("Added item to queue");
-		return pdPASS;
-	}
 	else
-	{
-		xQueueReceive(xLoggingQueue, &input, 500);
-		char buf[30] = { '\0' };
-		snprintf(buf, 30, "%i", input.rtcEpochTime);
-		serialSendQ(buf);
-	}
+		serialSendQ("Queue is full");
+
+	return xStatus;
 }

@@ -256,16 +256,27 @@ void vMonitorTask(void *pvParameters){
 
 // Investigate way to wake up task only when needed
 void vLogToFileTask(void *pvParameters) {
+	// Declare variables that will be used in this task
 	serialSendQ("Initialized Log File Task");
-	LoggingQueueStructure_t item;
+	BaseType_t xStatus;
+	struct LoggingQueueStructure receivedItem;
+	const TickType_t xTicksToWait = pdMS_TO_TICKS( 100 );
 
 	for (;;) {
-		if (xQueueReceive(xLoggingQueue, &item, 500) == pdPASS) {
-			sfu_write_fname(FSYS_SYS, "%d, %d", item.logType, item.encodedMessage);
-			serialSendQ("wrote to file");
+		xStatus = xQueueReceive(xQueue, &receivedItem, xTicksToWait);
+
+		if (xStatus == pdPASS) {
+			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
+					receivedItem.rtcEpochTime,
+					receivedItem.logType,
+					receivedItem.encodedMessage);
+
+			serialSendQ("Received!\r\n");
 		}
 		else
-			serialSendQ("nothing in queue");
+		{
+			serialSendQ("Could not receive from the queue!\r\n");
+		}
 	}
 }
 
