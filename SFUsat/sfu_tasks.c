@@ -263,7 +263,7 @@ void vLogToFileTask(void *pvParameters) {
 	const TickType_t xTicksToWait = pdMS_TO_TICKS( 100 );
 
 	for (;;) {
-		xStatus = xQueueReceive(xQueue, &receivedItem, xTicksToWait);
+		xStatus = xQueueReceive(xLoggingQueue, &receivedItem, xTicksToWait);
 
 		if (xStatus == pdPASS) {
 			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
@@ -271,12 +271,14 @@ void vLogToFileTask(void *pvParameters) {
 					receivedItem.logType,
 					receivedItem.encodedMessage);
 
-			serialSendQ("Received!\r\n");
+			serialSendQ("Received!");
 		}
 		else
 		{
-			serialSendQ("Could not receive from the queue!\r\n");
+			serialSendQ("Could not receive from the queue!");
 		}
+
+		vTaskDelay(2000); // wait for now
 	}
 }
 
@@ -284,6 +286,6 @@ void vTestLoggingTask(void *pvParameters) {
 	serialSendQ("Initialized Test Logging Task");
 	for (;;){
 		addLogItem(logtype_1, detail_1);
-		vTaskDelay(1000); // repeat this cycle every 3000ms
+		vTaskDelay(1000);
 	}
 }
