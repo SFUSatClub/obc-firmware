@@ -258,34 +258,15 @@ void vMonitorTask(void *pvParameters){
 void vLogToFileTask(void *pvParameters) {
 	// Declare variables that will be used in this task
 	serialSendQ("Initialized Log File Task");
-	BaseType_t xStatus;
-	struct LoggingQueueStructure receivedItem;
-	const TickType_t xTicksToWait = pdMS_TO_TICKS( 100 );
+	struct LoggingQueueStructure received;
 
-	for (;;) {
-		xStatus = xQueueReceive(xLoggingQueue, &receivedItem, xTicksToWait);
-
-		if (xStatus == pdPASS) {
-			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
-					receivedItem.rtcEpochTime,
-					receivedItem.logType,
-					receivedItem.encodedMessage);
-
-			serialSendQ("Received!");
-		}
-		else
-		{
-			serialSendQ("Could not receive from the queue!");
-		}
-
-		vTaskDelay(2000); // wait for now
-	}
-}
-
-void vTestLoggingTask(void *pvParameters) {
-	serialSendQ("Initialized Test Logging Task");
 	for (;;){
-		addLogItem(logtype_1, detail_1);
-		vTaskDelay(1000);
+		if (xQueueReceive(xLoggingQueue, &received, portMAX_DELAY) == pdPASS)
+			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
+					received.rtcEpochTime,
+					received.logType,
+					received.encodedMessage);
 	}
+
+
 }

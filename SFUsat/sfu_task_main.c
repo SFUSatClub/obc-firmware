@@ -36,7 +36,6 @@ TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
 TaskHandle_t xLogToFileTaskHandle = NULL;
-TaskHandle_t xTestLoggingTaskHandle = NULL;
 
 /* MainTask for all platforms except launchpad */
 #if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
@@ -95,14 +94,12 @@ void vMainTask(void *pvParameters) {
 	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	//xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
+	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
+	xTaskCreate(vLogToFileTask, "logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
 
-	xTaskCreate(vTestLoggingTask, "test logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xTestLoggingTaskHandle);
-	xTaskCreate(vLogToFileTask, "logging", 1000, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
-
-	//xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	//vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
@@ -192,14 +189,6 @@ void vMainTask(void *pvParameters) {
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
-//	addlogEntry(logtype_1, detail_1);
-//
-//	LoggingQueueStructure_t pvBuffer;
-//	xQueueReceive(xLoggingQueue, &pvBuffer, 0);
-//	char genBuf[20] = { '\0' };
-//	snprintf(genBuf, 20, "time: %i\n", pvBuffer.rtcEpochTime);
-//	serialSendQ(genBuf);
-
 	serialSendQ("created queue");
 
 	xRTCMutex = xSemaphoreCreateMutex();
@@ -227,6 +216,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 //	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 //	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
+	xTaskCreate(vLogToFileTask, "logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
 //
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);

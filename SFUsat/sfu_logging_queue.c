@@ -8,7 +8,6 @@
 #include "sfu_logging_queue.h"
 #include "sfu_rtc.h"
 #include "sfu_uart.h"
-#include "sfu_fs_structure.h"
 
 QueueHandle_t xLoggingQueue;
 
@@ -25,12 +24,6 @@ BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 	input.encodedMessage = encodedMessage;
 
 	xStatus = xQueueSend(xLoggingQueue, &input, 500);
-
-	// debugging purposes
-	if (xStatus == pdPASS)
-		serialSendQ("Added item to queue");
-	else
-		serialSendQ("Queue is full");
 
 	return xStatus;
 }

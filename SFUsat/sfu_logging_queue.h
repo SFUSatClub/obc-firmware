@@ -14,7 +14,6 @@
 #include "rtos_queue.h"
 
 #define LOGGING_QUEUE_LENGTH 20
-//https://stackoverflow.com/questions/1433204/how-do-i-use-extern-to-share-variables-between-source-files
 extern QueueHandle_t xLoggingQueue;
 
 // have task wake up whenever there is something in the queue.

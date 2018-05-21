@@ -23,6 +23,5 @@ extern TaskHandle_t xStateTaskHandle;
 extern TaskHandle_t xFlashReadHandle;
 extern TaskHandle_t xFlashWriteHandle;
 extern TaskHandle_t xLogToFileTaskHandle;
-extern TaskHandle_t xTestLoggingTaskHandle;
 
 #endif /* SFUSAT_SFU_TASK_MAIN_H_ */

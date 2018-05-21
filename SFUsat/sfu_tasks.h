@@ -56,7 +56,4 @@ void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
 void vLogToFileTask( void *pvParameters );
 
-// Testing task
-void vTestLoggingTask( void *pvParameters );
-
 #endif /* SFUSAT_SFU_TASKS_H_ */
