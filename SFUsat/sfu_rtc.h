@@ -9,7 +9,6 @@
 #define SFUSAT_SFU_RTC_H_
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
-#include "spi.h"
 /**
  * Get "approximated" RTC epoch time.
  * Combines last actual time from RTC with time from Hercule's HET.
