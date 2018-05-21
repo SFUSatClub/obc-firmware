@@ -20,7 +20,7 @@ QueueHandle_t xLoggingQueue;
 
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
-	// The loop of the task will run re#include "sfu_logging_queue.h"peatedly until the task is preempted. So delay or suspend the task once you're done processing.
+	// The loop of the task will run repeatedly until the task is preempted. So delay or suspend the task once you're done processing.
 	while (1) {
 		gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the pin
 		vTaskDelay(pdMS_TO_TICKS(200)); // delay 200ms. Use the macro
@@ -46,14 +46,14 @@ void vADCRead(void *pvParameters) {
 		// start conversion (it's inside test_adc)
 		// take a semaphore here
 
-		    adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
-		    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
-		    adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
+		adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
+		while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
+		adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
-		  //serialSendQ(sendBuf);
+		snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
+		serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
@@ -254,12 +254,13 @@ void vMonitorTask(void *pvParameters){
 	serialSendQ("Chip is being reset.");
 }
 
-// Investigate way to wake up task only when needed
+
 void vLogToFileTask(void *pvParameters) {
 	// Declare variables that will be used in this task
 	serialSendQ("Initialized Log File Task");
 	struct LoggingQueueStructure received;
 
+	// When an item is present in queue, log to file. Otherwise, block
 	for (;;){
 		if (xQueueReceive(xLoggingQueue, &received, portMAX_DELAY) == pdPASS)
 			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
