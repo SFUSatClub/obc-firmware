@@ -10,13 +10,10 @@
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
 #include "adc.h"
-#include "sfu_fs_structure.h"
-#include "sfu_logging_queue.h"
 
 QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
-QueueHandle_t xLoggingQueue;
 
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
@@ -252,22 +249,4 @@ void vTickleTask(void *pvParameters){
 
 void vMonitorTask(void *pvParameters){
 	serialSendQ("Chip is being reset.");
-}
-
-
-void vLogToFileTask(void *pvParameters) {
-	// Declare variables that will be used in this task
-	serialSendQ("Initialized Log File Task");
-	struct LoggingQueueStructure received;
-
-	// When an item is present in queue, log to file. Otherwise, block
-	for (;;){
-		if (xQueueReceive(xLoggingQueue, &received, portMAX_DELAY) == pdPASS)
-			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
-					received.rtcEpochTime,
-					received.logType,
-					received.encodedMessage);
-	}
-
-
 }

@@ -5,7 +5,8 @@
  *      Author: Colin
  */
 
-#include "sfu_logging_queue.h"
+#include <sfu_logging_task.h>
+#include "sfu_fs_structure.h"
 #include "sfu_rtc.h"
 #include "sfu_uart.h"
 
@@ -26,4 +27,21 @@ BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 	xStatus = xQueueSend(xLoggingQueue, &input, 500);
 
 	return xStatus;
+}
+
+void vLogToFileTask(void *pvParameters) {
+	// Declare variables that will be used in this task
+	serialSendQ("Initialized Log File Task");
+	struct LoggingQueueStructure received;
+
+	// When an item is present in queue, log to file. Otherwise, block
+	for (;;){
+		if (xQueueReceive(xLoggingQueue, &received, portMAX_DELAY) == pdPASS)
+			sfu_write_fname(FSYS_SYS, "%d, %d, %d",
+					received.rtcEpochTime,
+					received.logType,
+					received.encodedMessage);
+	}
+
+
 }

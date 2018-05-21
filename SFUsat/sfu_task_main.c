@@ -16,12 +16,10 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
-#include "sfu_logging_queue.h"
-
-//  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
+#include <sfu_logging_task.h>
 
 
 TaskHandle_t xSerialTaskHandle = NULL;

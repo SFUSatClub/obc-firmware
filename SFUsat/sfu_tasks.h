@@ -41,7 +41,6 @@ void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
 void vADCRead(void *pvParameters);
 
-
 extern QueueHandle_t xSerialTXQueue;
 extern QueueHandle_t xSerialRXQueue;
 void vSerialTask(void *pvParameters);
@@ -54,6 +53,5 @@ void vMonitorTask(void *pvParameters);
 void vSenderTask( void *pvParameters );
 void vReceiverTask( void *pvParameters );
 void periodicSenderTask( void *pvParameters );
-void vLogToFileTask( void *pvParameters );
 
 #endif /* SFUSAT_SFU_TASKS_H_ */

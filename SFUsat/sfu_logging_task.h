@@ -42,5 +42,6 @@ typedef struct LoggingQueueStructure {
 
 // Methods
 BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage);
+void vLogToFileTask( void *pvParameters );
 
 #endif // SFUSAT_ERROR_LOGGING_H_
