@@ -19,7 +19,7 @@
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
-#include <sfu_logging_task.h>
+#include "sfu_task_logging.h"
 
 
 TaskHandle_t xSerialTaskHandle = NULL;

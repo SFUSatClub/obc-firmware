@@ -1,5 +1,5 @@
 /*
- * sfu_logging_queue.h
+ * sfu_task_logging.h
  *
  *  Created on: Mar 27, 2018
  *      Author: Colin Chan
@@ -7,8 +7,8 @@
  *  See https://github.com/SFUSatClub/obc-firmware/issues/9
  */
 
-#ifndef SFUSAT_ERROR_LOGGING_H_
-#define SFUSAT_ERROR_LOGGING_H_
+#ifndef SFUSAT_TASK_LOGGING_H_
+#define SFUSAT_TASK_LOGGING_H_
 
 #include "FreeRTOS.h"
 #include "rtos_queue.h"
@@ -44,4 +44,4 @@ typedef struct LoggingQueueStructure {
 BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage);
 void vLogToFileTask( void *pvParameters );
 
-#endif // SFUSAT_ERROR_LOGGING_H_
+#endif // SFUSAT_TASK_LOGGING_H_

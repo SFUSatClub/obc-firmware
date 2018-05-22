@@ -1,11 +1,11 @@
 /*
- * sfu_logging_queue.c
+ * sfu_task_logging.c
  *
  *  Created on: Mar 28, 2018
  *      Author: Colin
  */
 
-#include <sfu_logging_task.h>
+#include "sfu_task_logging.h"
 #include "sfu_fs_structure.h"
 #include "sfu_rtc.h"
 #include "sfu_uart.h"
