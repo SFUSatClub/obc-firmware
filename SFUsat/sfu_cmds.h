@@ -97,6 +97,10 @@
 
 #define CMD_FILE_NONE		0x00
 #define CMD_FILE_DUMP	 	0x02
+#define CMD_FILE_CDUMP 		0x04
+#define CMD_FILE_CPREFIX 	0x06
+#define CMD_FILE_SIZE		0x08
+
 
 /**
  * Maximum command argument size.
@@ -131,6 +135,12 @@ typedef struct CMD_STATE_DATA {
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_STATE_DATA_t;
 
+typedef struct CMD_FILE_DATA {
+	uint8_t prefix;
+	uint8_t suffix;
+	uint8_t unused[CMD_DATA_MAX_SIZE - 2];
+} CMD_FILE_DATA_t;
+
 /**
  * CMD_SCHED_MISC_DATA_t provides structured access to miscellaneous data when specifying a CMD_SCHED_DATA_t.
  * CMD_SCHED_MISC_DATA_t is only ever used in this situation.
@@ -164,6 +174,8 @@ typedef struct CMD_SCHED_DATA {
 		CMD_TASK_DATA_t scheduled_cmd_task_data;
 		CMD_STATE_DATA_t scheduled_cmd_state_data;
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
+		CMD_FILE_DATA_t cmd_file_misc_data;
+
 	};
 	uint8_t scheduled_cmd_id;
 	uint8_t scheduled_subcmd_id;
@@ -184,6 +196,7 @@ typedef struct CMD {
 		CMD_TASK_DATA_t cmd_task_data;
 		CMD_STATE_DATA_t cmd_state_data;
 		CMD_SCHED_DATA_t cmd_sched_data;
+		CMD_FILE_DATA_t cmd_file_data;
 	};
 	uint8_t cmd_id;
 	uint8_t subcmd_id;

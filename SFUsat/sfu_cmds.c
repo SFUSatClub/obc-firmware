@@ -349,11 +349,35 @@ static const struct subcmd_opt CMD_FILE_OPTS[] = {
 				.subcmd_id	= CMD_FILE_DUMP,
 				.name		= "dump",
 		},
+		{
+				.subcmd_id	= CMD_FILE_CDUMP,
+				.name		= "dumpc",
+		},
+		{
+				.subcmd_id	= CMD_FILE_CPREFIX,
+				.name		= "cprefix",
+		},
+		{
+				.subcmd_id	= CMD_FILE_SIZE,
+				.name		= "size",
+		},
 };
 
 int8_t cmdFile(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_FILE_DUMP){
-			dumpFile('a', 'A');
+			dumpFile(cmd->cmd_file_data.prefix, cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CDUMP){
+			dumpFile(currentPrefix(), cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CPREFIX){
+			serialSendln((const char*)currentPrefix());
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_SIZE){
+			// todo: snag this from spiffs struct
 			return 1;
 		}
 		else{

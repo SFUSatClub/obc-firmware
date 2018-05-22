@@ -26,7 +26,6 @@ uint32_t fs_num_increments;
 /* Dump file
  * - reads a chunk of a file, then prints it out on the UART
  * - used for downloading an entire file
- *
  * */
 void dumpFile(char prefix, char suffix){
     #define DUMP_BUF_SIZE 30	/* number of bytes to send out at once. Should eventually match radio TX buffer size */
@@ -50,6 +49,9 @@ void dumpFile(char prefix, char suffix){
 			res = SPIFFS_fstat(&fs,fd , &s);
 			uint32_t i;
 
+			snprintf(buf, DUMP_BUF_SIZE, "FILE: %s %d", fname, s.size);
+			serialSendln(( char*)buf);	/* send file name and size */
+
 			for(i = 0; i < s.size + 1; i += DUMP_BUF_SIZE){ /* loop through, read and transmit DUMP_BUF_SIZE bytes at a time */
 				res = SPIFFS_lseek(&fs, fd, i, SPIFFS_SEEK_SET);	/* lseek increments file index to i'th byte */
 				if(res < 0){
@@ -59,22 +61,31 @@ void dumpFile(char prefix, char suffix){
 					snprintf(buf, DUMP_BUF_SIZE, "DFnr: %i", SPIFFS_errno(&fs));
 				}
 
-				/* Read in 20 bytes which can have nulls embedded. Need to remove nulls for transmission as a chunk */
+				/* Read in bytes which can have nulls embedded. Need to remove nulls for transmission as a chunk, since serial functions use strlen */
 				uint8_t cnt;
 				for(cnt = 0; cnt < DUMP_BUF_SIZE; cnt ++){
-					if(buf[cnt] == '\0') buf[cnt] = '\7'; /* replace empty with weird character so it's easy to pick out */
+					if(buf[cnt] == '\0') buf[cnt] = '\7'; /* replace empty with weird character so it's easy to pick out  */
 				}
 				buf[DUMP_BUF_SIZE] = '\0';	/* null terminate the chunk so that send function's strlen works */
 				serialSendln(( char*)buf);	/* either send out err msg or the data itself */
 				clearBuf(buf,DUMP_BUF_SIZE);
 			}
 			SPIFFS_close(&fs, fd);
+			snprintf(buf, DUMP_BUF_SIZE, "FILE_END: %s", fname);
+			serialSendln(( char*)buf);	/* either send out err msg or the data itself */
 		}
 		xSemaphoreGive(spiffsTopMutex);
 	}
 	else {
 		serialSendQ("DFwe: can't get top mutex");
 	}
+}
+
+/* CurrentPrefix
+ * 	- returns the filesystem's current prefix
+ * */
+char currentPrefix(){
+	return *(char *) fs.user_data;
 }
 
 // -------------- Tasks for testing --------------------
@@ -120,7 +131,7 @@ void fs_read_task(void *pvParameters){
 	uint8_t data[20];
 	while(1){
 		vTaskDelay(pdMS_TO_TICKS(6000));
-		sfu_read_fname(FSYS_CURRENT, data, 20);
+		sfu_read_fname(OBC_CURRENT, data, 20);
 		serialSendQ((char*)data);
 	}
 }
