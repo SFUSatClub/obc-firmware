@@ -54,7 +54,7 @@ void deploy_task(void *pvParameters){
 		else{
 			serialSendQ("Deploy DISARMED: deploy trigger time.");
 		}
-		vTaskDelete(NULL);
+		vTaskDelete(NULL);	/* delete the task since we're all good and deployed */
 	}
 }
 

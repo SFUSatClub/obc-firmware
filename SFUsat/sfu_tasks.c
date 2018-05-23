@@ -14,11 +14,8 @@
 #include "sfusat_spiffs.h"
 #include "stlm75.h"
 
-QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
-
-TaskHandle_t xStateEntryHandle = NULL;
 
 void blinky(void *pvParameters) { // blinks LED at 10Hz
 	// You can initialize variables for your task here. Runs once.
