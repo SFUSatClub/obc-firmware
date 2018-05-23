@@ -125,7 +125,7 @@ typedef enum TASK_IDS {
 } TASK_ID;
 
 typedef struct CMD_TASK_DATA {
-	TASK_ID task_id : 4;
+	uint8_t task_id : 4;
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_TASK_DATA_t;
 
