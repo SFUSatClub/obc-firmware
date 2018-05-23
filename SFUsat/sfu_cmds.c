@@ -710,7 +710,7 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.name			= "deploy",
 				.func			= cmdDeploy,
 				.subcmds		= CMD_DEPLOY_OPTS,
-				.num_subcmds	= LEN(CMD_WD_OPTS),
+				.num_subcmds	= LEN(CMD_DEPLOY_OPTS),
 		},
 		{
 				.cmd_id			= CMD_FILE,
