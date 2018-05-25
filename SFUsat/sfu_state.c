@@ -10,10 +10,10 @@
 
 #include "sfu_state.h"
 #include "sfu_uart.h"
+#include "sfu_rtc.h"
 
 State_t cur_state;
 InstanceData_t state_persistent_data;
-
 /* -------------- doStateX Functions ------------------------
 These handle the checks required to transition from one state to the next.
 Return to current state is always last so that checks are performed frequently. */
@@ -95,7 +95,7 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 		printStateInfo(currstate,data);
 		transition(data);
 		data->previous_state = currstate;
-		data->enter_time = 0x32; // dummy value, will actually want to read RTC
+		data->enter_time = getCurrentTime(); // dummy value, will actually want to read RTC
 		// TODO: confirm state switch out over radio
 	}
 
@@ -104,10 +104,10 @@ State_t runState(State_t currstate, InstanceData_t *data) {
 };
 
 void stateMachineInit(){
-	serialSendln("STARTING STATE MACHINE");
+//	serialSendln("STARTING STATE MACHINE");
 	cur_state = STATE_SAFE;
 	state_persistent_data.previous_state = STATE_SAFE; // will always start in safe. Then automatically go to low power if necessary.
-	state_persistent_data.enter_time = 0x55; // dummy value, will actually want to read RTC.
+	state_persistent_data.enter_time = getCurrentTime();
 	state_persistent_data.in_RTOS = 0;
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
@@ -143,6 +143,12 @@ void printPrevState(State_t currstate, InstanceData_t *data){
 		// just print current state
 		serialSendQ(stateNameString[data->previous_state]);
 	}
+}
+
+void printStateEntryTime(){
+	char buf[30] = {'\0'};
+	snprintf(buf, 30, "ENTER TIME: %i",stateEntryTime());
+	serialSendQ((const char *)buf);
 }
 
 uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
@@ -186,4 +192,16 @@ uint8_t stateCheckEnterSafe(InstanceData_t *data){
 	}
 	// check for bad errors. If so, enter safe as well.
 }
+
+
+/* ------------ Wrappers ----------------------
+ * 	- provide nice interfaces to getting some state information
+ */
+
+uint32_t stateEntryTime(){
+	// return the time we enter the current state
+	return state_persistent_data.enter_time;
+}
+
+
 

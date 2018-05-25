@@ -83,7 +83,7 @@ void adcInit(void)
     adcREG1->OPMODECR |= 0x80000000U;
 	
     /** - Setup prescaler */
-    adcREG1->CLOCKCR = 7U;
+    adcREG1->CLOCKCR = 2U;
  
     /** - Setup memory boundaries */
     adcREG1->BNDCR  = (uint32)((uint32)8U << 16U) | (8U + 8U);
