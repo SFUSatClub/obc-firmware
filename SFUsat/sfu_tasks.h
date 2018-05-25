@@ -34,6 +34,7 @@
 #define FLASH_READ_DEFAULT_PRIORITY			3
 #define FLASH_WRITE_DEFAULT_PRIORITY		4
 #define TESTS_PRIORITY						3
+#define LOGGING_TASK_DEFAULT_PRIORITY		3
 #define STDTELEM_PRIORITY					4
 
 extern TaskHandle_t xSerialTaskHandle;

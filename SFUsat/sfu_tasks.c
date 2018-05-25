@@ -44,14 +44,14 @@ void vADCRead(void *pvParameters) {
 		// start conversion (it's inside test_adc)
 		// take a semaphore here
 
-		    adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
-		    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
-		    adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
+		adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
+		while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
+		adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
-		  serialSendQ(sendBuf);
+		snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
+		serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
@@ -203,5 +203,3 @@ void vExternalTickleTask(void *pvParameters){
 		vTaskDelay(400); // repeat this cycle every 400ms
 	}
 }
-
-

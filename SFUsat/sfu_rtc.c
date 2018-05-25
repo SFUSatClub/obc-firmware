@@ -219,6 +219,7 @@ uint8_t rtc_get_year(void) {
 }
 
 uint32_t getCurrentRTCTime() {
+#if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
 	/*
 	 * Reset HET time.
 	 */
@@ -265,6 +266,9 @@ uint32_t getCurrentRTCTime() {
 	}
 	xSemaphoreGive(xRTCMutex);
 	return rtc_epoch_time;
+#else
+	return 22; // no rtc chip on launchpad
+#endif
 }
 
 uint32_t no_rtos_test_getCurrentRTCTime() {

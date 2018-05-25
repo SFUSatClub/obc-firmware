@@ -19,12 +19,10 @@
 #include "sfu_i2c.h"
 #include "stlm75.h"
 #include "deployables.h"
-
-//  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
-
+#include "sfu_task_logging.h"
 
 
 // Perpetual tasks - these run all the time
@@ -41,6 +39,7 @@ TaskHandle_t xSTDTelemTaskHandle = NULL;
 TaskHandle_t xRadioRXHandle = NULL;
 TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
+TaskHandle_t xLogToFileTaskHandle = NULL;
 
 
 /* MainTask for all platforms except launchpad */
@@ -72,6 +71,8 @@ void vMainTask(void *pvParameters) {
 	// TODO: encapsulate these
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
+
 	serialSendQ("created queue");
 
 	// ---------- INIT TESTS ----------
@@ -94,7 +95,9 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
+	xTaskCreate(vLogToFileTask, "logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
+
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vStdTelemTask, "telem", 800, NULL, STDTELEM_PRIORITY, &xSTDTelemTaskHandle);
@@ -107,6 +110,7 @@ void vMainTask(void *pvParameters) {
 
 // --------------------------- OTHER TESTING STUFF ---------------------------
 	// Right when we spin up the main task, get the heap (example of a command we can issue)
+
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};
 	addEvent(test_event);
@@ -179,6 +183,8 @@ void vMainTask(void *pvParameters) {
 	// TODO: encapsulate these
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
+	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
+
 	serialSendQ("created queue");
 
 	// ---------- INIT TESTS ----------
@@ -205,6 +211,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 //	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 //	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
+	xTaskCreate(vLogToFileTask, "logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
 //
 //	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
@@ -259,4 +266,3 @@ void vMainTask(void *pvParameters) {
 
 }
 #endif
-
