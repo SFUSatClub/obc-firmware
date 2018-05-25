@@ -234,9 +234,27 @@ void vRadioTask(void *pvParameters) {
 	strobe(SRX);
 
 	while (1) {
-		serialSendln("radio task");
+		char buffer[64] = {'\0'};
 
-		char buffer[30];
+		/**
+		 * Notification example.
+		 * TODO: Use flags on notif instead of overwrite. Make dedicated notification handler.
+		 * ulTaskNotifyTake( BaseType_t xClearCountOnExit, TickType_t xTicksToWait );
+		 * https://www.freertos.org/ulTaskNotifyTake.html
+		 */
+		uint32 notif = ulTaskNotifyTake(pdTRUE, 0);
+		snprintf(buffer, sizeof(buffer), "radio task (0x%x)", notif);
+		switch (notif) {
+			case 0xBEEFDEAD: {
+				spiEnableLoopback(RF_SPI_REG, Analog_Lbk);
+				break;
+			}
+			case 0xDEADBEEF: {
+				spiDisableLoopback(RF_SPI_REG);
+				break;
+			}
+		}
+		serialSendln(buffer);
 
 		//uint8 test[] = {0, 3, 9, 27, 14, 15, 16, 17, 18, 19};
 		uint8 packetLen = 3;
@@ -252,17 +270,17 @@ void vRadioTask(void *pvParameters) {
 		uint8 txbytes = readRegister(TXBYTES);
 		uint8 tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
 		uint8 tx_numbytes = txbytes & NUM_TXBYTES;
-		snprintf(buffer, 30, "tx_underflowed:%u tx_numbytes:%u", tx_underflowed, tx_numbytes);
+		snprintf(buffer, sizeof(buffer), "tx_underflowed:%s tx_numbytes:%d", tx_underflowed ? "yes" : "no", tx_numbytes);
 		serialSendln(buffer);
 
 		strobe(SNOP);
 		serialSend("TX FIFO_BYTES_AVAILABLE: ");
-		snprintf(buffer, 30, "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
+		snprintf(buffer, sizeof(buffer), "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
 		serialSendln(buffer);
 
 		strobe(SNOP | READ_BIT);
 		serialSend("RX FIFO_BYTES_AVAILABLE: ");
-	    snprintf(buffer, 30, "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
+	    snprintf(buffer, sizeof(buffer), "0x%x 0d%d", statusByte & FIFO_BYTES_AVAILABLE, statusByte & FIFO_BYTES_AVAILABLE);
 	    serialSendln(buffer);
 
 		if (1) { //1 for tx
@@ -272,10 +290,10 @@ void vRadioTask(void *pvParameters) {
 			 */
 			strobe(SNOP);
 			if (writeToTxFIFO(test, packetLen)) {
-				snprintf(buffer, 30, "%d Bytes Radio TX FIFO written", packetLen);
+				snprintf(buffer, sizeof(buffer), "%d Bytes Radio TX FIFO written", packetLen);
 				serialSendln(buffer);
 			} else {
-				snprintf(buffer, 30, "Radio did not write");
+				snprintf(buffer, sizeof(buffer), "Radio did not write");
 				serialSendln(buffer);
 			}
 
@@ -285,7 +303,7 @@ void vRadioTask(void *pvParameters) {
 	    //TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 	    if(readRegister(RXBYTES) != 0){
 	    	readFromRxFIFO(test, 5);
-	    	snprintf(buffer, 30, "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
+	    	snprintf(buffer, sizeof(buffer), "RX: %02x %02x %02x %02x %02x", test[0], test[1], test[2], test[3], test[4]);
 	    	serialSendln(buffer);
 	    }
 
@@ -372,20 +390,42 @@ static void strobe(uint8 addr) {
  *
  * @param src Data buffer to send
  * @param size Size of src (number of bytes)
- * @return 0 on failure, 1 on successful write, 2 on unexpected size
+ * @return -1 on underflow, 0 on failure (insufficient size), 1 on successful write, 2 on unexpected size
  */
 static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
-	// TODO: numBytesInFIFO is 4 bits; if it is 15, then >=15 bytes are free in TX FIFO. To get full count of free bytes in FIFO, read the proper status register.
-	if (size > numBytesInFIFO || size == 0) { return 0; }
+	/**
+	 * numBytesInFIFO is 4 bits; if it is 0xF, then >= 15 bytes are free in TX FIFO (i.e., there could be
+	 * anywhere from 15-64 bytes free).
+	 * Thus, comparing size to numBytesInFIFO gives a definitive result only if numBytesInFIFO is < 0xF. 
+	 * To get the actual full count of free bytes in FIFO, we then read the proper status register.
+	 */ 
+	if (size > numBytesInFIFO) {
+		if (numBytesInFIFO >= 0xF) {
+			numBytesInFIFO = readRegister(TXBYTES);
+			if (numBytesInFIFO & TXFIFO_UNDERFLOW) {
+				return -1;
+			}
+			numBytesInFIFO = numBytesInFIFO & NUM_TXBYTES;
+			if (size > numBytesInFIFO) {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
 	/*
 	 * TODO: Determine if it's better to rely on our initial local count of FIFO_BYTES_AVAILABLE via numBytesInFIFO,
 	 * or update this continuously with the radio's count of FIFO_BYTES_AVAILABLE via most recent statusByte.
 	 * I.E: What is more robust: to rely on the the SPI link, or this way?
 	 */
 	uint8 idx = 0;
-	while (numBytesInFIFO >= 1 && idx + 1 <= size) {
+	while (numBytesInFIFO > 0 && idx < size) {
 		writeRegister(FIFO_TX, src[idx++]); //FIFO_TX single byte access
+		/**
+		 * TODO: Opportunity to do a sanity check on the new numBytesInFIFO here with our current numBytesInFIFO.
+		 * uint8 newNumBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+		 */
 		numBytesInFIFO--;
 	}
 	return 1;

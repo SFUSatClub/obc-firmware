@@ -92,7 +92,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 1500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-	xTaskCreate(vRadioTask, "radio", 600, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 600, NULL, portPRIVILEGE_BIT | RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	vTaskSuspend(xFilesystemTaskHandle);

@@ -74,7 +74,8 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 		{
 				.subcmd_id	= CMD_HELP_RF,
 				.name		= "rf",
-				.info		= "RF-related commands (none)"
+				.info		= "RF-related commands\n"
+						  	  "  loopback [1|0] -- Enable or disable radio SPI loopback\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_TASK,
@@ -114,7 +115,6 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.info		= "acks. "
 		}
 };
-
 int8_t cmdHelp(const CMD_t *cmd) {
 	const struct subcmd_opt *subcmd_opt = NULL;
 	FOR_EACH(subcmd_opt, CMD_HELP_OPTS) {
@@ -163,7 +163,7 @@ static const struct subcmd_opt CMD_GET_OPTS[] = {
 				.name		= "epoch",
 		},
 };
-char buffer[250];
+static char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_GET_NONE:
@@ -230,6 +230,10 @@ static const struct subcmd_opt CMD_EXEC_OPTS[] = {
 };
 int8_t cmdExec(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
+		case CMD_EXEC_NONE: {
+			serialSendQ("exec stub");
+			return 1;
+		}
 		case CMD_EXEC_RADIO: {
 			initRadio();
 			return 1;
@@ -239,14 +243,39 @@ int8_t cmdExec(const CMD_t *cmd) {
 }
 
 /*
- * RF Command
+ * RF Command.
  */
-
+static const struct subcmd_opt CMD_RF_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RF_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RF_LOOPBACK,
+				.name		= "loopback",
+		},
+};
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
-		case CMD_EXEC_RADIO: {
-			initRadio();
+		case CMD_RF_NONE: {
 			return 1;
+		}
+		case CMD_RF_LOOPBACK: {
+			uint8_t option = cmd->cmd_data[0];
+			switch (option) {
+				case 0x00: {
+					xTaskNotify(xRadioTaskHandle, 0xBEEFDEAD, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback disabled");
+					return 1;
+				}
+				case 0x10: {
+					xTaskNotify(xRadioTaskHandle, 0xDEADBEEF, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback enabled");
+					return 1;
+				}
+			}
+			serialSendln("CMD_RF_LOOPBACK unknown selection");
+			return 0;
 		}
 	}
 	return 0;
@@ -507,8 +536,9 @@ int8_t cmdState(const CMD_t *cmd) {
 /**
  * Command table.
  *
- * If adding a new entry, make sure all fields are initialized:
- * 		- .name is required to be set to something
+ * If adding a new entry, make sure ALL fields are initialized!
+ * Entries with .subcmds=NULL and .num_subcmds=0 are valid but will not be accessible through the UART command system.
+ * Field .name must be set to the empty string at least, otherwise checkAndRunCommandStr will run strcmp on it and bring UB
  */
 static const struct cmd_opt CMD_OPTS[] = {
 		{
@@ -536,8 +566,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.cmd_id			= CMD_RF,
 				.func			= cmdRF,
 				.name			= "rf",
-				.subcmds		= NULL,
-				.num_subcmds	= 0,
+				.subcmds		= CMD_RF_OPTS,
+				.num_subcmds	= LEN(CMD_RF_OPTS),
 		},
 		{
 				.cmd_id			= CMD_TASK,
@@ -641,6 +671,7 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	}
 
 	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
+	memset(cmd_t.cmd_data, 0, sizeof(cmd_t.cmd_data));
 	/**
 	 * The third token will be interpreted as a hex string if it exists.
 	 * No preceding 0x required.
@@ -656,9 +687,9 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 * 		cmd_t.cmd_task_data.task_id will be == TASK_BLINKY (4)
 	 */
 	const char *data = strtok(NULL, delim);
-	unsigned int i = 0;
 	if (data != NULL) {
 		const int data_len = strlen(data);
+		unsigned int i = 0;
 		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
 			char c[3] = {NULL};
 			c[0] = *(data + i);
@@ -667,8 +698,14 @@ int8_t checkAndRunCommandStr(char *cmd) {
 			c[1] = n == '\0' ? '0' : n;
 			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
 		}
+		int ret = sprintf(buffer, "cmd_data set to: 0x");
+		i = 0;
+		for (i = 0; i < data_len && i < CMD_DATA_MAX_SIZE; i++) {
+			ret += snprintf(buffer + ret, sizeof(buffer), "%02x", cmd_t.cmd_data[i]);
+		}
+		serialSend(buffer);
 	}
-	serialSend((char *)cmd_t.cmd_data);
+
 
 	/**
 	 * Invoke the intended command with the command struct created above.
