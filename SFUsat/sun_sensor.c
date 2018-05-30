@@ -19,8 +19,6 @@
 #define RD_CMD 0x1
 #define WR_CMD 0x0
 
-
-
 uint8_t set_mux_channel(uint8_t addr, uint8_t channel) {
 	uint8_t cmd = (addr << 1 | WR_CMD);
 	int8_t errcode = 0;
@@ -39,9 +37,9 @@ uint8_t set_mux_channel(uint8_t addr, uint8_t channel) {
 	return channel;
 }
 
-//
+output_value output[16];
 output_value *read_sun_sensor() {						// must loop 4-6 times to get all the values of each sensor of each mux
-	output_value output[16], *ptr;
+	output_value *sun_info_ptr;
 	adcData_t adc_data[24];
 
 	//table of values for sensor number, addr of mux its assigned to as well as channel on mux
@@ -50,8 +48,8 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			{1,			Sensor_MUX_X_pos,	3},
 			{2,			Sensor_MUX_X_pos,	4},
 			{3,			Sensor_MUX_X_pos,	5},
-			{-1,			-1,					-1}, // -1 are taken as NULL values
-			{-1,			-1,					-1}
+			{-1,			-1,				-1}, // -1 are taken as NULL values
+			{-1,			-1,				-1}
 	};
 	mux_info mux2[6] = {
 			{4,			Sensor_MUX_X_neg,	0},
@@ -62,7 +60,7 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			{-1,			-1,				-1}
 	};
 	mux_info mux3[6] = {
-			{9,			Sensor_MUX_Y_pos,	0},
+			{9,			Sensor_MUX_Y_pos,		0},
 			{10,			Sensor_MUX_Y_pos,	1},
 			{11,			Sensor_MUX_Y_pos,	4},
 			{12,			Sensor_MUX_Y_pos,	6},
@@ -70,12 +68,12 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			{-1,			-1,					-1}
 	};
 	mux_info mux4[6] = {
-		{13,			Sensor_MUX_Y_neg,	0},
-		{14,			Sensor_MUX_Y_neg,	1},
-		{15,			Sensor_MUX_Y_neg,	2},
-		{16,			Sensor_MUX_Y_neg,	6},
-		{-1,			-1,					-1},
-		{-1,			-1,					-1}
+			{13,			Sensor_MUX_Y_neg,	0},
+			{14,			Sensor_MUX_Y_neg,	1},
+			{15,			Sensor_MUX_Y_neg,	2},
+			{16,			Sensor_MUX_Y_neg,	6},
+			{-1,			-1,					-1},
+			{-1,			-1,					-1}
 	};
 
 	uint8_t i = 0;
@@ -115,6 +113,6 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 		};
 	};
-	ptr = output; //pointer to output struct
-	return ptr;
+	sun_info_ptr = output; //pointer to output struct
+	return sun_info_ptr;
 }
