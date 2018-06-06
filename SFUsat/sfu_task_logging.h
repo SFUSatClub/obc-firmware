@@ -30,7 +30,7 @@ typedef enum {
 typedef enum {
 	error_1,
 	error_2,
-	error_3,
+	error_3
 } EncodedMessage_t;
 
 // Type of structure to add to queue. Records epoch time + type/detail
