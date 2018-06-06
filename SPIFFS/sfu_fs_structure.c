@@ -13,6 +13,7 @@
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
 #include "sfu_tasks.h"
+#include "sfu_task_logging.h"
 TaskHandle_t xSPIFFSHandle = NULL; // RA
 TaskHandle_t xSPIFFSRead = NULL; // RA
 uint32_t fs_num_increments;
@@ -403,7 +404,7 @@ void format_entry(char* buf, char *fmt, va_list argptr) {
 	if (sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF - 1 - x, fmt, argptr) > (SFU_WRITE_DATA_BUF - 2 - x)) { // 32 - x so that we always end with a \0, 31 - x for warning
 		serialSendQ("Error: file write data too big.");
 		// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer. Worst case we lose some data.
-		// #todo: error log
+		addLogItem(logtype_filesystem, error_1);
 	}
 	va_end(argptr);
 }
