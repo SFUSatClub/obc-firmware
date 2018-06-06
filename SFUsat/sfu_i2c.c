@@ -22,6 +22,7 @@
 #include "sfu_utils.h"
 #include "rtos_task.h"
 #include "sfu_uart.h"
+#include "sfu_task_logging.h"
 SemaphoreHandle_t xI2CMutex;
 static uint8_t num_resets;
 
@@ -153,6 +154,6 @@ int16_t sfu_reset_i2c(i2cBASE_t *i2c){
 
 	sfu_i2c_init();
     xTaskResumeAll();
-	// todo: log error, i2c was reset
+    addLogItem(logtype_i2c, error_1);
     return I2C_OK;
 }

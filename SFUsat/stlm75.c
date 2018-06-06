@@ -16,6 +16,7 @@
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
 #include "sfu_uart.h"
+#include "sfu_task_logging.h"
 
 /* To access a register of the device, you write the register pointer bits in the command/pointer
  * register (lowest 2 bits). This register holds its value between set operations, so you only
@@ -50,7 +51,7 @@ int16_t read_temp(uint8_t addr) {
 		return temp;
 	} else {
 		serialSendQ("Temp read can't get mutex");
-		// TODO: log error
+		addLogItem(logtype_driver, error_1);
 		return TEMP_READ_ERROR;
 	}
 }

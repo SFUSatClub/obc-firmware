@@ -20,17 +20,17 @@ extern QueueHandle_t xLoggingQueue;
 
 // Type of log (telemetry details, error logging, general information)
 typedef enum {
-	logtype_1,
-	logtype_2,
-	logtype_3,
+	logtype_i2c,
+	logtype_driver,
+	logtype_filesystem
 } LogType_t;
 
 // The encoded message we are associating with LogType_t
 // We will need to document these details in some form
 typedef enum {
-	detail_1,
-	detail_2,
-	detail_3,
+	error_1,
+	error_2,
+	error_3,
 } EncodedMessage_t;
 
 // Type of structure to add to queue. Records epoch time + type/detail
