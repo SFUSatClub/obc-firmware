@@ -2557,6 +2557,7 @@ void pbistFail(void)
     else
     {
 /* USER CODE BEGIN (77) */
+# if 0
 /* USER CODE END */
 /*SAFETYMCUSW 5 C MR:NA <APPROVED> "for(;;) can be removed by adding "# if 0" and "# endif" in the user codes above and below" */
 /*SAFETYMCUSW 26 S MR:NA <APPROVED> "for(;;) can be removed by adding "# if 0" and "# endif" in the user codes above and below" */
@@ -2566,6 +2567,7 @@ void pbistFail(void)
         }/* Wait */
 
 /* USER CODE BEGIN (78) */
+# endif
 /* USER CODE END */
     }
 }

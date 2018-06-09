@@ -85,7 +85,7 @@ void vMainTask(void *pvParameters) {
 		bool bitFailed = (pbistFailed >> i) & 1U;
 		if (bitComplete && bitFailed)
 		{
-			sfu_write_fname(FSYS_ERROR, "FAILURE DETECTED: PBIST #%i", i);
+			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
 		}
 	}
 
