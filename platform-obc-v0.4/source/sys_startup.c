@@ -64,7 +64,7 @@
 
 /* USER CODE BEGIN (1) */
 #include "sfu_startup.h"
-
+#include "reg_can.h"
 
 /* USER CODE END */
 
@@ -90,6 +90,8 @@ extern void exit(int _status);
 /* Startup Routine */
 void _c_int00(void);
 /* USER CODE BEGIN (4) */
+void saveTestComplete(int testNum);
+void saveTestFailed(int testNum);
 /* USER CODE END */
 
 #pragma CODE_STATE(_c_int00, 32)
@@ -104,7 +106,6 @@ void _c_int00(void)
     
 /* USER CODE BEGIN (5) */
 	/* USER CODE END */
-
     /* Initialize Core Registers to avoid CCM Error */
     _coreInitRegisters_();
 
@@ -266,8 +267,14 @@ void _c_int00(void)
      * The memory self-test is expected to fail. The function ensures that the PBIST controller
      * is capable of detecting and indicating a memory self-test failure.
      */
-    pbistSelfCheck();	
-	
+    pbistSelfCheck();
+
+    /* canREG1 is used to keep values of PBIST status.
+     * data 0 is used to log tests initiated
+     * data 1 is used to log fail/pass information
+     */
+    canREG1->IF1DATx[0U] = 0x00U;
+    canREG1->IF1DATx[1U] = 0x00U;
 	/* Run PBIST on STC ROM */
     pbistRun((uint32)STC_ROM_PBIST_RAM_GROUP,
              ((uint32)PBIST_TripleReadSlow | (uint32)PBIST_TripleReadFast));
@@ -277,7 +284,8 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */ 
-    
+
+    saveTestComplete(0);
     /* Check if PBIST on STC ROM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
@@ -287,9 +295,9 @@ void _c_int00(void)
          */
          
         pbistFail();
-
+        saveTestFailed(0);
     }   
-	
+
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();
 
@@ -302,7 +310,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */ 
-    
+    saveTestComplete(1);
     /* Check if PBIST ROM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
@@ -312,7 +320,7 @@ void _c_int00(void)
          */
          
         pbistFail();
-
+        saveTestFailed(1);
     } 
 	
     /* Disable PBIST clocks and disable memory self-test mode */
@@ -342,9 +350,9 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */                 
-    
 
 /* USER CODE BEGIN (33) */
+    saveTestComplete(2);
 	/* USER CODE END */
     
     /* Check if CPU RAM passed the self-test */
@@ -360,6 +368,7 @@ void _c_int00(void)
         pbistFail();
         
 /* USER CODE BEGIN (35) */
+        saveTestFailed(2);
 		/* USER CODE END */
     }
 
@@ -439,7 +448,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */                 
-    
+    saveTestComplete(3);
 
 /* USER CODE BEGIN (44) */
 
@@ -462,6 +471,7 @@ void _c_int00(void)
         pbistFail();
         
 /* USER CODE BEGIN (47) */
+        saveTestFailed(3);
 		/* USER CODE END */
     }
 
@@ -645,7 +655,7 @@ void _c_int00(void)
 	startupCheck(); // RA
 #endif
 	/* USER CODE END */
-    
+
     /* call the application */
 /*SAFETYMCUSW 296 S MR:8.6 <APPROVED> "Startup code(library functions at block scope)" */
 /*SAFETYMCUSW 326 S MR:8.2 <APPROVED> "Startup code(Declaration for main in library)" */
@@ -662,4 +672,12 @@ void _c_int00(void)
 }
 
 /* USER CODE BEGIN (78) */
+void saveTestComplete(int testNum)
+{
+	canREG1->IF1DATx[0U] = canREG1->IF1DATx[0U] | (1U << testNum);
+}
+void saveTestFailed(int testNum)
+{
+	canREG1->IF1DATx[1U] = canREG1->IF1DATx[1U] | (1U << testNum);
+}
 /* USER CODE END */

@@ -75,6 +75,20 @@ void vMainTask(void *pvParameters) {
 
 	serialSendQ("created queue");
 
+	// ---------- Log failed startup tests ----------
+	volatile uint8 pbistComplete = canREG1->IF1DATx[0U];
+	volatile uint8 pbistFailed = canREG1->IF1DATx[1U];
+	uint8 i;
+	for (i = 0U; i < 8U; i++)
+	{
+		bool bitComplete = (pbistComplete >> i) & 1U;
+		bool bitFailed = (pbistFailed >> i) & 1U;
+		if (bitComplete && bitFailed)
+		{
+			sfu_write_fname(FSYS_SYS, "FAILURE DETECTED: PBIST #%i", i);
+		}
+	}
+
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
