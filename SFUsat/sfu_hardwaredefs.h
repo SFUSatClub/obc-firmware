@@ -96,7 +96,10 @@
 #define DEPLOY_EN_PIN			4			/* MIBSPI1CS4 [xGPIO6] output	RA: enabled pulldown in HCG since this is active high */
 #define DEPLOY_EN_PORT			mibspiPORT1
 
+/* ADC
+ */
 
+#define OBC_CURRENT_ADC 	2
 #endif /* PLATFORM_OBC_V0_4 */
 
 

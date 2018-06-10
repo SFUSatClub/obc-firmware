@@ -93,7 +93,7 @@ char currentPrefix(){
  * - inits, deletes the files in the system as we will in flight
  * - another task is required to write/read the files as would be done normally
  */
-void vFilesystemTask(void *pvParameters) {
+void vFilesystemLifecycleTask(void *pvParameters) {
 	sfu_fs_init();
 	while (1) {
 		if(fs_num_increments == 0){
@@ -110,7 +110,7 @@ void vFilesystemTask(void *pvParameters) {
 
 /* some tasks that can be used to demonstrate fs functionality */
 void fs_test_tasks(){
-	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
+//	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
 //	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
 }
 
@@ -123,7 +123,9 @@ void fs_rando_write(void *pvParameters){
 		vTaskDelay(pdMS_TO_TICKS(4000));
 //		char randomData[5] = {'d'};
 //		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
-		sfu_write_fname(FSYS_SYS, "foo");
+		volatile uint16_t thang;
+		thang = 34;
+		sfu_write_fname(FSYS_SYS, "foo %i", thang);
 	}
 }
 

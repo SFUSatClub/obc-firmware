@@ -26,36 +26,6 @@ void blinky(void *pvParameters) { // blinks LED at 10Hz
 	}
 }
 
-void vADCRead(void *pvParameters) {
-	// TODO: this task should start a conversion of group 1 (will read ADC channel 2 for starters)
-	// TODO: instead of waiting for the conversion to complete, add a semaphore from the ISR callback (adc1Group1Interrupt)
-	// this task would start conversion, suspend and wait for semaphore (xsemaphoretake). When the semaphore is raised (given) in adc1Group1Interrupt,
-	// it means the conversion is done. This task will take the semaphore back, then grab the data as we do now.
-	// With the data, create a new task and get the data into the task. - task notification, task param, queue, etc.
-	// In the new task, print out the data received.
-	// This is a lot of stuff, but it mimics what we will eventually need to do - call tasks to write data out to flash and save it.
-	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
-	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
-
-
-	while (1) {
-	    adcData_t adc_data[24]; // there are 24 channels
-	    char sendBuf[20];
-		// start conversion (it's inside test_adc)
-		// take a semaphore here
-
-		    adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
-		    while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
-		    adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
-
-		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
-
-		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
-		  serialSendQ(sendBuf);
-		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
-	}
-}
-
 
 void vStateTask(void *pvParameters) {
 	while (1){
@@ -64,42 +34,7 @@ void vStateTask(void *pvParameters) {
 	}
 }
 
-/**
- * STDTelem
- * - this is responsible for collecting and sending out our regular telemetry packets
- * - these have defined content including:
- * - this is what we'll be sending out most of the time, unless we decide to issue commands
- *   to downlink other data if we decide we want it.
- * 		- state, time we enter state
- * 		- temperatures
- * 		- battery
- * 		- filesystem size, file prefix
- * 		- epoch at send
- */
-void vStdTelemTask(void *pvParameters){
-	char buf[50] = {'\0'};
-	int16_t OBC_temp;
-	while(1){
-		OBC_temp = read_temp(OBC_TEMP);
-		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c, %i",
-				getCurrentTime(), 					// epoch at send
-				cur_state, 							// state
-				stateEntryTime(), 					// time we entered state
-				xPortGetMinimumEverFreeHeapSize(), 	// min heap
-				fs.free_blocks,						// filesys free blocks
-				*(char *) fs.user_data,				// filesys prefix
-				OBC_temp
-		);
-		serialSendQ(buf);
-		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
-		// TODO: add temps, voltages, currents
-		// TODO: send out from radio
-		/* for large, time consuming things like voltages and currents, we can have the normal read tasks
-		 * send their info to a queue with depth 1. This task will pick up that (most recent) data whenever it runs,
-		 * allowing these values to be updated in the background by their respective tasks.
-		 */
-	}
-}
+
 
 /**
  * This task is responsible for the handling of all UART related functions.

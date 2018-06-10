@@ -43,7 +43,6 @@ void vSerialTask(void *pvParameters);
 
 void blinky(void *pvParameters);
 void vStateTask(void *pvParameters); // state checker
-void vADCRead(void *pvParameters);
 
 void vExternalTickleTask(void *pvParameters);
 void vStdTelemTask(void *pvParameters);
