@@ -39,16 +39,17 @@ char currentPrefix(void);
 #define SFU_MAX_DATA_WRITE 21  							/* bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp. */
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) 	/* DON'T TOUCH: to size the file write buffer */
 #define FSYS_OFFSET 65 									/* the first char of file names is 'A' */
-#define FSYS_NUM_SUBSYS 3 								/* number of subsystem logs */
+#define FSYS_NUM_SUBSYS 4 								/* number of subsystem logs */
 
 /* ASCII codes for the subsystem log suffix
  * 	- These are passed to read, write so that we can grab the correct file
  * 	- Stick with ASCII codes so we can easily iterate based on FSYS_OFFSET
  * 	- Not semantic, but go in alphabetical order (makes it easy to create the entire set of files)
  */
-#define FSYS_SYS 65 		/* A, system log */
-#define FSYS_ERROR 66 		/* B, error log */
-#define OBC_CURRENT 67 		/* C, current log */
+#define FSYS_SYS 		65 		/* A, system log */
+#define FSYS_ERROR 		66 		/* B, error log */
+#define OBC_CURRENT 	67 		/* C, current log */
+#define TEMPS 			68 		/* D, temperature log */
 
 #define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(90000) /* we create new file sets on this interval */
 /* Prefix stuff */
@@ -59,7 +60,7 @@ char currentPrefix(void);
 extern uint32_t fs_num_increments;
 
 /* Tasks */
-void vFilesystemTask(void *pvParameters);
+void vFilesystemLifecycleTask(void *pvParameters);
 void fs_rando_write(void *pvParameters);
 void fs_read_task(void *pvParameters);
 void fs_test_tasks();

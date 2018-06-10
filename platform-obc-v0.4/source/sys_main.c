@@ -114,7 +114,7 @@ int main(void)
      *
      * https://www.freertos.org/FreeRTOS-MPU-memory-protection-unit.html
      */
-    xTaskCreate(vMainTask, "main", 800, NULL, portPRIVILEGE_BIT | MAIN_TASK_PRIORITY, NULL);
+    xTaskCreate(vMainTask, "main", 1000, NULL, portPRIVILEGE_BIT | MAIN_TASK_PRIORITY, NULL);
 
     /**
      * Start the FreeRTOS scheduler.
