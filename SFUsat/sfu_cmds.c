@@ -690,7 +690,7 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	if (data != NULL) {
 		const int data_len = strlen(data);
 		unsigned int i = 0;
-		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
+		for (i = 0; i < sizeof(cmd_t.cmd_data) * 2 && i < data_len; i += 2) {
 			char c[3] = {NULL};
 			c[0] = *(data + i);
 			// TODO: fix dereference beyond null char
@@ -700,7 +700,7 @@ int8_t checkAndRunCommandStr(char *cmd) {
 		}
 		int ret = sprintf(buffer, "cmd_data set to: 0x");
 		i = 0;
-		for (i = 0; i < data_len && i < CMD_DATA_MAX_SIZE; i++) {
+		for (i = 0; i < data_len && i < sizeof(cmd_t.cmd_data); i++) {
 			ret += snprintf(buffer + ret, sizeof(buffer), "%02x", cmd_t.cmd_data[i]);
 		}
 		serialSend(buffer);
