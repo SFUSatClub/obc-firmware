@@ -82,8 +82,10 @@ void vMainTask(void *pvParameters) {
 //	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
+	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
+	gioSetBit(DEPLOY_EN_PORT, DEPLOY_EN_PIN, 1); /* active high */
 
-	bms_test();
+//	bms_test();
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run
