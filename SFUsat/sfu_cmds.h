@@ -34,6 +34,9 @@
 #define CMD_DEPLOY		0x12
 #define CMD_FILE		0x14
 
+//Joseph Starts
+#define CMD_MODE		0x16
+
 /**
  * Magic numbers to identify the sub-commands of a command.
  * - Definition order does not matter.
@@ -101,6 +104,11 @@
 #define CMD_FILE_CPREFIX 	0x06
 #define CMD_FILE_SIZE		0x08
 
+//Joseph Starts
+#define CMD_MODE_NONE			0x00
+#define CMD_MODE_FLIGHT			0x02
+#define CMD_MODE_DEBUGONLY		0x04
+//Joseph Ends
 
 /**
  * Maximum command argument size.

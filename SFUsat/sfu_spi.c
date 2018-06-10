@@ -32,7 +32,7 @@ void spi_transmit_text(const char* txt) {
     uint16 *srcbuff = (uint16 *)malloc(sizeof(uint16) * numUint16s);
     strncpy((char*)srcbuff, txt, numBytes);
     spiTransmitData(spiREG3, &spiDataConfig, numUint16s, srcbuff);
-    serialSendQ("SPI_Transmit: ");
-    serialSendQ((const char*)srcbuff);
+    serialSendQ("SPI_Transmit: ",FLIGHT);
+    serialSendQ((const char*)srcbuff,FLIGHT);
     free(srcbuff);
 }

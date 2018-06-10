@@ -14,19 +14,47 @@
 
 unsigned char currChar = '\0';
 
+void serialInit(){
+    sciInit(); //initialize the SCI driver
+    sciReceive(UART_PORT, 1, &currChar); // place into receive mode
+
+//Joseph Starts
+uint8_t ModeFlag = DEBUGONLY;
+//Joseph Ends
+
 void serialInit() {
 	sciInit(); //initialize the SCI driver
 	sciEnableNotification(UART_PORT, SCI_RX_INT);
 	sciReceive(UART_PORT, 1, &currChar); // place into receive mode
 }
 
-BaseType_t serialSendQ(const char * toSend) {
-	if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
-		return pdPASS;
-	} else {
+//Joseph Changed
+BaseType_t serialSendQ(const char * toSend, uint8_t flag) {
+	if(ModeFlag == FLIGHT && flag == DEBUGONLY){
+	//do nothing
+		}
+	else{
+
+		//Original code Starts
+		if (xQueueSendToBack(xSerialTXQueue, &toSend, 0) == pdPASS) {
+			return pdPASS;
+		}
+		else {
 		return pdFAIL;
+		}
 	}
+	//Original Code Ends
 }
+
+
+//Joseph Starts
+void set_flight(void){
+	ModeFlag=FLIGHT;
+}
+void set_debugonly(void){
+	ModeFlag=DEBUG_ONLY;
+}
+//Joseph Ends
 
 BaseType_t serialSendQFromISR(char * toSend) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;

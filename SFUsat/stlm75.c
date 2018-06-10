@@ -18,6 +18,7 @@
 #include "sfu_uart.h"
 #include "sfu_task_logging.h"
 
+
 /* To access a register of the device, you write the register pointer bits in the command/pointer
  * register (lowest 2 bits). This register holds its value between set operations, so you only
  * set it when you want to start working with a different register.
@@ -50,8 +51,9 @@ int16_t read_temp(uint8_t addr) {
 		xSemaphoreGive(xI2CMutex);
 		return temp;
 	} else {
-		serialSendQ("Temp read can't get mutex");
+		serialSendQ("Temp read can't get mutex",FLIGHT);
 		addLogItem(logtype_driver, error_1);
+		// TODO: log error
 		return TEMP_READ_ERROR;
 	}
 }

@@ -12,6 +12,12 @@
 #ifndef SFUSAT_SFU_UART_H_
 #define SFUSAT_SFU_UART_H_
 
+
+//Joseph
+#define DEBUGONLY 0
+#define FLIGHT 1
+//Joseph
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

@@ -43,7 +43,7 @@ void deploy_task(void *pvParameters){
 	uint32_t start_time = getCurrentTime();
 	while(1){
 		while(getCurrentTime() < (start_time + DEPLOY_DELAY)){		/* wait the DIETR-mandated time */
-			serialSendQ("Deploy check");
+			serialSendQ("Deploy check",FLIGHT);
 			vTaskDelay(pdMS_TO_TICKS(DEPLOY_CHECK_INTERVAL));
 		}
 
@@ -52,7 +52,7 @@ void deploy_task(void *pvParameters){
 			deploy();
 		}
 		else{
-			serialSendQ("Deploy DISARMED: deploy trigger time.");
+			serialSendQ("Deploy DISARMED: deploy trigger time.",FLIGHT);
 		}
 		vTaskDelete(NULL);	/* delete the task since we're all good and deployed */
 	}
@@ -84,7 +84,7 @@ uint16_t deploy(){
 uint16_t deploy_inhibit(){
 	deploy_current_disable();
 	deploy_arm_status = DEPLOY_DISARM;
-	serialSendQ("Deployment DISARMED.");
+	serialSendQ("Deployment DISARMED.",FLIGHT);
 	return 0;
 }
 
@@ -109,7 +109,7 @@ uint8_t deploy_read(){
 
 uint8_t deploy_plusZ(){
 	if(deploy_arm_status != DEPLOY_DISARM && deploy_arm_status != DEPLOY_PREARM){		/* deploy is armed */
-		serialSendQ("DEPLOY plusZ");
+		serialSendQ("DEPLOY plusZ",FLIGHT);
 		uint32_t deploy_start = getCurrentTime();
 		gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 0);	/* set the deploy side */
 		deploy_current_enable();
@@ -123,16 +123,16 @@ uint8_t deploy_plusZ(){
 
 		switch(deploy_read() & 0x03){
 			case 0:
-				serialSendQ("DEPLOY plusZ successful!");
+				serialSendQ("DEPLOY plusZ successful!",FLIGHT);
 				return DEPLOY_SUCCESS;
 			case 1:
-				serialSendQ("RF_DEPLOY0 failed");
+				serialSendQ("RF_DEPLOY0 failed",FLIGHT);
 				return 0;
 			case 2:
-				serialSendQ("RF_DEPLOY1 failed");
+				serialSendQ("RF_DEPLOY1 failed",FLIGHT);
 				return 2;
 			default:
-				serialSendQ("+Z DEPLOY ERROR");
+				serialSendQ("+Z DEPLOY ERROR",FLIGHT);
 				return 3;
 		}
 	}
@@ -140,7 +140,7 @@ uint8_t deploy_plusZ(){
 }
 uint8_t deploy_minusZ(){
 	if(deploy_arm_status != DEPLOY_DISARM && deploy_arm_status != DEPLOY_PREARM){		/* deploy is armed */
-			serialSendQ("DEPLOY minusZ");
+			serialSendQ("DEPLOY minusZ",FLIGHT);
 			uint32_t deploy_start = getCurrentTime();
 			gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 0);	/* set the deploy side */
 			deploy_current_enable();
@@ -154,13 +154,13 @@ uint8_t deploy_minusZ(){
 
 			switch(deploy_read() & 0x04){
 				case 0:
-					serialSendQ("DEPLOY minusZ successful!");
+					serialSendQ("DEPLOY minusZ successful!",FLIGHT);
 					return DEPLOY_SUCCESS;
 				case 4:
-					serialSendQ("RF_DEPLOY2 failed");
+					serialSendQ("RF_DEPLOY2 failed",FLIGHT);
 					return 4;
 				default:
-					serialSendQ("-Z DEPLOY ERROR");
+					serialSendQ("-Z DEPLOY ERROR",FLIGHT);
 					return 3;
 			}
 	}

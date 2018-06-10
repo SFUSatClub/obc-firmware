@@ -49,9 +49,8 @@ void vADCRead(void *pvParameters) {
 		adcGetData(adcREG1, adcGROUP1,&adc_data[0]); //
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
-
 		snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
-		serialSendQ(sendBuf);
+		serialSendQ(sendBuf,FLIGHT);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}
 }
@@ -90,7 +89,7 @@ void vStdTelemTask(void *pvParameters){
 				*(char *) fs.user_data,				// filesys prefix
 				OBC_temp
 		);
-		serialSendQ(buf);
+		serialSendQ(buf,FLIGHT);
 		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
 		// TODO: add temps, voltages, currents
 		// TODO: send out from radio
@@ -100,6 +99,7 @@ void vStdTelemTask(void *pvParameters){
 		 */
 	}
 }
+
 
 /**
  * This task is responsible for the handling of all UART related functions.

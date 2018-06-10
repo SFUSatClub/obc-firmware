@@ -138,19 +138,30 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.info		=  "File commands."
 								"  dump\n"
 								"    Dumps a file.\n"
+		},
+
+
+		//Joseph Starts
+		{
+				.subcmd_id	= CMD_MODE,
+				.name		= "mode",
+				.info		=  "Flight/DebugOnly Mode"
+
 		}
+		//Joseph Ends
+
 };
 
 int8_t cmdHelp(const CMD_t *cmd) {
 	const struct subcmd_opt *subcmd_opt = NULL;
 	FOR_EACH(subcmd_opt, CMD_HELP_OPTS) {
 		if (cmd->subcmd_id == subcmd_opt->subcmd_id) {
-			serialSendQ(subcmd_opt->info);
+			serialSendQ(subcmd_opt->info,FLIGHT);
 			return 1;
 		}
 	}
 	if (IS_OUT_OF_BOUNDS(subcmd_opt, CMD_HELP_OPTS)) {
-		serialSendQ("help: unknown sub-command");
+		serialSendQ("help: unknown sub-command",FLIGHT);
 	}
 	return 0;
 }
@@ -237,7 +248,7 @@ int8_t cmdGet(const CMD_t *cmd) {
 			return 1;
 		}
 	}
-	serialSendQ("get: unknown sub-command");
+	serialSendQ("get: unknown sub-command",FLIGHT);
 	return 0;
 }
 
@@ -254,6 +265,42 @@ static const struct subcmd_opt CMD_EXEC_OPTS[] = {
 				.name		= "rf",
 		},
 };
+
+
+//Joseph Starts
+static const struct subcmd_opt CMD_MODE_OPTS[] = {
+		{
+				.subcmd_id	= CMD_MODE_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_MODE_FLIGHT,
+				.name		= "Flight",
+		},
+		{
+				.subcmd_id	= CMD_MODE_DEBUGONLY,
+				.name		= "DebugOnly",
+		},
+};
+//Joseph Ends
+
+//Joseph Starts
+int8_t cmdMODE(const CMD_t *cmd) {
+	if (cmd->subcmd_id == CMD_MODE_FLIGHT){
+		set_flight();
+		serialSendQ("Flight", FLIGHT);
+		return 1;
+	}
+	else{
+		set_debugonly();
+		serialSendQ("DebugOnly",FLIGHT)
+	}
+	return 1;
+}
+//Joseph Ends
+
+
+
 int8_t cmdExec(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_EXEC_RADIO: {
@@ -284,7 +331,7 @@ int8_t cmdRF(const CMD_t *cmd) {
 
 int8_t cmdAck(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_ACK_NONE){
-			serialSendQ("Ack!");
+			serialSendQ("Ack!",FLIGHT);
 			return 1;
 		}
 	return 0;
@@ -306,7 +353,7 @@ static const struct subcmd_opt CMD_WD_OPTS[] = {
 
 int8_t cmdWd(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_WD_RESET){
-			serialSendQ("Suspending watchdog task!");
+			serialSendQ("Suspending watchdog task!",FLIGHT);
 			vTaskSuspend(xTickleTaskHandle);
 			return 1;
 		}
@@ -543,7 +590,7 @@ int8_t cmdSched(const CMD_t *cmd) {
 			return removeEventIdx(idx);
 		}
 		case CMD_SCHED_SHOW: {
-			serialSendQ("schedule:\n");
+			serialSendQ("schedule:\n",FLIGHT);
 			showActiveEvents();
 			return 1;
 		}
@@ -598,18 +645,18 @@ int8_t cmdState(const CMD_t *cmd) {
 			switch (cmd->cmd_state_data.state_id) {
 				case STATE_SAFE: {
 					if(STATE_SAFE == setStateManual(&state_persistent_data, STATE_SAFE)){
-						serialSendQ("SET STATE SAFE");
+						serialSendQ("SET STATE SAFE",FLIGHT);
 						return 1;
 					}
 
 				} case STATE_READY: {
 					if(STATE_READY == setStateManual(&state_persistent_data, STATE_READY)){
-						serialSendQ("SET STATE READY");
+						serialSendQ("SET STATE READY",FLIGHT);
 						return 1;
 					}
 				} case STATE_LOW_POWER: {
 					if(STATE_LOW_POWER == setStateManual(&state_persistent_data, STATE_LOW_POWER)){
-						serialSendQ("SET STATE LOW POWER");
+						serialSendQ("SET STATE LOW POWER",FLIGHT);
 						return 1;
 					}
 				}
@@ -641,6 +688,22 @@ int8_t cmdState(const CMD_t *cmd) {
  * If adding a new entry, make sure all fields are initialized:
  * 		- .name is required to be set to something
  */
+
+#define MAX_SUB_CMDS 10
+const char *CMD_DBG_STRINGS[][MAX_SUB_CMDS] = {
+		{"help"},
+		{"get", "tasks", "runtime", "heap", "minheap", "types"},
+		{"exec", "radio"},
+		{"task", "create", "delete", "resume", "suspend", "status", "show"},
+		{"sched", "add", "remove", "show"},
+		{"state", "get", "prev", "set"},
+};
+const char *CMD_NAMES[] = {
+		CMD_TABLE(CMD_NAME_SELECTOR)
+};
+int8_t (*const CMD_FUNCS[])(const CMD_t *cmd) = {
+		CMD_TABLE(CMD_FUNC_SELECTOR)
+
 static const struct cmd_opt CMD_OPTS[] = {
 		{
 				.cmd_id			= CMD_HELP,
@@ -719,6 +782,19 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.subcmds		= CMD_FILE_OPTS,
 				.num_subcmds	= LEN(CMD_FILE_OPTS),
 		}
+		}
+		},
+
+		//Joseph Starts
+		{
+				.cmd_id			= CMD_MODE,
+				.name			= "Mode",
+				.func			= cmdMODE,
+				.subcmds		= CMD_MODE_OPTS,
+				.num_subcmds	= LEN(CMD_MODE_OPTS),
+		}
+		//Joseph Ends
+
 };
 
 /**

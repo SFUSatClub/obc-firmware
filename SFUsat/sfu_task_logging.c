@@ -31,7 +31,7 @@ BaseType_t addLogItem(LogType_t logType, EncodedMessage_t encodedMessage)
 
 void vLogToFileTask(void *pvParameters) {
 	// Declare variables that will be used in this task
-	serialSendQ("Initialized Log File Task");
+	serialSendQ("Initialized Log File Task",FLIGHT);
 	struct LoggingQueueStructure received;
 
 	// When an item is present in queue, log to file. Otherwise, block

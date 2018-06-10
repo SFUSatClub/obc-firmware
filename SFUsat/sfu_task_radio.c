@@ -329,7 +329,7 @@ static uint8 readRegister(uint8 addr) {
 	return (dest[1] & 0xff);
 }
 
-static void writeRegister(uint8 addr, uint8 val) {
+static void s(uint8 addr, uint8 val) {
 	uint16 src[] = {addr | WRITE_BIT, val};
 	uint16 dest[] = {0x00, 0x00};
 	spiTransmitAndReceiveData(RF_SPI_REG, &spiDataConfig, 2, src, dest);
@@ -354,6 +354,27 @@ static void strobe(uint8 addr) {
 	serialSendln(buffer);
 }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+void writeRegister(uint8 addr, uint8 val) {
+	uint16 src[] = {addr, val};
+	uint16 dest[] = {0x00, 0x00};
+	spiTransmitAndReceiveData(TASK_RADIO_REG, &spiDataConfig, 2, src, dest);
+	char buffer[30];
+	snprintf(buffer, 30, "W 0x%02x 0x%02x\r\n < 0x%02x 0x%02x", src[0], src[1], dest[0], dest[1]);
+	serialSendln(buffer);
+	//vTaskDelay(pdMS_TO_TICKS(1));
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 /**
  * Writes values from src buffer into TX FIFO (section 10.5, page 32).
  *
@@ -381,6 +402,216 @@ static int writeToTxFIFO(const uint8 *src, uint8 size) {
 	}
 	if(readRegister(TXBYTES) != size) {return 2;} //check that TX_FIFO is filled with the correct amount of data
 	return 0; //TODO: Is this the best practice for returning error codes? should >0 be for nominal and <0 for errors?
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+}
+
+/**
+ * Reads values from RX FIFO and  them into dest buffer from dest[0] to dest [size - 1].
+ *
+ * Assumes last operation was a read (header has R/W bit set to 1); that FIFO_BYTES_AVAILABLE contains number of bytes to read from RX FIFO.
+ *
+ * @param dest Values read will be stored into this array
+ * @param size Size of dest (number of bytes)
+ * @return 1 if all bytes in FIFO read successfully, 0 otherwise (partial read, dest is too small to fit the rest, etc)
+ */
+static int readFromRxFIFO(uint8 *dest, uint8 size) {
+	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	uint8 idx = 0;
+	while (numBytesInFIFO > 0 && idx + 1 <= size) {
+		dest[idx++] = readRegister(FIFO_RX);
+		numBytesInFIFO--;
+	}
+	/**
+	 * If there are no bytes left in the FIFO yet we've managed to read at least one, then all bytes have been read successfully.
+	 */
+	return (numBytesInFIFO == 0 && idx >= 1);
+}
+
+static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		char buffer[30];
+		//snprintf(buffer, "addr %02x, config %02x,", SMARTRF_ADDRS[i], config[i]);
+		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+
+
+		//snprintf(buffer, 30, "new reg content = %02x", readRegister(SMARTRF_ADDRS[i++]));
+		//serialSendln(buffer);
+		i++;
+	}
+}
+
+static void readAllConfigRegisters() {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		readRegister(SMARTRF_ADDRS[i++]);
+	}
+}
+
+static uint8 * readAllStatusRegisters() {
+	static uint8 contents[14];
+	contents[0] = readRegister(PARTNUM);
+	contents[1] = readRegister(VERSION);
+	contents[2] = readRegister(FREQEST);
+	contents[3] = readRegister(LQI);
+	contents[4] = readRegister(RSSI);
+	contents[5] = readRegister(MARCSTATE);
+	contents[6] = readRegister(WORTIME1);
+	contents[7] = readRegister(WORTIME0);
+	contents[8] = readRegister(PKTSTATUS);
+	contents[9] = readRegister(VCO_VC_DAC);
+	contents[10] = readRegister(TXBYTES);
+	contents[11] = readRegister(RXBYTES);
+	contents[12] = readRegister(RCCTRL1_STATUS);
+	contents[13] = readRegister(RCCTRL0_STATUS);
+	return contents;
+}
+
+static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		if(config[i] != regVal){
+			char buffer[30];
+			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
+			serialSendln(buffer);
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+    writeAllConfigRegisters(SMARTRF_VALS_TX);
+    writeRegister(PA_TABLE_ADDR, PA_TABLE);
+    return checkConfig(SMARTRF_VALS_TX);
+}
+
+static void switchRadioMode(){
+	//
+	serialSendQ("Switch here",FLIGHT);
+}
+
+
+void vRFInterruptTask(void *pvParameters){
+	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+
+	//pulled from example
+	while(1){
+		xSemaphoreTake(gioRFSem, portMAX_DELAY);
+		serialSendQ("It's an RF one!",FLIGHT);
+		//gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the blinky LED
+		switchRadioMode();
+	}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+}
+
+/**
+ * Reads values from RX FIFO and  them into dest buffer from dest[0] to dest [size - 1].
+ *
+ * Assumes last operation was a read (header has R/W bit set to 1); that FIFO_BYTES_AVAILABLE contains number of bytes to read from RX FIFO.
+ *
+ * @param dest Values read will be stored into this array
+ * @param size Size of dest (number of bytes)
+ * @return 1 if all bytes in FIFO read successfully, 0 otherwise (partial read, dest is too small to fit the rest, etc)
+ */
+static int readFromRxFIFO(uint8 *dest, uint8 size) {
+	uint8 numBytesInFIFO = statusByte & FIFO_BYTES_AVAILABLE;
+	uint8 idx = 0;
+	while (numBytesInFIFO > 0 && idx + 1 <= size) {
+		dest[idx++] = readRegister(FIFO_RX);
+		numBytesInFIFO--;
+	}
+	/**
+	 * If there are no bytes left in the FIFO yet we've managed to read at least one, then all bytes have been read successfully.
+	 */
+	return (numBytesInFIFO == 0 && idx >= 1);
+}
+
+static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		char buffer[30];
+		//snprintf(buffer, "addr %02x, config %02x,", SMARTRF_ADDRS[i], config[i]);
+		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+
+
+		//snprintf(buffer, 30, "new reg content = %02x", readRegister(SMARTRF_ADDRS[i++]));
+		//serialSendln(buffer);
+		i++;
+	}
+}
+
+static void readAllConfigRegisters() {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		readRegister(SMARTRF_ADDRS[i++]);
+	}
+}
+
+static uint8 * readAllStatusRegisters() {
+	static uint8 contents[14];
+	contents[0] = readRegister(PARTNUM);
+	contents[1] = readRegister(VERSION);
+	contents[2] = readRegister(FREQEST);
+	contents[3] = readRegister(LQI);
+	contents[4] = readRegister(RSSI);
+	contents[5] = readRegister(MARCSTATE);
+	contents[6] = readRegister(WORTIME1);
+	contents[7] = readRegister(WORTIME0);
+	contents[8] = readRegister(PKTSTATUS);
+	contents[9] = readRegister(VCO_VC_DAC);
+	contents[10] = readRegister(TXBYTES);
+	contents[11] = readRegister(RXBYTES);
+	contents[12] = readRegister(RCCTRL1_STATUS);
+	contents[13] = readRegister(RCCTRL0_STATUS);
+	return contents;
+}
+
+static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
+	uint8 i = 0;
+	while (i < NUM_CONFIG_REGISTERS) {
+		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		if(config[i] != regVal){
+			char buffer[30];
+			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
+			serialSendln(buffer);
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+    writeAllConfigRegisters(SMARTRF_VALS_TX);
+    writeRegister(PA_TABLE_ADDR, PA_TABLE);
+    return checkConfig(SMARTRF_VALS_TX);
+}
+
+static void switchRadioMode(){
+	//
+	serialSendQ("Switch here");
+}
+
+
+void vRFInterruptTask(void *pvParameters){
+	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+
+	//pulled from example
+	while(1){
+		xSemaphoreTake(gioRFSem, portMAX_DELAY);
+		serialSendQ("It's an RF one!");
+		//gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the blinky LED
+		switchRadioMode();
+	}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 }
 
 /**

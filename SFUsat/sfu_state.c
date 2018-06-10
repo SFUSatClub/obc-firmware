@@ -112,9 +112,30 @@ void stateMachineInit(){
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
 
+<<<<<<< Updated upstream
 void setStateRTOS_mode(){
 	state_persistent_data.in_RTOS = 1;
+=======
+<<<<<<< Updated upstream
+void setStateRTOS_mode(InstanceData_t *data){
+	data->in_RTOS = 1;
+=======
+<<<<<<< Updated upstream
+void setStateRTOS_mode(){
+	state_persistent_data.in_RTOS = 1;
+=======
+<<<<<<< Updated upstream
+void setStateRTOS_mode(InstanceData_t *data){
+	data->in_RTOS = 1;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 	serialSendQ("RTOS ON");
+=======
+void setStateRTOS_mode(){
+	state_persistent_data.in_RTOS = 1;
+	serialSendQ("RTOS ON",FLIGHT);
+>>>>>>> Stashed changes
 }
 bool getStateRTOS_mode(){
 	return state_persistent_data.in_RTOS;
@@ -130,7 +151,7 @@ void printStateInfo(State_t currstate, InstanceData_t *data){
 	}
 	else{
 		// use the queue if we're under RTOS control
-		serialSendQ(stateNameString[currstate]);
+		serialSendQ(stateNameString[currstate],FLIGHT);
 	}
 }
 void printPrevState(State_t currstate, InstanceData_t *data){
@@ -141,16 +162,37 @@ void printPrevState(State_t currstate, InstanceData_t *data){
 	else{
 		// use the queue if we're under RTOS control
 		// just print current state
-		serialSendQ(stateNameString[data->previous_state]);
+		serialSendQ(stateNameString[data->previous_state],FLIGHT);
 	}
 }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
 void printStateEntryTime(){
 	char buf[30] = {'\0'};
 	snprintf(buf, 30, "ENTER TIME: %i",stateEntryTime());
 	serialSendQ((const char *)buf);
 }
 
+<<<<<<< Updated upstream
+=======
+=======
+<<<<<<< Updated upstream
+=======
+void printStateEntryTime(){
+	char buf[30] = {'\0'};
+	snprintf(buf, 30, "ENTER TIME: %i",stateEntryTime());
+	serialSendQ((const char *)buf,FLIGHT);
+}
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
 	if (state_to_set < NUM_STATES){
 		data->manual_state_switch = state_to_set;
@@ -161,7 +203,7 @@ uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
 			serialSendln("Invalid switch state command.");
 		}
 		else{
-			serialSendQ("Invalid switch state command.");
+			serialSendQ("Invalid switch state command.",FLIGHT);
 		}
 		return NUM_STATES;
 	}
