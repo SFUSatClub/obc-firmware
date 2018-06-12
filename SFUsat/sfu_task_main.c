@@ -77,7 +77,16 @@ void vMainTask(void *pvParameters) {
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	test_adc_init();
-	flash_erase_chip();
+	//flash_erase_chip();
+	set_mux_channel(0x4D, 0);
+	set_mux_channel(0x4E, 1);
+	set_mux_channel(0x4F, 2);
+	//set_mux_channel(0x4F, 2);
+	read_sun_sensor();
+	read_sun_sensor();
+	read_sun_sensor();
+
+
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 

@@ -35,7 +35,7 @@ struct cmd_opt {
 };
 
 int sentinel = 0x89abcdef;
-int test_const_size = HASH("test");
+//int test_const_size = HASH("test");
 
 /**
  * Help command.
@@ -631,10 +631,10 @@ static const struct cmd_opt CMD_OPTS[] = {
 #ifdef _DEBUG
 CMD_t testCMD = {0};
 CMD_SCHED_DATA_t testSCHED = {0};
-void __unused() {
-	testCMD.cmd_id = CMD_GET;
-	testSCHED.scheduled_cmd_id = CMD_GET;
-}
+//void __unused() {
+//	testCMD.cmd_id = CMD_GET;
+//	testSCHED.scheduled_cmd_id = CMD_GET;
+//}
 #endif
 
 int8_t checkAndRunCommand(const CMD_t *cmd) {
@@ -678,20 +678,20 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 * Save the sub-command ID if a match is found, otherwise subcmd_id will be set to
 	 * CMD_UNDEFINED (for an unrecognized sub-command) or CMD_DEFAULT (if no sub-command given).
 	 */
-	intendedCmd = strtok(NULL, delim);
-	const struct subcmd_opt *subcmd_opt = NULL;
-	uint8_t subcmd_id = intendedCmd ? CMD_UNDEFINED : CMD_DEFAULT;
-	for (subcmd_opt = cmd_opt->subcmds; subcmd_opt != NULL &&
-										intendedCmd != NULL &&
-										subcmd_opt < &cmd_opt->subcmds[cmd_opt->num_subcmds]; subcmd_opt++)
-	{
-		if(strcmp(intendedCmd, subcmd_opt->name) == 0) {
-			subcmd_id = subcmd_opt->subcmd_id;
-			break;
-		}
-	}
+//	intendedCmd = strtok(NULL, delim);
+//	const struct subcmd_opt *subcmd_opt = NULL;
+//	uint8_t subcmd_id = intendedCmd ? CMD_UNDEFINED : CMD_DEFAULT;
+//	for (subcmd_opt = cmd_opt->subcmds; subcmd_opt != NULL &&
+//										intendedCmd != NULL &&
+//										subcmd_opt < &cmd_opt->subcmds[cmd_opt->num_subcmds]; subcmd_opt++)
+//	{
+//		if(strcmp(intendedCmd, subcmd_opt->name) == 0) {
+//			subcmd_id = subcmd_opt->subcmd_id;
+//			break;
+//		}
+//	}
 
-	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
+//	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
 	/**
 	 * The third token will be interpreted as a hex string if it exists.
 	 * No preceding 0x required.
@@ -706,25 +706,25 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 * 		This will be parsed into the corresponding byte, and then
 	 * 		cmd_t.cmd_task_data.task_id will be == TASK_BLINKY (4)
 	 */
-	const char *data = strtok(NULL, delim);
-	unsigned int i = 0;
-	if (data != NULL) {
-		const int data_len = strlen(data);
-		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
-			char c[3] = {NULL};
-			c[0] = *(data + i);
-			// TODO: fix dereference beyond null char
-			const char n = *(data + i + 1);
-			c[1] = n == '\0' ? '0' : n;
-			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
-		}
-	}
-	serialSend((char *)cmd_t.cmd_data);
+//	const char *data = strtok(NULL, delim);
+//	unsigned int i = 0;
+//	if (data != NULL) {
+//		const int data_len = strlen(data);
+//		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
+//			char c[3] = {NULL};
+//			c[0] = *(data + i);
+//			// TODO: fix dereference beyond null char
+//			const char n = *(data + i + 1);
+//			c[1] = n == '\0' ? '0' : n;
+//			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
+//		}
+//	}
+//	serialSend((char *)cmd_t.cmd_data);
 
 	/**
 	 * Invoke the intended command with the command struct created above.
 	 */
-	cmd_opt->func(&cmd_t);
+//	cmd_opt->func(&cmd_t);
 
 	return 1;
 }
