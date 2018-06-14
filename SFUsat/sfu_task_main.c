@@ -74,20 +74,8 @@ void vMainTask(void *pvParameters) {
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
 	serialSendQ("created queue");
+	logPBISTFails();
 
-	// ---------- Log failed startup tests ----------
-	volatile uint8 pbistComplete = canREG1->IF1DATx[0U];
-	volatile uint8 pbistFailed = canREG1->IF1DATx[1U];
-	uint8 i;
-	for (i = 0U; i < 8U; i++)
-	{
-		bool bitComplete = (pbistComplete >> i) & 1U;
-		bool bitFailed = (pbistFailed >> i) & 1U;
-		if (bitComplete && bitFailed)
-		{
-			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
-		}
-	}
 
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something

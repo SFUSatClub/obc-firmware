@@ -90,8 +90,6 @@ extern void exit(int _status);
 /* Startup Routine */
 void _c_int00(void);
 /* USER CODE BEGIN (4) */
-void saveTestComplete(int testNum);
-void saveTestFailed(int testNum);
 /* USER CODE END */
 
 #pragma CODE_STATE(_c_int00, 32)
@@ -253,7 +251,7 @@ void _c_int00(void)
 
 /* USER CODE BEGIN (26) */
 #endif // SFUSat
-
+#if !SFUSAT_LOG_PBIST_FAILS_CHUNK_1
 	/* USER CODE END */
 
     /* Initialize System - Clock, Flash settings with Efuse self check */
@@ -310,7 +308,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */ 
-    saveTestComplete(1);
+    sfu_saveTestComplete(1);
     /* Check if PBIST ROM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
@@ -320,12 +318,87 @@ void _c_int00(void)
          */
          
         pbistFail();
-        saveTestFailed(1);
+        sfu_saveTestFailed(1);
     } 
 	
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();	
 /* USER CODE BEGIN (29) */
+#endif
+#if SFUSAT_LOG_PBIST_FAILS_CHUNK_1
+    /* Initialize System - Clock, Flash settings with Efuse self check */
+       systemInit();
+
+       /* Workaround for Errata PBIST#4 */
+       errata_PBIST_4();
+
+       /* Run a diagnostic check on the memory self-test controller.
+        * This function chooses a RAM test algorithm and runs it on an on-chip ROM.
+        * The memory self-test is expected to fail. The function ensures that the PBIST controller
+        * is capable of detecting and indicating a memory self-test failure.
+        */
+       pbistSelfCheck();
+
+       /* canREG1 is used to keep values of PBIST status.
+        * data 0 is used to log tests initiated
+        * data 1 is used to log fail/pass information
+        */
+       canREG1->IF1DATx[0U] = 0x00U;
+       canREG1->IF1DATx[1U] = 0x00U;
+   	/* Run PBIST on STC ROM */
+       pbistRun((uint32)STC_ROM_PBIST_RAM_GROUP,
+                ((uint32)PBIST_TripleReadSlow | (uint32)PBIST_TripleReadFast));
+
+       /* Wait for PBIST for STC ROM to be completed */
+       /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
+       while(pbistIsTestCompleted() != TRUE)
+       {
+       }/* Wait */
+
+       sfu_saveTestComplete(0);
+       /* Check if PBIST on STC ROM passed the self-test */
+       if( pbistIsTestPassed() != TRUE)
+       {
+           /* PBIST and STC ROM failed the self-test.
+            * Need custom handler to check the memory failure
+            * and to take the appropriate next step.
+            */
+
+           pbistFail();
+           sfu_saveTestFailed(0);
+       }
+
+       /* Disable PBIST clocks and disable memory self-test mode */
+       pbistStop();
+
+   	/* Run PBIST on PBIST ROM */
+       pbistRun((uint32)PBIST_ROM_PBIST_RAM_GROUP,
+                ((uint32)PBIST_TripleReadSlow | (uint32)PBIST_TripleReadFast));
+
+       /* Wait for PBIST for PBIST ROM to be completed */
+       /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Hardware status bit read check" */
+       while(pbistIsTestCompleted() != TRUE)
+       {
+       }/* Wait */
+       sfu_saveTestComplete(1);
+       /* Check if PBIST ROM passed the self-test */
+       if( pbistIsTestPassed() != TRUE)
+       {
+           /* PBIST and STC ROM failed the self-test.
+            * Need custom handler to check the memory failure
+            * and to take the appropriate next step.
+            */
+
+           pbistFail();
+           sfu_saveTestFailed(1);
+       }
+
+       /* Disable PBIST clocks and disable memory self-test mode */
+       pbistStop();
+#endif
+
+
+
 	/* USER CODE END */
 
 /* USER CODE BEGIN (31) */
@@ -352,7 +425,7 @@ void _c_int00(void)
     }/* Wait */                 
 
 /* USER CODE BEGIN (33) */
-    saveTestComplete(2);
+    sfu_saveTestComplete(2);
 	/* USER CODE END */
     
     /* Check if CPU RAM passed the self-test */
@@ -368,7 +441,7 @@ void _c_int00(void)
         pbistFail();
         
 /* USER CODE BEGIN (35) */
-        saveTestFailed(2);
+        sfu_saveTestFailed(2);
 		/* USER CODE END */
     }
 
@@ -448,9 +521,9 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */                 
-    saveTestComplete(3);
 
 /* USER CODE BEGIN (44) */
+    sfu_saveTestComplete(3);
 
 	/* USER CODE END */
 
@@ -471,7 +544,7 @@ void _c_int00(void)
         pbistFail();
         
 /* USER CODE BEGIN (47) */
-        saveTestFailed(3);
+        sfu_saveTestFailed(3);
 		/* USER CODE END */
     }
 
@@ -672,12 +745,5 @@ void _c_int00(void)
 }
 
 /* USER CODE BEGIN (78) */
-void saveTestComplete(int testNum)
-{
-	canREG1->IF1DATx[0U] = canREG1->IF1DATx[0U] | (1U << testNum);
-}
-void saveTestFailed(int testNum)
-{
-	canREG1->IF1DATx[1U] = canREG1->IF1DATx[1U] | (1U << testNum);
-}
+
 /* USER CODE END */

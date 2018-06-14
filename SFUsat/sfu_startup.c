@@ -12,6 +12,8 @@
 
 #include "sfu_startup.h"
 #include "sfu_uart.h"
+#include "can.h"
+#include "sfu_fs_structure.h"
 
 Startup_Data_t startData;
 
@@ -21,6 +23,26 @@ void startupInit(){
 
 void printStartupType(void){
 	serialSendln(STARTUP_STRING[startData.resetSrc]); // print the type of reset that was triggered.
+}
+
+/* logPBISTFails
+ * 	- we can't easily save PBIST into a variable since RAM gets wiped out
+ * 	- so we keep PBIST fails in the CAN register since we're not otherwise using it
+ * 	- if any failures have been caught, log them
+ */
+void logPBISTFails(void){
+	volatile uint8_t pbistComplete = canREG1->IF1DATx[0U];
+	volatile uint8_t pbistFailed = canREG1->IF1DATx[1U];
+	uint8_t i;
+	for (i = 0U; i < 8U; i++)
+	{
+		bool bitComplete = (pbistComplete >> i) & 1U;
+		bool bitFailed = (pbistFailed >> i) & 1U;
+		if (bitComplete && bitFailed)
+		{
+			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
+		}
+	}
 }
 
 void startupCheck(void){
@@ -124,3 +146,11 @@ void startupCheck(void){
 	}
 }
 
+void sfu_saveTestComplete(int8_t testNum)
+{
+	canREG1->IF1DATx[0U] = canREG1->IF1DATx[0U] | (1U << testNum);
+}
+void sfu_saveTestFailed(int8_t testNum)
+{
+	canREG1->IF1DATx[1U] = canREG1->IF1DATx[1U] | (1U << testNum);
+}
