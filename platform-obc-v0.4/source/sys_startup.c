@@ -104,6 +104,7 @@ void _c_int00(void)
     
 /* USER CODE BEGIN (5) */
 	/* USER CODE END */
+
     /* Initialize Core Registers to avoid CCM Error */
     _coreInitRegisters_();
 
@@ -265,14 +266,8 @@ void _c_int00(void)
      * The memory self-test is expected to fail. The function ensures that the PBIST controller
      * is capable of detecting and indicating a memory self-test failure.
      */
-    pbistSelfCheck();
-
-    /* canREG1 is used to keep values of PBIST status.
-     * data 0 is used to log tests initiated
-     * data 1 is used to log fail/pass information
-     */
-    canREG1->IF1DATx[0U] = 0x00U;
-    canREG1->IF1DATx[1U] = 0x00U;
+    pbistSelfCheck();	
+	
 	/* Run PBIST on STC ROM */
     pbistRun((uint32)STC_ROM_PBIST_RAM_GROUP,
              ((uint32)PBIST_TripleReadSlow | (uint32)PBIST_TripleReadFast));
@@ -282,8 +277,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */ 
-
-    saveTestComplete(0);
+    
     /* Check if PBIST on STC ROM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
@@ -293,9 +287,9 @@ void _c_int00(void)
          */
          
         pbistFail();
-        saveTestFailed(0);
-    }   
 
+    }   
+	
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();
 
@@ -308,7 +302,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */ 
-    sfu_saveTestComplete(1);
+    
     /* Check if PBIST ROM passed the self-test */
     if( pbistIsTestPassed() != TRUE)
     {
@@ -318,14 +312,20 @@ void _c_int00(void)
          */
          
         pbistFail();
-        sfu_saveTestFailed(1);
+
     } 
 	
     /* Disable PBIST clocks and disable memory self-test mode */
     pbistStop();	
 /* USER CODE BEGIN (29) */
 #endif
-#if SFUSAT_LOG_PBIST_FAILS_CHUNK_1
+
+    /* SFUSAT
+     * 	- this is required since there are no friendly user code regions in the above section
+     * 	- so copy everything between 2 user code sections, #define out the original, and replace the whole thing (with our code added)
+     */
+
+    #if SFUSAT_LOG_PBIST_FAILS_CHUNK_1
     /* Initialize System - Clock, Flash settings with Efuse self check */
        systemInit();
 
@@ -423,6 +423,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */                 
+    
 
 /* USER CODE BEGIN (33) */
     sfu_saveTestComplete(2);
@@ -521,6 +522,7 @@ void _c_int00(void)
     while(pbistIsTestCompleted() != TRUE)
     { 
     }/* Wait */                 
+    
 
 /* USER CODE BEGIN (44) */
     sfu_saveTestComplete(3);
@@ -728,7 +730,7 @@ void _c_int00(void)
 	startupCheck(); // RA
 #endif
 	/* USER CODE END */
-
+    
     /* call the application */
 /*SAFETYMCUSW 296 S MR:8.6 <APPROVED> "Startup code(library functions at block scope)" */
 /*SAFETYMCUSW 326 S MR:8.2 <APPROVED> "Startup code(Declaration for main in library)" */
