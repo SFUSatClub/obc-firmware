@@ -75,6 +75,8 @@ void vMainTask(void *pvParameters) {
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
 	serialSendQ("created queue");
+	logPBISTFails();
+
 
 	// ---------- INIT TESTS ----------
 	flash_erase_chip();
