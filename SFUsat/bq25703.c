@@ -132,14 +132,14 @@ int16_t read_register(uint8_t addr, uint8_t *reg_return) {
 	uint8_t data[2] = {'\0'};
 	uint8_t cmd;
 	cmd = addr;
-//
-//	i2cSetMode(i2cREG1, I2C_MASTER);
-//	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
-//	i2cSetSlaveAdd(i2cREG1, BATT_CHRG);
-//	i2cSetCount(i2cREG1, 1);
-//	i2cSetStop(i2cREG1);
-//	i2cSetStart(i2cREG1);
-//	i2cSend(i2cREG1, 1,&cmd);
+
+	i2cSetMode(i2cREG1, I2C_MASTER);
+	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
+	i2cSetSlaveAdd(i2cREG1, BATT_CHRG);
+	i2cSetCount(i2cREG1, 1);
+	i2cSetStop(i2cREG1);
+	i2cSetStart(i2cREG1);
+	i2cSend(i2cREG1, 1,&cmd);
 
 	i2cSetMode(i2cREG1, I2C_MASTER);
 	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
