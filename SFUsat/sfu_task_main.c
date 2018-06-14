@@ -29,7 +29,6 @@
 #include "examples/sfusat_examples.h"
 #include "sfu_task_logging.h"
 
-
 // Perpetual tasks - these run all the time
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;

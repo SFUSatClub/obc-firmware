@@ -63,7 +63,7 @@ void obcCurrentTelemTask(void *pvParameters){
 //			// enter safe mode
 //		}
 
-		sfu_write_fname(OBC_CURRENT, "%i", reading);
+		sfu_write_fname(OBC_CURRENT, "%d", reading);
 		stdTelem.obc_current = reading;
 	}
 }
@@ -74,12 +74,10 @@ void obcCurrentTelemTask(void *pvParameters){
 void temperatureTelemTask(void *pvParameters){
 	telemConfig[TEMP_TELEM] = (telem_config_t){	.max = 130, .min = -40, .period = 10000};
 	volatile uint32_t res;
-	volatile uint32_t thang;
 	while(1){
 		vTaskDelay(getStdTelemDelay(TEMP_TELEM));
 		res = read_temp(OBC_TEMP);
-		thang = 23;
-		sfu_write_fname(FSYS_SYS, "OBC: %i", thang);
+		sfu_write_fname(TEMPS, "OBC: %d", res);
 		stdTelem.obc_temp = res;
 	}
 }
