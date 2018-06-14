@@ -94,7 +94,7 @@ char currentPrefix(){
  * - inits, deletes the files in the system as we will in flight
  * - another task is required to write/read the files as would be done normally
  */
-void vFilesystemTask(void *pvParameters) {
+void vFilesystemLifecycleTask(void *pvParameters) {
 	sfu_fs_init();
 	while (1) {
 		if(fs_num_increments == 0){
@@ -111,7 +111,7 @@ void vFilesystemTask(void *pvParameters) {
 
 /* some tasks that can be used to demonstrate fs functionality */
 void fs_test_tasks(){
-	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
+//	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
 //	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
 }
 
@@ -124,7 +124,9 @@ void fs_rando_write(void *pvParameters){
 		vTaskDelay(pdMS_TO_TICKS(4000));
 //		char randomData[5] = {'d'};
 //		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
-		sfu_write_fname(FSYS_SYS, "foo");
+		volatile uint16_t thang;
+		thang = 34;
+		sfu_write_fname(FSYS_SYS, "foo %i", thang);
 	}
 }
 
@@ -291,7 +293,7 @@ void sfu_create_files_wrapped(){
  */
 void write_fd(spiffs_file fd, char *fmt, ...) {
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
-	va_list argptr;
+	volatile va_list argptr;
 	va_start(argptr, fmt);
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
@@ -310,7 +312,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
-	va_list argptr;
+	volatile va_list argptr;
 	va_start(argptr, fmt);
 	format_entry(buf, fmt, argptr);
 	va_end(argptr);
@@ -344,6 +346,37 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
 	}
 }
 
+/* Lets us write data to the filesystem using printf format specifiers.
+ *
+ * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
+ * 	= #SFU_WRITE_DATA_BUF - 12 characters, as the max to be safe.
+ *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
+ *  end character to allow us to separate file entries.
+ *
+ * File entry format: "<timestamp>|<data>\0"
+ * where:
+ * 		timestamp is max 10 chars (maxed out 32-bit int)
+ * 		| separates timestamp and arbitrary data
+ * 		\0 is the null terminator and also the end of the entry
+ *
+ * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
+ */
+void format_entry(char* buf, char *fmt, va_list argptr) {
+	uint32_t x;
+	x = getCurrentRTCTime();
+
+	utoa2(x, buf, 10, 0); 	// We can store time has hex in the future for byte savings, but it'd be kinda gross.
+	x = strlen(buf); 		// reuse this
+	buf[x] = '|'; 			// add a separator between time and data
+	x++; 					// new strlen after adding sep
+
+	if (sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF - 1 - x, fmt, argptr) > (SFU_WRITE_DATA_BUF - 2 - x)) { // 32 - x so that we always end with a \0, 31 - x for warning
+		serialSendQ("Error: file write data too big.");
+		// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer. Worst case we lose some data.
+		addLogItem(logtype_filesystem, error_1);
+	}
+}
+
 /* sfu_read_fname
  * 		- given a file suffix (the log type to access), reads <size> bytes from the current log into outbuf
  */
@@ -373,40 +406,6 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 	else {
 		serialSendQ("FNwe: can't get top mutex");
 	}
-}
-
-/* Lets us write data to the filesystem using printf format specifiers.
- *
- * 	Max data supported varies with the time stamp, but consider SFU_MAX_DATA_WRITE
- * 	= #SFU_WRITE_DATA_BUF - 12 characters, as the max to be safe.
- *  This value is to allow for 10-char stamp, separator character between stamp and data, and an
- *  end character to allow us to separate file entries.
- *
- * File entry format: "<timestamp>|<data>\0"
- * where:
- * 		timestamp is max 10 chars (maxed out 32-bit int)
- * 		| separates timestamp and arbitrary data
- * 		\0 is the null terminator and also the end of the entry
- *
- * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
- */
-void format_entry(char* buf, char *fmt, va_list argptr) {
-	uint32_t x;
-	x = getCurrentRTCTime();
-
-	va_start(argptr, fmt);
-
-	utoa2(x, buf, 10, 0); 	// We can store time has hex in the future for byte savings, but it'd be kinda gross.
-	x = strlen(buf); 		// reuse this
-	buf[x] = '|'; 			// add a separator between time and data
-	x++; 					// new strlen after adding sep
-
-	if (sfu_vsnprintf(&buf[x], SFU_WRITE_DATA_BUF - 1 - x, fmt, argptr) > (SFU_WRITE_DATA_BUF - 2 - x)) { // 32 - x so that we always end with a \0, 31 - x for warning
-		serialSendQ("Error: file write data too big.");
-		// we'll log this error for our notice. However, vsnprintf will protect us from writing past the end of the buffer. Worst case we lose some data.
-		addLogItem(logtype_filesystem, error_1);
-	}
-	va_end(argptr);
 }
 
 void create_filename(char* namebuf, char file_suffix) {

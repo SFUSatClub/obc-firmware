@@ -142,7 +142,7 @@ uint8_t deploy_minusZ(){
 	if(deploy_arm_status != DEPLOY_DISARM && deploy_arm_status != DEPLOY_PREARM){		/* deploy is armed */
 			serialSendQ("DEPLOY minusZ");
 			uint32_t deploy_start = getCurrentTime();
-			gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 0);	/* set the deploy side */
+			gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
 			deploy_current_enable();
 
 			/* while any or both of the deploy sensors are high (not deployed) and timeout has not occurred */

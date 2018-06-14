@@ -89,14 +89,20 @@
 #define RF_DEPLOY0_PORT			gioPORTA
 #define RF_DEPLOY1_PIN			1
 #define RF_DEPLOY1_PORT			gioPORTA
+
 #define RF_DEPLOY2_PIN			17			/* MIBSPI1SIMO[1], N2HET1[08] (pin 106), [xGPIO8] ---- how to figure this out: https://github.com/SFUSatClub/obc-firmware/wiki/Using-TMS570-Peripheral-Pins-as-GPIO */
 #define RF_DEPLOY2_PORT			mibspiPORT1
+
 #define	DEPLOY_SELECT_PIN		7			/* gioA7 [xGPIO7]  output */
 #define DEPLOY_SELECT_PORT		gioPORTA
+
 #define DEPLOY_EN_PIN			4			/* MIBSPI1CS4 [xGPIO6] output	RA: enabled pulldown in HCG since this is active high */
 #define DEPLOY_EN_PORT			mibspiPORT1
 
+/* ADC
+ */
 
+#define OBC_CURRENT_ADC 	2
 #endif /* PLATFORM_OBC_V0_4 */
 
 
