@@ -182,17 +182,31 @@ int16_t write_register(uint8_t addr, uint8_t *to_write) {
 }
 
 int8_t read_batt_volt_raw(uint8_t addr) {
-	uint8_t adc_cmd[2];
+	uint8_t ADCOPT_MSB;
+	uint8_t ADCOPT_LSB;
 	uint8_t batt_volt_raw;
 	uint8_t batt_volt;
 
 	//configure ADC first
-	adc_cmd[0] = ADCOPT_ADC_START_BIT;
-	adc_cmd[1] = ADCOPT_EN_ADC_VBAT;
-	write_register(ADCOPTION_REG, *adc_cmd);
+	//Do I need to enable all of EN_ADC_VBAT, EN_ADC_ICHG, EN_ADC_IDCHG if I only want voltage?
+	read_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+	if (!(ADCOPT_LSB & ADCOPT_EN_ADC_VBAT)) {		//If the ADC_VBAT bit is 0 then need to set it to 1
+		ADCOPT_LSB = ADCOPT_LSB | ADCOPT_EN_ADC_VBAT;
+		write_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+	}
+
+
+	//mask and shift to read the ADC_CONV bit, set to 0 for one-shot update
+	read_register(ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	if (!((ADCOPT_LSB & ADCOPT_ADC_CONV_BIT) >> 7)) {
+		ADCOPT_MSB = ADCOPT_MSB & ~ADCOPT_ADC_CONV_BIT;
+	}
+
+	//start ADC conversion
+	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT;
+	write_register (ADCOPTION_REG_MSB, *ADCOPT_MSB);
 
 	//Read voltage
-	uint8_t batt_volt_raw;
 	read_register(ADCVSYSVBAT_REG, *batt_volt_raw);
 	for (i = 0; i <= 7; i = i + 1) {
 		batt_volt = batt_volt + (batt_volt_raw[i] * 0.064 * (i + 1));
@@ -218,19 +232,45 @@ int8_t read_volt(uint8_t addr) {
 }
 
 int16_t read_curr_raw(uint8_t addr) {
-	uint8_t adc_cmd[2];
-	uint8_t opt1_cmd;
+	uint8_t ADCOPT_MSB;
+	uint8_t ADCOPT_LSB;
+	uint8_t OPT0_REG;
+	uint8_t OPT1_REG;
 	uint8_t batt_curr_raw;
 	uint8_t batt_curr;
 
 	//configure ADC first
-	adc_cmd[0] = ADCOPT_ADC_START_BIT;
-	adc_cmd[1] = ADCOPT_EN_ADC_IDCHG; //discharge current
-	write_register(ADCOPTION_REG, *adc_cmd);
+	//Do I need to enable all of EN_ADC_VBAT, EN_ADC_ICHG, EN_ADC_IDCHG? Only want discharge current from battery?
+	read_register(ADC_OPTION_REG_LSB, *ADCOPT_LSB);
+	if (!((ADCOPT_LSB & ADCOPT_EN_ADC_IDCHG) >> 3)) {
+		ADCOPT_LSB = ADCOPT_LSB | ADCOPT_EN_ADC_IDCHG;
+		write_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+	}
+
+	//Disable low power mode
+	read_register(CHARGEOPT0_REG, *OPT0_REG);
+	if ((OPT0_REG & CHARGEOPT0_EN_LWPWR) >> 7) {
+		OPT0_REG = OPT0_REG & ~CHARGEOPT0_EN_LWPWR;
+		write_register(CHARGEOPT0_REG, *OPT0_REG);
+		//Some way to remember that low power was enabled? (set flag?)
+	}
 
 	//Enable battery current measurement
-	opt1_cmd = CHARGEOPT1_EN_IBAT;
-	write_register(CHARGEOPT1_REG, opt1_cmd);
+	read_register(CHARGEOPT1_REG, *OPT1_REG);
+	if (!((OPT1_REG & CHARGEOPT1_EN_IBAT) >> 7)) {
+		OPT1_REG = OPT1_REG | CHARGEOPT1_EN_IBAT;
+		write_register(CHARGEOPT1_REG, *OPT1_REG);
+	}
+
+	//Set one-shot update
+	read_register(ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	if (!((ADCOPT_LSB & ADCOPT_ADC_CONV_BIT) >> 7)) {
+		ADCOPT_MSB = ADCOPT_MSB & ~ADCOPT_ADC_CONV_BIT;
+	}
+
+	//start ADC conversion
+	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT;
+	write_register (ADCOPTION_REG_MSB, *ADCOPT_MSB);
 
 	//Read the discharge current from the battery
 	read_register(ADCIBAT_REG, *batt_curr_raw);
@@ -260,7 +300,17 @@ int8_t read_curr(uint8_t addr) {
 void set_chrg(uint8_t addr) {
 	//Just set the current limit to begin charging
 	//Bits 13-7 (MSB bits 4-0, LSB bits 7-5)
-	write_register(OBC_ILIM_MSB, );
+	uint8_t ILIM_MSB;
+	uint8_t ILIM_LSB;
 
-	write_register(OBC_ILIM_LSB, );
+	read_register(OBC_ILIM_MSB, *ILIM_MSB);
+
+	write_register(OBC_ILIM_MSB, *ILIM_MSB);
+
+
+
+
+	read_register(OBC_ILIM_LSB, *ILIM_LSB);
+
+	write_register(OBC_ILIM_LSB, *ILIM_LSB);
 }

@@ -44,9 +44,11 @@ typedef union battery_status{
 
 // register addresses (LSByte)
 #define CHARGERSTATUS_REG 	0x20
-#define ADCOPTION_REG		0x3A
+#define ADCOPTION_REG_MSB	0x3B
+#define ADCOPTION_REG_LSB	0x3A
 #define ADCVSYSVBAT_REG 	0x2C
-#define CHARGEOPT1_REG		0x30
+#define CHARGEOPT0_REG		0x01
+#define CHARGEOPT1_REG		0x31
 #define ADCIBAT_REG			0x28
 
 /* Status reg bitmask */
@@ -61,6 +63,9 @@ typedef union battery_status{
 /* MSByte of option register */
 #define ADCOPT_ADC_CONV_BIT		0b10000000
 #define ADCOPT_ADC_START_BIT	0b01000000
+
+/* MSByte of Charge Option 0 register */
+#define CHARGEOPT0_EN_LWPWR		0b10000000
 
 /* MSByte of Charge Option 1 register */
 #define CHARGEOPT1_EN_IBAT 		0b10000000
