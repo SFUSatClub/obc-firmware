@@ -27,8 +27,10 @@ void sfuADCInit(){
  * 	- returns OBC measured current in mA
  */
 uint16_t OBCCurrent(){
+	uint16_t reading_ma;
 	adcUpdate();
-	return adc_to_mA(adc_data[OBC_CURRENT_ADC].value);
+	reading_ma = adc_data[OBC_CURRENT_ADC].value;//adc_to_mA(adc_data[OBC_CURRENT_ADC].value);
+	return reading_ma;
 }
 
 /* adcUpdate
