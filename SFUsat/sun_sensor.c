@@ -10,7 +10,7 @@
 #include "sun_sensor.h"
 
 //address of muxes
-#define Sensor_MUX_X_pos 0x4C
+#define Sensor_MUX_X_pos  0x4C
 #define Sensor_MUX_X_neg  0x4D
 #define Sensor_MUX_Y_pos  0x4E
 #define Sensor_MUX_Y_neg  0x4F
@@ -140,19 +140,19 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 		adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
 
 		if(mux1[i].sensor_num != -1) {		//place holder for garbage value
-			output[(mux1[i].sensor_num-1)].value = adc_data[0].value;
+			output[(mux1[i].sensor_num-1)].value = adc_data[19].value;
 			output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
 		};
 		if(mux2[i].sensor_num != -1) {
-			output[(mux2[i].sensor_num-1)].value = adc_data[1].value;
+			output[(mux2[i].sensor_num-1)].value = adc_data[17].value;
 			output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
 		};
 		if(mux3[i].sensor_num != -1) {
-			output[(mux3[i].sensor_num-1)].value = adc_data[2].value;
+			output[(mux3[i].sensor_num-1)].value = adc_data[16].value;
 			output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
 		};
 		if(mux4[i].sensor_num != -1) {
-			output[(mux4[i].sensor_num-1)].value = adc_data[3].value;
+			output[(mux4[i].sensor_num-1)].value = adc_data[18].value;
 			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 		};
 	};
