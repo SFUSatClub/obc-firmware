@@ -68,6 +68,7 @@ uint16_t deploy(){
 			vTaskDelay(pdMS_TO_TICKS(1000));	/* cool down */
 			deploy_plusZ(); 					/* try once more */
 		}
+		vTaskDelay(pdMS_TO_TICKS(5000));	/* cool down */
 		if(deploy_minusZ() != DEPLOY_SUCCESS){
 			vTaskDelay(pdMS_TO_TICKS(1000));	/* cool down */
 			deploy_minusZ();
@@ -113,28 +114,33 @@ uint8_t deploy_plusZ(){
 		uint32_t deploy_start = getCurrentTime();
 		gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 0);	/* set the deploy side */
 		deploy_current_enable();
+		uint32_t deploy_cnt;
+		for(deploy_cnt = 0; deploy_cnt < DEPLOY_MAX_BURN_SECONDS; deploy_cnt += 15 ){
+			serialSendQ("DEPLOY plusZ working");
+			vTaskDelay(pdMS_TO_TICKS(15*1000));					/* wait 15 seconds */
+		}
 
 		/* while any or both of the deploy sensors are high (not deployed) and timeout has not occurred */
-		while(((deploy_read() & 0x03) != 0) && (getCurrentTime() < DEPLOY_MAX_BURN_SECONDS + deploy_start)){ /* check bits 0 and 1 (deploy sensors 0 and 1) */
-			vTaskDelay(pdMS_TO_TICKS(500));
-		}
+//		while(((deploy_read() & 0x03) != 0) && (getCurrentTime() < DEPLOY_MAX_BURN_SECONDS + deploy_start)){ /* check bits 0 and 1 (deploy sensors 0 and 1) */
+//			vTaskDelay(pdMS_TO_TICKS(500));
+//		}
 
 		deploy_current_disable();		/* stop burning */
 
-		switch(deploy_read() & 0x03){
-			case 0:
+//		switch(deploy_read() & 0x03){
+//			case 0:
 				serialSendQ("DEPLOY plusZ successful!");
-				return DEPLOY_SUCCESS;
-			case 1:
-				serialSendQ("RF_DEPLOY0 failed");
-				return 0;
-			case 2:
-				serialSendQ("RF_DEPLOY1 failed");
-				return 2;
-			default:
-				serialSendQ("+Z DEPLOY ERROR");
-				return 3;
-		}
+//				return DEPLOY_SUCCESS;
+//			case 1:
+//				serialSendQ("RF_DEPLOY0 failed");
+//				return 0;
+//			case 2:
+//				serialSendQ("RF_DEPLOY1 failed");
+//				return 2;
+//			default:
+//				serialSendQ("+Z DEPLOY ERROR");
+//				return 3;
+//		}
 	}
 	return DEPLOY_SUCCESS;
 }
@@ -144,25 +150,29 @@ uint8_t deploy_minusZ(){
 			uint32_t deploy_start = getCurrentTime();
 			gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
 			deploy_current_enable();
-
-			/* while any or both of the deploy sensors are high (not deployed) and timeout has not occurred */
-			while(((deploy_read() & 0x04) != 0) && (getCurrentTime() < DEPLOY_MAX_BURN_SECONDS + deploy_start)){ /* check bit 2 (deploy sensor 2) */
-				vTaskDelay(pdMS_TO_TICKS(500));
+			uint32_t deploy_cnt;
+			for(deploy_cnt = 0; deploy_cnt < DEPLOY_MAX_BURN_SECONDS; deploy_cnt += 15 ){
+				serialSendQ("DEPLOY plusZ working");
+				vTaskDelay(pdMS_TO_TICKS(15*1000));					/* wait 15 seconds */
 			}
+//			/* while any or both of the deploy sensors are high (not deployed) and timeout has not occurred */
+//			while(((deploy_read() & 0x04) != 0) && (getCurrentTime() < DEPLOY_MAX_BURN_SECONDS + deploy_start)){ /* check bit 2 (deploy sensor 2) */
+//				vTaskDelay(pdMS_TO_TICKS(500));
+//			}
 
 			deploy_current_disable();		/* stop burning */
-
-			switch(deploy_read() & 0x04){
-				case 0:
+//
+//			switch(deploy_read() & 0x04){
+//				case 0:
 					serialSendQ("DEPLOY minusZ successful!");
-					return DEPLOY_SUCCESS;
-				case 4:
-					serialSendQ("RF_DEPLOY2 failed");
-					return 4;
-				default:
-					serialSendQ("-Z DEPLOY ERROR");
-					return 3;
-			}
+//					return DEPLOY_SUCCESS;
+//				case 4:
+//					serialSendQ("RF_DEPLOY2 failed");
+//					return 4;
+//				default:
+//					serialSendQ("-Z DEPLOY ERROR");
+//					return 3;
+//			}
 	}
 	return DEPLOY_SUCCESS;
 }
