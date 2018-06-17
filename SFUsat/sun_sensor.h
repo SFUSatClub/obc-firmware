@@ -32,4 +32,9 @@ uint8_t set_mux_channel(uint8_t addr, uint8_t channel);
 output_value *read_sun_sensor();	//Reads the output of the sun sensors from the ADC. This function calls set_mux_channel to
 									//get the available sensor information. It returns a pointer to a struct called output[16].
 
+
+
+/* Richard */
+void read_all_mux_channels(uint8_t addr);
+
 #endif /* SFUSAT_SUN_SENSOR_H_ */
