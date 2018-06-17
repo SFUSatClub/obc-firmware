@@ -13,8 +13,8 @@
 
 // Chip addresses for all sensors in the satellite
 #define OBC_TEMP 0x48
-#define RF1_TEMP 0x49
-#define RF2_TEMP 0x4A
+#define LB_TEMP 0x49
+#define UB_TEMP 0x4A
 
 #define TEMP_READ_ERROR -999
 

@@ -51,6 +51,8 @@ typedef struct stdtelem{
 	char fs_prefix;
 	int16_t obc_current;
 	int16_t obc_temp;
+	int16_t lb_temp;
+	int16_t ub_temp;
 } stdtelem_t;
 
 

@@ -79,6 +79,14 @@ void temperatureTelemTask(void *pvParameters){
 		res = read_temp(OBC_TEMP);
 		sfu_write_fname(TEMPS, "OBC: %d", res);
 		stdTelem.obc_temp = res;
+
+		res = read_temp(LB_TEMP);
+		sfu_write_fname(TEMPS, "LB: %d", res);
+		stdTelem.lb_temp = res;
+
+		res = read_temp(UB_TEMP);
+		sfu_write_fname(TEMPS, "UB: %d", res);
+		stdTelem.ub_temp = res;
 	}
 }
 
@@ -125,6 +133,14 @@ void transmitTelemUART(void *pvParameters){
 				stdTelem.fs_prefix,
 				stdTelem.obc_current,
 				stdTelem.obc_temp
+		);
+		serialSendQ(buf);
+	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
+		clearBuf(buf, 50);
+
+		snprintf(buf, 49, "S3,%i,%i",
+				stdTelem.lb_temp,
+				stdTelem.ub_temp
 		);
 		serialSendQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
