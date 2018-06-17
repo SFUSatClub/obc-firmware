@@ -102,12 +102,12 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			{-1,			-1,				-1}
 	};
 	mux_info mux3[6] = {
-			{10,			Sensor_MUX_Y_pos,		0},
-			{11,			Sensor_MUX_Y_pos,	1},
-			{12,			Sensor_MUX_Y_pos,	4},
-			{13,			Sensor_MUX_Y_pos,	6},
-			{-1,			-1,					-1},
-			{-1,			-1,					-1}
+			{10,			Sensor_MUX_Y_pos,	1},
+			{11,			Sensor_MUX_Y_pos,	2},
+			{12,			Sensor_MUX_Y_pos,	3},
+			{13,			Sensor_MUX_Y_pos,	2},
+			{14,			Sensor_MUX_Y_pos,	3},
+			{15,			Sensor_MUX_Y_pos,	7}
 	};
 	mux_info mux4[6] = {
 			{14,			Sensor_MUX_Y_neg,	0},
@@ -140,19 +140,19 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 		adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
 
 		if(mux1[i].sensor_num != -1) {		//place holder for garbage value
-			output[(mux1[i].sensor_num-1)].value = adc_data[19].value;
+			output[(mux1[i].sensor_num-1)].value = adc_data[7].value;
 			output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
 		};
 		if(mux2[i].sensor_num != -1) {
-			output[(mux2[i].sensor_num-1)].value = adc_data[17].value;
+			output[(mux2[i].sensor_num-1)].value = adc_data[5].value;
 			output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
 		};
 		if(mux3[i].sensor_num != -1) {
-			output[(mux3[i].sensor_num-1)].value = adc_data[16].value;
+			output[(mux3[i].sensor_num-1)].value = adc_data[4].value;
 			output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
 		};
 		if(mux4[i].sensor_num != -1) {
-			output[(mux4[i].sensor_num-1)].value = adc_data[18].value;
+			output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
 			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 		};
 	};
