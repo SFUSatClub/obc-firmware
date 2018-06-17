@@ -19,6 +19,7 @@
 #include "sfu_i2c.h"
 #include "stlm75.h"
 #include "deployables.h"
+#include "bq25703.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
@@ -81,6 +82,10 @@ void vMainTask(void *pvParameters) {
 	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
+	volatile uint16_t result = 0;
+	//result = read_curr_raw();
+	bms_test();
+	result = read_batt_volt_raw();
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run

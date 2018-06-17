@@ -181,43 +181,46 @@ int16_t write_register(uint8_t addr, uint8_t *to_write) {
 	return I2C_OK;
 }
 
-int8_t read_batt_volt_raw(uint8_t addr) {
+uint16_t read_batt_volt_raw() {
 	uint8_t ADCOPT_MSB;
 	uint8_t ADCOPT_LSB;
 	uint8_t batt_volt_raw;
-	uint8_t batt_volt;
+	uint16_t batt_volt;
 
 	//configure ADC first
 	//Do I need to enable all of EN_ADC_VBAT, EN_ADC_ICHG, EN_ADC_IDCHG if I only want voltage?
-	read_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+	read_register(ADCOPTION_REG_LSB, &ADCOPT_LSB);
 	if (!(ADCOPT_LSB & ADCOPT_EN_ADC_VBAT)) {		//If the ADC_VBAT bit is 0 then need to set it to 1
 		ADCOPT_LSB = ADCOPT_LSB | ADCOPT_EN_ADC_VBAT;
-		write_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+		write_register(ADCOPTION_REG_LSB, &ADCOPT_LSB);
 	}
 
+	 uint8_t res;
+	read_register(ADCOPTION_REG_LSB, &res);
 
 	//mask and shift to read the ADC_CONV bit, set to 0 for one-shot update
-	read_register(ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	read_register(ADCOPTION_REG_MSB, &ADCOPT_MSB);
 	if (!((ADCOPT_LSB & ADCOPT_ADC_CONV_BIT) >> 7)) {
 		ADCOPT_MSB = ADCOPT_MSB & ~ADCOPT_ADC_CONV_BIT;
 	}
 
 	//start ADC conversion
-	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT;
-	write_register (ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT | ADCOPT_ADC_CONV_BIT | 0b00100000;
+	write_register (ADCOPTION_REG_MSB, &ADCOPT_MSB);
+	read_register(ADCOPTION_REG_MSB, &res);
 
 	//Read voltage
-	read_register(ADCVSYSVBAT_REG, *batt_volt_raw);
-	for (i = 0; i <= 7; i = i + 1) {
-		batt_volt = batt_volt + (batt_volt_raw[i] * 0.064 * (i + 1));
-	}
+	read_register(ADCVSYSVBAT_REG, &batt_volt_raw);
+
+	batt_volt = (batt_volt_raw & 0x7F) * 64 +2880;
+
 	return batt_volt;
 }
 
-int8_t read_volt(uint8_t addr) {
+uint8_t read_volt() {
 	if (xSemaphoreTake(xI2CMutex, pdMS_TO_TICKS(500) ) == pdTRUE) {
 		uint8_t batt_volt;
-		batt_volt = read_volt_raw(OBC_BATT);
+		batt_volt = read_batt_volt_raw();
 		if (batt_volt < 0) {
 			//error
 			//what are the conditions?
@@ -231,59 +234,64 @@ int8_t read_volt(uint8_t addr) {
 	}
 }
 
-int16_t read_curr_raw(uint8_t addr) {
+uint8_t read_curr_raw() {
 	uint8_t ADCOPT_MSB;
 	uint8_t ADCOPT_LSB;
 	uint8_t OPT0_REG;
 	uint8_t OPT1_REG;
 	uint8_t batt_curr_raw;
 	uint8_t batt_curr;
+	volatile uint8_t test;
 
 	//configure ADC first
 	//Do I need to enable all of EN_ADC_VBAT, EN_ADC_ICHG, EN_ADC_IDCHG? Only want discharge current from battery?
-	read_register(ADC_OPTION_REG_LSB, *ADCOPT_LSB);
+	read_register(ADCOPTION_REG_LSB, &ADCOPT_LSB);
 	if (!((ADCOPT_LSB & ADCOPT_EN_ADC_IDCHG) >> 3)) {
 		ADCOPT_LSB = ADCOPT_LSB | ADCOPT_EN_ADC_IDCHG;
-		write_register(ADCOPTION_REG_LSB, *ADCOPT_LSB);
+		write_register(ADCOPTION_REG_LSB, &ADCOPT_LSB);
 	}
 
+	read_register(ADCOPTION_REG_LSB, &test);
 	//Disable low power mode
-	read_register(CHARGEOPT0_REG, *OPT0_REG);
+	read_register(CHARGEOPT0_REG, &OPT0_REG);
 	if ((OPT0_REG & CHARGEOPT0_EN_LWPWR) >> 7) {
 		OPT0_REG = OPT0_REG & ~CHARGEOPT0_EN_LWPWR;
-		write_register(CHARGEOPT0_REG, *OPT0_REG);
+		write_register(CHARGEOPT0_REG, &OPT0_REG);
 		//Some way to remember that low power was enabled? (set flag?)
 	}
 
 	//Enable battery current measurement
-	read_register(CHARGEOPT1_REG, *OPT1_REG);
+	read_register(CHARGEOPT1_REG, &OPT1_REG);
 	if (!((OPT1_REG & CHARGEOPT1_EN_IBAT) >> 7)) {
 		OPT1_REG = OPT1_REG | CHARGEOPT1_EN_IBAT;
-		write_register(CHARGEOPT1_REG, *OPT1_REG);
+		write_register(CHARGEOPT1_REG, &OPT1_REG);
 	}
 
+	read_register(CHARGEOPT1_REG, &test);
 	//Set one-shot update
-	read_register(ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	read_register(ADCOPTION_REG_MSB, &ADCOPT_MSB);
 	if (!((ADCOPT_LSB & ADCOPT_ADC_CONV_BIT) >> 7)) {
 		ADCOPT_MSB = ADCOPT_MSB & ~ADCOPT_ADC_CONV_BIT;
 	}
 
 	//start ADC conversion
-	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT;
-	write_register (ADCOPTION_REG_MSB, *ADCOPT_MSB);
+	ADCOPT_MSB = ADCOPT_MSB | ADCOPT_ADC_START_BIT | 0b10000000;
+	write_register (ADCOPTION_REG_MSB, &ADCOPT_MSB);
+
+
+	read_register (ADCOPTION_REG_MSB, &test);
 
 	//Read the discharge current from the battery
-	read_register(ADCIBAT_REG, *batt_curr_raw);
-	for (i = 0; i <= 7; i = i + 1) {
-			batt_curr = batt_curr + (batt_curr_raw[i] * 0.256 * (i + 1));
-		}
+	read_register(ADCIBAT_REG, &batt_curr_raw);
+	batt_curr = (batt_curr_raw & 0x7F) * 0.256;
+
 	return batt_curr;
 }
 
-int8_t read_curr(uint8_t addr) {
+uint8_t read_curr() {
 	if (xSemaphoreTake(xI2CMutex, pdMS_TO_TICKS(500) ) == pdTRUE) {
 		uint8_t batt_curr;
-		batt_volt = read_volt_raw(OBC_BATT);
+		batt_curr = read_curr_raw();
 		if (batt_curr < 0) {
 			//error
 			//what are the conditions?
@@ -292,7 +300,7 @@ int8_t read_curr(uint8_t addr) {
 		return batt_curr;
 	}
 	else {
-		serialSendQ("Battery voltage read can't get mutex");
+		serialSendQ("Battery current read can't get mutex");
 		return 0; //error
 	}
 }
@@ -303,14 +311,14 @@ void set_chrg(uint8_t addr) {
 	uint8_t ILIM_MSB;
 	uint8_t ILIM_LSB;
 
-	read_register(OBC_ILIM_MSB, *ILIM_MSB);
+	read_register(OBC_ILIM_MSB, &ILIM_MSB);
 
-	write_register(OBC_ILIM_MSB, *ILIM_MSB);
-
-
+	write_register(OBC_ILIM_MSB, &ILIM_MSB);
 
 
-	read_register(OBC_ILIM_LSB, *ILIM_LSB);
 
-	write_register(OBC_ILIM_LSB, *ILIM_LSB);
+
+	read_register(OBC_ILIM_LSB, &ILIM_LSB);
+
+	write_register(OBC_ILIM_LSB, &ILIM_LSB);
 }

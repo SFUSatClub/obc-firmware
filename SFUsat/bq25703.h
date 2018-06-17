@@ -44,6 +44,7 @@ typedef union battery_status{
 
 // register addresses (LSByte)
 #define CHARGERSTATUS_REG 	0x20
+#define ADCOPTION_REG		0x3A
 #define ADCOPTION_REG_MSB	0x3B
 #define ADCOPTION_REG_LSB	0x3A
 #define ADCVSYSVBAT_REG 	0x2C
@@ -91,10 +92,10 @@ typedef union battery_status{
 #define OBC_OPT1		0x30
 #define OBC_IBAT 		0x28
 
-uint8_t read_batt_volt_raw(uint8_t addr);
-uint8_t read_volt(uint8_t addr);
-uint16_t read_curr_raw(uint8_t addr);
-uint16_t read_curr(uint8_t addr);
+uint16_t read_batt_volt_raw();
+uint8_t read_volt();
+uint8_t read_curr_raw();
+uint8_t read_curr();
 void set_chrg(uint8_t addr);
 int16_t get_chrg_stat(uint8_t addr);
 
