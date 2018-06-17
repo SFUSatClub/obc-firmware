@@ -10,10 +10,11 @@
  *      Author: Richard
  */
 
+#include "can.h"
+#include "reg_system.h"
+#include "sfu_fs_structure.h"
 #include "sfu_startup.h"
 #include "sfu_uart.h"
-#include "can.h"
-#include "sfu_fs_structure.h"
 
 Startup_Data_t startData;
 
@@ -31,6 +32,7 @@ void printStartupType(void){
  * 	- if any failures have been caught, log them
  */
 void logPBISTFails(void){
+	bool isFailureDetected = false;
 	volatile uint8_t pbistComplete = canREG1->IF1DATx[0U];
 	volatile uint8_t pbistFailed = canREG1->IF1DATx[1U];
 	uint8_t i;
@@ -41,6 +43,30 @@ void logPBISTFails(void){
 		if (bitComplete && bitFailed)
 		{
 			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
+			isFailureDetected = true;
+		}
+	}
+	// TODO: Delete next line
+	isFailureDetected = true;
+
+	char flag_str[] = "PBIST_RESET:1";
+	uint32_t flag_1_start = 11;
+	uint32_t flag_1_val_loc = flag_1_start + strlen(flag_str) - 1;
+
+	if (isFailureDetected) {
+		bool wasReset = false;
+		uint8_t data[50];
+		sfu_read_fname(FSYS_FLAGS, data, 50);
+		uint8_t flag_pbist_val = data[flag_1_val_loc];
+
+		if (flag_pbist_val == '1') {
+			wasReset = true;
+		}
+
+		if (!wasReset) {
+			sfu_write_fname_offset(FSYS_FLAGS, flag_1_start, flag_str);
+			// Then reset it
+			systemREG1->SYSECR = systemREG1->SYSECR | (1U << 15);
 		}
 	}
 }

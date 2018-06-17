@@ -361,6 +361,10 @@ static const struct subcmd_opt CMD_FILE_OPTS[] = {
 				.subcmd_id	= CMD_FILE_SIZE,
 				.name		= "size",
 		},
+		{
+				.subcmd_id	= CMD_FILE_ERASE,
+				.name		= "erase",
+		},
 };
 
 int8_t cmdFile(const CMD_t *cmd) {
@@ -378,6 +382,12 @@ int8_t cmdFile(const CMD_t *cmd) {
 		}
 		if (cmd->subcmd_id == CMD_FILE_SIZE){
 			// todo: snag this from spiffs struct
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_ERASE){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
 			return 1;
 		}
 		else{
