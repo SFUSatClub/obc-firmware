@@ -101,7 +101,7 @@
 #define CMD_FILE_CPREFIX 	0x06
 #define CMD_FILE_SIZE		0x08
 
-
+#define CMD_FILE_ERASE		0x0A
 /**
  * Maximum command argument size.
  * The number of bytes in particular is determined by being...
