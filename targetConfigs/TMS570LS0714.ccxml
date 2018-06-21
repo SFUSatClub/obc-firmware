@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configurations XML_version="1.2" id="configurations_0">
-<configuration XML_version="1.2" id="Texas Instruments XDS100v3 USB Debug Probe_0">
-        <instance XML_version="1.2" desc="Texas Instruments XDS100v3 USB Debug Probe_0" href="connections/TIXDS100v3_Dot7_Connection.xml" id="Texas Instruments XDS100v3 USB Debug Probe_0" xml="TIXDS100v3_Dot7_Connection.xml" xmlpath="connections"/>
-        <connection XML_version="1.2" id="Texas Instruments XDS100v3 USB Debug Probe_0">
-            <instance XML_version="1.2" href="drivers/tixds100v2icepick_c.xml" id="drivers" xml="tixds100v2icepick_c.xml" xmlpath="drivers"/>
-            <instance XML_version="1.2" href="drivers/tixds100v2cs_dap.xml" id="drivers" xml="tixds100v2cs_dap.xml" xmlpath="drivers"/>
-            <instance XML_version="1.2" href="drivers/tixds100v2cortexR.xml" id="drivers" xml="tixds100v2cortexR.xml" xmlpath="drivers"/>
+<configuration XML_version="1.2" id="SEGGER J-Link Emulator_0">
+        <instance XML_version="1.2" desc="SEGGER J-Link Emulator_0" href="connections/segger_j-link_connection.xml" id="SEGGER J-Link Emulator_0" xml="segger_j-link_connection.xml" xmlpath="connections"/>
+        <connection XML_version="1.2" id="SEGGER J-Link Emulator_0">
+            <instance XML_version="1.2" href="drivers/JLINKicepick_c.xml" id="drivers" xml="JLINKicepick_c.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/jlinkcs_dap.xml" id="drivers" xml="jlinkcs_dap.xml" xmlpath="drivers"/>
+            <instance XML_version="1.2" href="drivers/jlinkcortexr4.xml" id="drivers" xml="jlinkcortexr4.xml" xmlpath="drivers"/>
             <platform XML_version="1.2" id="platform_0">
                 <instance XML_version="1.2" desc="TMS570LS0714_0" href="devices/tms570ls0714.xml" id="TMS570LS0714_0" xml="tms570ls0714.xml" xmlpath="devices"/>
             </platform>
