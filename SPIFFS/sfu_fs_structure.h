@@ -71,6 +71,7 @@ void sfu_fs_init();
 void delete_oldest(); 									/* handles deletion and creation. Note: takes about a second to run */
 void sfu_create_files(); 								/* creates files w/ current prefix and records creation time */
 void sfu_create_files_wrapped(); 						/* creates files w/ current prefix and records creation time, wrapped in mutex */
+void sfu_create_persistent_files();
 void create_filename(char* namebuf, char file_suffix); /* creates filename with appropriate prefix and suffix */
 void sfu_write_fname(char f_suffix, char *fmt, ...); 	/* write printf style data to a file name */
 void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...);
