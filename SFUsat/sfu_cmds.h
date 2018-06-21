@@ -105,6 +105,7 @@
 
 #define CMD_RESTART_NONE	0x00
 #define CMD_RESTART_ERASE_FILES	0x02
+
 /**
  * Maximum command argument size.
  * The number of bytes in particular is determined by being...

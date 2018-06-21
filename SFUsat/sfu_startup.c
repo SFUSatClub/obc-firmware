@@ -11,10 +11,14 @@
  */
 
 #include "can.h"
+#include "reg_system.h"
 #include "sfu_fs_structure.h"
 #include "sfu_startup.h"
 #include "sfu_uart.h"
+<<<<<<< HEAD
 #include "sfu_utils.h"
+=======
+>>>>>>> 7695cd5d62088b17da323f48be0d156afefcbda3
 
 Startup_Data_t startData;
 
@@ -46,6 +50,7 @@ void logPBISTFails(void){
 			isFailureDetected = true;
 		}
 	}
+
 	// TODO: Set isFailureDetected to true to test reading flag from flash
 	// isFailureDetected = true;
 
