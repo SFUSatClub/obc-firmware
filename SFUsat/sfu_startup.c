@@ -11,10 +11,10 @@
  */
 
 #include "can.h"
-#include "reg_system.h"
 #include "sfu_fs_structure.h"
 #include "sfu_startup.h"
 #include "sfu_uart.h"
+#include "sfu_utils.h"
 
 Startup_Data_t startData;
 
@@ -46,8 +46,8 @@ void logPBISTFails(void){
 			isFailureDetected = true;
 		}
 	}
-	// TODO: Delete next line
-	isFailureDetected = true;
+	// TODO: Set isFailureDetected to true to test reading flag from flash
+	// isFailureDetected = true;
 
 	char flag_str[] = "PBIST_RESET:1";
 	uint32_t flag_1_start = 11;
@@ -65,8 +65,7 @@ void logPBISTFails(void){
 
 		if (!wasReset) {
 			sfu_write_fname_offset(FSYS_FLAGS, flag_1_start, flag_str);
-			// Then reset it
-			systemREG1->SYSECR = systemREG1->SYSECR | (1U << 15);
+			restart_software();
 		}
 	}
 }
