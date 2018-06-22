@@ -14,8 +14,9 @@
 
 
 //Joseph
-#define DEBUGONLY 0
-#define FLIGHT 1
+#define DEBUGONLY 0b001
+#define FLIGHT	  0b010
+#define RF		  0b100
 //Joseph
 
 #include <string.h>

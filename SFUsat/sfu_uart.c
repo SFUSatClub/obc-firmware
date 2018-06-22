@@ -46,13 +46,28 @@ BaseType_t serialSendQ(const char * toSend, uint8_t flag) {
 	//Original Code Ends
 }
 
-
 //Joseph Starts
-void set_flight(void){
-	ModeFlag=FLIGHT;
-}
-void set_debugonly(void){
-	ModeFlag=DEBUG_ONLY;
+//void set_flight(void){
+//	ModeFlag=FLIGHT;
+//}
+//void set_debugonly(void){
+//	ModeFlag=DEBUG_ONLY;
+//}
+//
+//void set_rf(void){
+//	ModeFlag=RF;
+//}
+
+void set_mode(uint8_t flag){
+	if(flag & 001 == 001){
+		ModeFlag = DEBUG_ONLY;
+	}
+	else if(flag & 010 == 010){
+		ModeFlag = FLIGHT;
+	}
+	else if(flag & 100 == 100){
+		ModeFlag = RF;
+	}
 }
 //Joseph Ends
 
