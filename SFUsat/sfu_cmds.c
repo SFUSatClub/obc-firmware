@@ -12,6 +12,7 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "sun_sensor.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -119,6 +120,13 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
+		},
+		{
+				.subcmd_id	= CMD_SUN,
+				.name		= "sun",
+				.info		= "Sun sensors.\n"
+								"	all\n"
+								"		reads sun sensors"
 		}
 };
 
@@ -285,10 +293,60 @@ static const struct subcmd_opt CMD_WD_OPTS[] = {
 		},
 };
 
+
 int8_t cmdWd(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_WD_RESET){
 			serialSendQ("Suspending watchdog task!");
 			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+		else{
+			return 1;
+		}
+
+	return 0;
+}
+
+/**
+ * Sun sensor command
+ */
+static const struct subcmd_opt CMD_SUN_OPTS[] = {
+		{
+				.subcmd_id	= CMD_SUN_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_SUN_PLUSX,
+				.name		= "x",
+		},
+		{
+				.subcmd_id	= CMD_SUN_MINUSX,
+				.name		= "mx",
+		},
+		{
+				.subcmd_id	= CMD_SUN_PLUSY,
+				.name		= "y",
+		},
+		{
+				.subcmd_id	= CMD_SUN_MINUSY,
+				.name		= "my",
+		}
+};
+int8_t cmdSun(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_SUN_PLUSX){
+			read_all_mux_channels(0x00);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_MINUSX){
+			read_all_mux_channels(0x4D);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_PLUSY){
+			read_all_mux_channels(0x4E);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_MINUSY){
+			read_all_mux_channels(0x4F);
 			return 1;
 		}
 		else{
@@ -617,6 +675,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdWd,
 				.subcmds		= CMD_WD_OPTS,
 				.num_subcmds	= LEN(CMD_WD_OPTS),
+		},
+		{
+				.cmd_id			= CMD_SUN,
+				.name			= "sun",
+				.func			= cmdSun,
+				.subcmds		= CMD_SUN_OPTS,
+				.num_subcmds	= LEN(CMD_SUN_OPTS),
 		}
 };
 

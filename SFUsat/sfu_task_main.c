@@ -16,6 +16,7 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
+#include "sun_sensor.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
@@ -78,14 +79,18 @@ void vMainTask(void *pvParameters) {
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	test_adc_init();
 	//flash_erase_chip();
-	set_mux_channel(0x4D, 0);
-	set_mux_channel(0x4E, 1);
-	set_mux_channel(0x4F, 2);
-	//set_mux_channel(0x4F, 2);
-	read_sun_sensor();
-	read_sun_sensor();
-	read_sun_sensor();
+//	set_mux_channel(0x4D, 0);
+//	set_mux_channel(0x4E, 1);
+//	set_mux_channel(0x4F, 2);
+//	//set_mux_channel(0x4F, 2);
+//	read_sun_sensor();
+//	read_sun_sensor();
+//	read_sun_sensor();
 
+	// TODO: set the mux channels 4C-4F here
+	read_all_mux_channels(0x00);
+	read_all_mux_channels(0x00);
+	read_all_mux_channels(0x00);
 
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
@@ -99,7 +104,7 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );				// Task handles are above
 
 	//NOTE: Task priorities are #defined in sfu_tasks.h
-	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
+	xTaskCreate(vSerialTask, "serial", 500, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 	xTaskCreate(vFilesystemTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);

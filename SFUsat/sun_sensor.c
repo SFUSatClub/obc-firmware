@@ -8,6 +8,7 @@
 #include "sfu_i2c.h"
 #include "adc.h"
 #include "sun_sensor.h"
+#include "sfu_uart.h"
 
 //address of muxes
 #define Sensor_MUX_X_pos  0x4C
@@ -18,6 +19,66 @@
 // CHIP COMMANDS
 #define RD_CMD 0x1
 #define WR_CMD 0x0
+
+/* adc from mux
+ * - returns the ADC channel (0 based, so the real ADC number) associated with a mux
+ */
+uint8_t adc_from_mux(uint8_t mux_addr){
+	switch (mux_addr){
+		case 0x4C:
+			return 20;
+		case 0x4D:
+			return 18;
+		case 0x4E:
+			return 17;
+		case 0x4F:
+			return 19;
+		case 0x00:	// for testing
+			return 2;
+	}
+	return 0; /* should never get here */
+}
+
+/* ADC CHANNEL VAL
+ * 	- The results from the ADC aren't necessarily in order or at the same position as the channel #
+ * 	- search through the data array until we hit the correct ID (channel number = 0 based)
+ */
+uint16_t adc_channel_val(uint8_t adc_chan, adcData_t * data){
+	uint8_t i;
+	for(i = 0; i < 15; i++){
+		if(data->id == adc_chan){
+			return data->value;
+		}
+		data++;
+	}
+	serialSendQ("Err: no ADC ID");
+	return 0;
+}
+
+void read_all_mux_channels(uint8_t addr){
+	uint8_t chan;	// mux channel
+	uint8_t adc_chan;
+	adcData_t adc_data[24];
+
+	adc_chan = adc_from_mux(addr);
+	char buf[50];
+	snprintf(buf, 49, "MUX: %i\r\n",addr);
+	serialSend(buf);
+
+	for(chan = 0; chan < 8; chan++){
+		if(addr != 0x00){
+			set_mux_channel(addr, chan);
+		}
+		adcStartConversion(adcREG1,adcGROUP1);
+		while((adcIsConversionComplete(adcREG1,adcGROUP1))==0);
+		adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
+
+		clearBuf(buf, 50);
+		snprintf(buf, 49, "\t Channel %i: %i\r\n",chan,  adc_channel_val(adc_chan, &adc_data[0]));
+		serialSend(buf);
+	}
+	serialSend("\r\n");
+}
 
 uint8_t set_mux_channel(uint8_t addr, uint8_t channel) {
 //	uint8_t cmd = (addr << 1 | WR_CMD);
@@ -102,12 +163,12 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			{-1,			-1,				-1}
 	};
 	mux_info mux3[6] = {
-			{10,			Sensor_MUX_Y_pos,		0},
-			{11,			Sensor_MUX_Y_pos,	1},
-			{12,			Sensor_MUX_Y_pos,	4},
-			{13,			Sensor_MUX_Y_pos,	6},
-			{-1,			-1,					-1},
-			{-1,			-1,					-1}
+			{10,			Sensor_MUX_Y_pos,	1},
+			{11,			Sensor_MUX_Y_pos,	2},
+			{12,			Sensor_MUX_Y_pos,	3},
+			{13,			Sensor_MUX_Y_pos,	2},
+			{14,			Sensor_MUX_Y_pos,	3},
+			{15,			Sensor_MUX_Y_pos,	7}
 	};
 	mux_info mux4[6] = {
 			{14,			Sensor_MUX_Y_neg,	0},
@@ -140,19 +201,19 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 		adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
 
 		if(mux1[i].sensor_num != -1) {		//place holder for garbage value
-			output[(mux1[i].sensor_num-1)].value = adc_data[19].value;
+			output[(mux1[i].sensor_num-1)].value = adc_data[7].value;
 			output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
 		};
 		if(mux2[i].sensor_num != -1) {
-			output[(mux2[i].sensor_num-1)].value = adc_data[17].value;
+			output[(mux2[i].sensor_num-1)].value = adc_data[5].value;
 			output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
 		};
 		if(mux3[i].sensor_num != -1) {
-			output[(mux3[i].sensor_num-1)].value = adc_data[16].value;
+			output[(mux3[i].sensor_num-1)].value = adc_data[4].value;
 			output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
 		};
 		if(mux4[i].sensor_num != -1) {
-			output[(mux4[i].sensor_num-1)].value = adc_data[18].value;
+			output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
 			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 		};
 	};
