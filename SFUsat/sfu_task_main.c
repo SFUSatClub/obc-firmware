@@ -109,6 +109,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
 	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
 
+	sfu_startup_logs();
+
 
 // --------------------------- OTHER TESTING STUFF ---------------------------
 	// Right when we spin up the main task, get the heap (example of a command we can issue)

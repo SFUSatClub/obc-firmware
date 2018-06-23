@@ -71,7 +71,6 @@ extern TaskHandle_t xobcCurrentTelemTaskHandle;
 extern TaskHandle_t xtemperatureTelemTaskHandle;
 extern TaskHandle_t xTransmitTelemTaskHandle;
 
-
 /* convenience */
 uint32_t getStdTelemDelay(uint8_t telemIndex);
 
