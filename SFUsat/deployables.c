@@ -40,9 +40,9 @@ uint8_t deploy_read(); 			/* read the status of the deploy switches */
  */
 void deploy_task(void *pvParameters){
 	deploy_current_disable();
-	uint32_t start_time = getCurrentTime();
+	uint32_t start_time = getCurrentRTCTime();
 	while(1){
-		while(getCurrentTime() < (start_time + DEPLOY_DELAY)){		/* wait the DIETR-mandated time */
+		while(getCurrentRTCTime() < (start_time + DEPLOY_DELAY)){		/* wait the DIETR-mandated time */
 			serialSendQ("Deploy check");
 			vTaskDelay(pdMS_TO_TICKS(DEPLOY_CHECK_INTERVAL));
 		}
