@@ -96,7 +96,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
 	vTaskSuspend(xFilesystemTaskHandle);
-	vTaskSuspend(xRadioTaskHandle);
+	//vTaskSuspend(xRadioTaskHandle);
 	// TODO: watchdog tickle tasks for internal and external WD. (Separate so we can hard reset ourselves via command, two different ways)
 	// TODO: ADC task implemented properly with two sample groups
 	// TODO: tasks take in the system state and maybe perform differently (ADC will definitely do this)
@@ -165,7 +165,8 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
-    gio_interrupt_example_rtos_init();
+    //gio_interrupt_example_rtos_init();
+	//rf_interrupt_init();
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
@@ -209,7 +210,8 @@ void vMainTask(void *pvParameters) {
 //	xTaskCreate(vADCRead, "read ADC", 900, NULL, 2, &xADCTaskHandle);
 //	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
 //
-//	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	initRadio();
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 

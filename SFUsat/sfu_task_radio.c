@@ -9,6 +9,7 @@
 #include "sfu_task_radio.h"
 #include "sfu_uart.h"
 #include "sfu_smartrf_cc1101.h"
+#include "string.h"
 
 //Interrupt stuff
 #include "rtos_semphr.h"
@@ -210,6 +211,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define NUM_TXBYTES			(0b01111111) // TXBYTES Bits 6:0  Number of bytes in TX FIFO.
 #define RXFIFO_OVERFLOW		(0b10000000) // RXBYTES Bits 7    Indicates if RX FIFO has overflowed.
 #define NUM_RXBYTES			(0b01111111) // RXBYTES Bits 6:0  Number of bytes in RX FIFO.
+#define CRC					(0b10000000) // PKTLEN Bit 7	  Indicates if packet is CRC okay.
 
 /**
  * FIFO Buffers (section 10.2, page 32).
@@ -225,7 +227,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 
 #define FIFO_LENGTH (64)
 
-#define pkt_length (30)
+//#define pkt_length (30)
 
 static spiDAT1_t spiDataConfig;
 
@@ -306,6 +308,7 @@ void vRadioTask(void *pvParameters) {
 }
 
 static void sendPacket(const uint8 *payload, uint8 size){
+	//need to append Tobi's call sign VA7TSN at front
 	char buffer[100] = {'\0'};
 	strobe(SNOP);
 	uint8 txbytes = readRegister(TXBYTES);
@@ -327,7 +330,18 @@ static void sendPacket(const uint8 *payload, uint8 size){
 		 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
 		 */
 	strobe(SNOP);
-	if (writeToTxFIFO(payload, size) == 1) {
+	uint8 payload_w_callsign[6 + sizeof(payload)] = {'V', 'A', '7', 'T', 'S', 'N'};
+	uint8 idx1 = 5;
+	uint8 idx2 = 0;
+	for (idx1, idx2; idx1 < sizeof(payload_w_callsign); idx1++, idx2++){
+		payload_w_callsign[idx1] = payload[idx2];
+	}
+//	char callsign[7] = {'V', 'A', '7', 'T', 'S', 'N', '\0'};
+//	char payload_callsign[sizeof(callsign) + sizeof(payload)];
+//	strcpy(payload_callsign, callsign);
+//	strncat(payload_callsign, (char)payload, sizeof(payload_callsign));
+
+	if (writeToTxFIFO(payload_w_callsign, SMARTRF_SETTING_PKTLEN_VAL_TX) == 1) {
 		snprintf(buffer, sizeof(buffer), "%d Bytes Radio TX FIFO written", size);
 		serialSendln(buffer);
 	} else {
@@ -350,15 +364,20 @@ static uint8 checkRX(){
 		strobe(SFRX);
 	}
 
+	uint8 CRC_status_int = PKTSTATUS && CRC;
+
 	strobe(SNOP | READ_BIT);
 	serialSend("RX FIFO_BYTES_AVAILABLE: ");
 	snprintf(buffer, sizeof(buffer), "0x%x", statusByte & FIFO_BYTES_AVAILABLE);
 	serialSendln(buffer);
-	return readRegister(RXBYTES);
+
+	snprintf(buffer, sizeof(buffer), "Packet CRC is... %s ", CRC_status_int ? "OK!" : "BAD!");
+	serialSendln(buffer);
+
+	return readRegister(RXBYTES) && (CRC_status_int);
 }
 
 static void recievePacket(uint8 *payload){
-	//TODO: check CRC
 	char buffer[100] = {'\0'};
 	uint8 rxbytes = readRegister(RXBYTES);
 	uint8 rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
@@ -371,21 +390,23 @@ static void recievePacket(uint8 *payload){
 	} else {
 	  	serialSendln("Failed to read from RX FIFO");
 	}
+	strobe(SFRX);
 }
 
 static void rfTestSequence() {
 	strobe(SNOP);
 	char buffer[100] = {'\0'};
-	uint8 test[pkt_length] = { 0 };
+	uint8 test[SMARTRF_SETTING_PKTLEN_VAL_TX] = { 0 };
 	int i = 2;
-	test[0] = pkt_length;
+	test[0] = SMARTRF_SETTING_PKTLEN_VAL_TX;
 	test[1] = 0x10;
-	while (i < pkt_length) {
+	while (i < SMARTRF_SETTING_PKTLEN_VAL_TX-7) {
 		test[i] = i;
 		i++;
 	}
+	test[sizeof(test)-1] = '\0';
 
-	sendPacket(test, pkt_length);
+	sendPacket(test, SMARTRF_SETTING_PKTLEN_VAL_TX);
 
 	strobe(SNOP);
 	printStatusByte();
@@ -396,10 +417,10 @@ static void rfTestSequence() {
 
 	//TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
-	uint8 recieved[pkt_length]={0};
+	uint8 recieved[SMARTRF_SETTING_PKTLEN_VAL_TX]={0};
 	if(checkRX()){
 		recievePacket(recieved);
-		for (i = 0; i < pkt_length; i++) {
+		for (i = 0; i < SMARTRF_SETTING_PKTLEN_VAL_TX; i++) {
 		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, recieved[i]);
 		  	serialSendln(buffer);
 		}
@@ -629,11 +650,62 @@ void vRFInterruptTask(void *pvParameters){
 
 	//pulled from example
 	while(1){
+		serialSendln("It's an RF one!");
+		vTaskDelay(pdMS_TO_TICKS(5000));
+
+		//uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
+		//uint8 RX_dest[RXBYTES] = {0};
+		//char buffer[RXBYTES];
+		//char buffer2[16];
+		//uint8 count = 0;
+		//uint8 size = 0;
+		//const uint8 RX_FIFO_MAX_SIZE = 111100; //60
+
+
 		xSemaphoreTake(gioRFSem, portMAX_DELAY);
-		serialSendQ("It's an RF one!");
-		//gioSetBit(DEBUG_LED_PORT, DEBUG_LED_PIN, gioGetBit(DEBUG_LED_PORT, DEBUG_LED_PIN) ^ 1);   // Toggles the blinky LED
-		switchRadioMode();
+
+		read_RX_FIFO();
+
+		//snprintf(buffer2, 30, "RXBYTES: %02x \n", num_of_RXBYTES);
+		//serialSendln(buffer2);
+
+
+//		while (NUM_RXBYTES < RX_FIFO_MAX_SIZE) {
+//			//(NUM_RXBYTES);
+//			serialSendQ("LOOPING HERE");
+//			vTaskDelay(pdMS_TO_TICKS(1000));
+//		}
+
+
+
+//		if (readRegister(RXBYTES) != 0) {
+//			readFromRxFIFO(RX_dest, num_of_RXBYTES);
+//			for (count = 0; count < num_of_RXBYTES; count++) {
+//				snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
+//				serialSendln(buffer);
+//			}
+//		}
+		//strobe(SFRX);
 	}
+}
+
+void read_RX_FIFO(){
+	serialSendln("Reading RX_FIFO");
+	uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
+	uint8 RX_dest[RXBYTES] = { 0 };
+	char buffer[RXBYTES];
+	//char buffer2[16];
+	uint8 count = 0;
+	uint8 pktlen = 60;
+
+	if (readRegister(RXBYTES) >= pktlen) {
+		readFromRxFIFO(RX_dest, num_of_RXBYTES);
+		for (count = 0; count < num_of_RXBYTES; count++) {
+			snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
+			serialSendln(buffer);
+		}
+	}
+
 }
 
 void rf_interrupt_init(void){
