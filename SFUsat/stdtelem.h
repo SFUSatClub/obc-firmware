@@ -53,6 +53,8 @@ typedef struct stdtelem{
 	int16_t obc_temp;
 	int16_t lb_temp;
 	int16_t ub_temp;
+	uint16_t ramoccur_1;
+	uint16_t ramoccur_2;
 } stdtelem_t;
 
 
