@@ -7,15 +7,18 @@
  * the system performs self tests and clears out the RAM.
  *
  *  Created on: Aug 27, 2017
- *      Author: Richard
+ *      Author: Lana, Richard
  */
 
+#include "can.h"
+#include "reg_system.h"
+#include "sfu_fs_structure.h"
 #include "sfu_startup.h"
 #include "sfu_uart.h"
-#include "can.h"
-#include "sfu_fs_structure.h"
+#include "sfu_utils.h"
+#include "sfu_flags.h"
 #include "flash_mibspi.h"
-
+ 
 Startup_Data_t startData;
 
 void startupInit(){
@@ -30,8 +33,10 @@ void printStartupType(void){
  * 	- we can't easily save PBIST into a variable since RAM gets wiped out
  * 	- so we keep PBIST fails in the CAN register since we're not otherwise using it
  * 	- if any failures have been caught, log them
+ * 	- upon PBIST fail detect, reset once (logging each time)
  */
 void logPBISTFails(void){
+	bool isFailureDetected = false;
 	volatile uint8_t pbistComplete = canREG1->IF1DATx[0U];
 	volatile uint8_t pbistFailed = canREG1->IF1DATx[1U];
 	uint8_t i;
@@ -42,7 +47,35 @@ void logPBISTFails(void){
 		if (bitComplete && bitFailed)
 		{
 			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
+			isFailureDetected = true;
 		}
+	}
+
+	// TODO: Set isFailureDetected to true to test reading flag from flash
+	// isFailureDetected = true;
+
+	char flag_str[] = RESET_FLAG_MSG;
+
+	if (isFailureDetected) {
+		bool wasReset = false;
+		uint8_t data[50];
+		sfu_read_fname(FSYS_FLAGS, data, 50);
+		uint8_t flag_pbist_val = data[RESET_FLAG_LEN];
+
+		if (flag_pbist_val == '1') {
+			wasReset = true;
+		}
+
+		if (!wasReset) {
+			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, flag_str);
+			sfu_write_fname(FSYS_SYS, "PBIST FAILED");
+			restart_software();
+		}
+	} else{
+		/* zero out the reset flag so it can be used next time */
+		serialSendln("NO PBIST FAILS");
+		sfu_write_fname(FSYS_SYS, "PBIST FAILS: NONE");
+		sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_CLEAR_MSG);
 	}
 }
 

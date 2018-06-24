@@ -99,6 +99,9 @@ void vFilesystemLifecycleTask(void *pvParameters) {
 	while (1) {
 		if(fs_num_increments == 0){
 			sfusat_spiffs_init();
+			// attempt to read from flag file
+			// if it succeeds, read off the fsys prefix
+			// if it fails, create it and set to A
 			sfu_create_files_wrapped();
 			fs_test_tasks();
 		}
@@ -277,6 +280,7 @@ void sfu_create_files() {
 void sfu_create_files_wrapped(){
 	/* Simply a wrapper around create files. We don't want to try to write while we're creating new files */
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		sfu_create_persistent_files();
 		sfu_create_files();
 		xSemaphoreGive(spiffsTopMutex);
 	} else {
@@ -285,6 +289,51 @@ void sfu_create_files_wrapped(){
 }
 
 
+/* sfu_create_persistent_files
+ * - This function creates files that do not get periodically deleted (ex. flags file)
+ */
+void sfu_create_persistent_files() {
+	// CALL WITHIN MUTEX
+	char genBuf[20] = { '\0' };
+	char nameBuf[3] = { '\0' };
+	spiffs_file fd;
+	my_spiffs_mount();
+
+	// Create file to contain flags information
+	create_filename(nameBuf, (char) (FSYS_FLAGS));
+	fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDWR, 0); /* attempt to open */
+
+	if (fd < 0) {
+		/* doesn't already exist, so create it */
+		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_RDWR, 0); // create file with appropriate name
+		if(fd < 0){
+			/* uh oh. some sort of error and we're hosed */
+			snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
+			serialSendQ(genBuf);
+		} else{
+			/* created ok */
+			snprintf(genBuf, 20, "Create Flags", SPIFFS_errno(&fs));
+			serialSendQ(genBuf);
+			// TODO: write prefix a
+		}
+	} else {
+		/* already existed */
+		write_fd(fd, "Created"); // first entry is creation time
+		serialSendQ("Detected flag file");
+		// read off the prefix to use
+	}
+
+	if (SPIFFS_close(&fs, fd) < 0) {
+		snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
+		serialSendQ(genBuf);
+	}
+	clearBuf(genBuf, 20);
+	snprintf(genBuf, 11, "Create: %s", nameBuf);
+
+	if(serialSendQ((const char*)genBuf) != pdPASS){
+		serialSendQ("CREATE PRINT FAIL");
+	}
+}
 /* write_fd
  *
  * Given a file descriptor handle, write the printf style data to it and auto-timestamp.
@@ -406,6 +455,47 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 	else {
 		serialSendQ("FNwe: can't get top mutex");
 	}
+}
+
+void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...) {
+	char nameBuf[3] = { '\0' };
+	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
+
+	volatile va_list argptr;
+	va_start(argptr, fmt);
+	format_entry(buf, fmt, argptr);
+	va_end(argptr);
+	spiffs_file fd;
+
+	// Formatting done, enter mutex and open + write the file
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		create_filename(nameBuf, f_suffix);
+
+		my_spiffs_mount();
+
+		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDWR, 0);
+		SPIFFS_lseek(&fs, fd, offset, SPIFFS_SEEK_SET);
+
+		if (fd < 0) { 	// if there's an error opening
+			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		else { 		// no error, write to it
+			if (SPIFFS_write(&fs, fd, fmt, strlen(fmt) + 1) < 0) {
+				snprintf(buf, 20, "FNww: %i", SPIFFS_errno(&fs));
+				serialSendQ(buf);
+			}
+			if (SPIFFS_close(&fs, fd) < 0) {
+				//clearBuf(genBuf, 20);
+				snprintf(buf, 20, "FNce: %i", SPIFFS_errno(&fs));
+				serialSendQ(buf);
+			}
+		}
+		xSemaphoreGive(spiffsTopMutex);
+	} else {
+		serialSendQ("FNwe: can't get top mutex");
+	}
+
 }
 
 void create_filename(char* namebuf, char file_suffix) {

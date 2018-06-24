@@ -50,6 +50,7 @@ char currentPrefix(void);
 #define FSYS_ERROR 		66 		/* B, error log */
 #define OBC_CURRENT 	67 		/* C, current log */
 #define TEMPS 			68 		/* D, temperature log */
+#define FSYS_FLAGS		69		/* E, flags */
 
 #define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(90000) /* we create new file sets on this interval */
 /* Prefix stuff */
@@ -70,8 +71,10 @@ void sfu_fs_init();
 void delete_oldest(); 									/* handles deletion and creation. Note: takes about a second to run */
 void sfu_create_files(); 								/* creates files w/ current prefix and records creation time */
 void sfu_create_files_wrapped(); 						/* creates files w/ current prefix and records creation time, wrapped in mutex */
+void sfu_create_persistent_files();
 void create_filename(char* namebuf, char file_suffix); /* creates filename with appropriate prefix and suffix */
 void sfu_write_fname(char f_suffix, char *fmt, ...); 	/* write printf style data to a file name */
+void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...);
 void sfu_read_fname(char f_suffix, uint8_t* outbuf, uint32_t size);
 void format_entry(char* buf, char *fmt, va_list argptr); /* formats our file entries with timestamp and data */
 void write_fd(spiffs_file fd, char *fmt, ...); 			/* printf style write to an already open file */

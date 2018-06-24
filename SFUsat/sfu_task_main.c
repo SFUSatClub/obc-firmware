@@ -75,11 +75,9 @@ void vMainTask(void *pvParameters) {
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
 	serialSendQ("created queue");
-	logPBISTFails();
-
 
 	// ---------- INIT TESTS ----------
-	flash_erase_chip();
+	//flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
@@ -109,6 +107,9 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
 	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
 
+ /* Startup things that need RTOS */  
+ 
+	logPBISTFails();
 	sfu_startup_logs();
 
 

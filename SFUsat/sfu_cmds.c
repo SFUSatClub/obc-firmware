@@ -14,6 +14,7 @@
 #include "sfu_rtc.h"
 #include "deployables.h"
 #include "sfu_fs_structure.h"
+#include "flash_mibspi.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -124,6 +125,10 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
+								"  reset\n"
+								"    Reset but no erase\n"
+								"  freset\n"
+								"    Reset with erase"
 		},
 		{
 				.subcmd_id	= CMD_DEPLOY,
@@ -138,6 +143,11 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.info		=  "File commands."
 								"  dump\n"
 								"    Dumps a file.\n"
+		},
+		{
+				.subcmd_id	= CMD_RESTART,
+				.name		= "restart",
+				.info		=  "Restart commands\n"
 		}
 };
 
@@ -302,6 +312,10 @@ static const struct subcmd_opt CMD_WD_OPTS[] = {
 				.subcmd_id	= CMD_WD_RESET,
 				.name		= "reset",
 		},
+		{
+				.subcmd_id	= CMD_WD_F_RESET,
+				.name		= "f_reset",
+		},
 };
 
 int8_t cmdWd(const CMD_t *cmd) {
@@ -310,6 +324,14 @@ int8_t cmdWd(const CMD_t *cmd) {
 			vTaskSuspend(xTickleTaskHandle);
 			return 1;
 		}
+		if (cmd->subcmd_id == CMD_WD_F_RESET){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+
 	return 1;
 }
 
@@ -361,6 +383,10 @@ static const struct subcmd_opt CMD_FILE_OPTS[] = {
 				.subcmd_id	= CMD_FILE_SIZE,
 				.name		= "size",
 		},
+		{
+				.subcmd_id	= CMD_FILE_ERASE,
+				.name		= "erase",
+		},
 };
 
 int8_t cmdFile(const CMD_t *cmd) {
@@ -378,6 +404,12 @@ int8_t cmdFile(const CMD_t *cmd) {
 		}
 		if (cmd->subcmd_id == CMD_FILE_SIZE){
 			// todo: snag this from spiffs struct
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_ERASE){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
 			return 1;
 		}
 		else{
@@ -635,6 +667,42 @@ int8_t cmdState(const CMD_t *cmd) {
 	return 0;
 }
 
+
+/**
+ * System restart commands
+ */
+static const struct subcmd_opt CMD_RESTART_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RESTART_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RESTART_ERASE_FILES,
+				.name		= "erase",
+		},
+};
+
+int8_t cmdRestart(const CMD_t *cmd) {
+
+	/* NOTE:
+	 * 	THESE CAUSE A DATA ABORT
+	 * 		- that's why the call is commented out
+	 */
+
+		if (cmd->subcmd_id == CMD_RESTART_NONE){
+//			restart_software();
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_RESTART_ERASE_FILES){
+//			flash_erase_chip();
+//			restart_software();
+			return 1;
+		}
+		else{
+			return 1;
+		}
+}
+
 /**
  * Command table.
  *
@@ -718,6 +786,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdFile,
 				.subcmds		= CMD_FILE_OPTS,
 				.num_subcmds	= LEN(CMD_FILE_OPTS),
+		},
+		{
+				.cmd_id			= CMD_RESTART,
+				.name			= "restart",
+				.func			= cmdRestart,
+				.subcmds		= CMD_RESTART_OPTS,
+				.num_subcmds	= LEN(CMD_RESTART_OPTS),
 		}
 };
 
