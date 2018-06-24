@@ -329,10 +329,10 @@ static void sendPacket(const uint8 *payload, uint8 size){
 	serialSend("TX FIFO_BYTES_AVAILABLE: ");
 	snprintf(buffer, sizeof(buffer), "0x%x", statusByte & FIFO_BYTES_AVAILABLE);
 	serialSendln(buffer);
-		/**
-		 * Strobe a NOP to ensure last operation was a write.
-		 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
-		 */
+	/**
+	 * Strobe a NOP to ensure last operation was a write.
+	 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
+	 */
 	strobe(SNOP);
 	uint8 payload_w_callsign[6 + sizeof(payload)] = {'V', 'A', '7', 'T', 'S', 'N'};
 	uint8 idx1 = 5;
@@ -368,7 +368,7 @@ static uint8 checkRX(){
 		strobe(SFRX);
 	}
 
-	uint8 CRC_status_int = PKTSTATUS && CRC;
+	uint8 CRC_status_int = readRegister(PKTSTATUS) & CRC;
 
 	strobe(SNOP | READ_BIT);
 	serialSend("RX FIFO_BYTES_AVAILABLE: ");

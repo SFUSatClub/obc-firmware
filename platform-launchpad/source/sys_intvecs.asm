@@ -51,7 +51,7 @@
 ; interrupt vectors
 
 resetEntry
-x        b   _c_int00
+        b   _c_int00
 undefEntry
         b   undefEntry
         b   vPortSWI

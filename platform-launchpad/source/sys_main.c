@@ -99,7 +99,7 @@ int main(void)
 /* USER CODE BEGIN (3) */
 //	Notes for launchpad config:
 //	- RA: disabled pretty much anything that deals with the RTC.
-//		- If the RTC is not connected, its assertion w	ill fail, so we don't want it hanging up on that. '
+//		- If the RTC is not connected, its assertion will fail, so we don't want it hanging up on that. '
 //	- Re-introduced previous mod to the linker command file.
 //	- Disabled several of the tasks that currently use the RTC and other HW that won't be connected'
 
