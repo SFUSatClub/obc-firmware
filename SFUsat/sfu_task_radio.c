@@ -211,7 +211,8 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define NUM_TXBYTES			(0b01111111) // TXBYTES Bits 6:0  Number of bytes in TX FIFO.
 #define RXFIFO_OVERFLOW		(0b10000000) // RXBYTES Bits 7    Indicates if RX FIFO has overflowed.
 #define NUM_RXBYTES			(0b01111111) // RXBYTES Bits 6:0  Number of bytes in RX FIFO.
-#define CRC					(0b10000000) // PKTLEN Bit 7	  Indicates if packet is CRC okay.
+#define CRC_OK				(0b10000000) // PKTSTATUS Bit 7	  The last CRC comparison matched. Cleared when entering/restarting RX mode.
+#define PKTSTATUS_CS		(0b01000000) // PKTSTATUS Bit 6   Carrier sense. Cleared when entering IDLE mode.
 
 /**
  * FIFO Buffers (section 10.2, page 32).
@@ -273,8 +274,6 @@ void vRadioTask(void *pvParameters) {
 	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
-	char *txCurrQueuedStr = NULL;
-
 	initRadio();
 
 	strobe(SRX);
@@ -311,19 +310,11 @@ void vRadioTask(void *pvParameters) {
 
 		rfTestSequence();
 
-//		uint8 *stat = readAllStatusRegisters();
-//		serialSend("status registers\n");
-//		int temp = 0;
-//		for ( i = 0; i < NUM_STATUS_REGISTERS; i++ ) {
-//			temp += snprintf(buffer + temp, sizeof(buffer), "%d: %02x\n", i, stat[i]);
-//		}
-//		serialSend(buffer);
-
 		vTaskDelay(pdMS_TO_TICKS(5000)); // do we need this?
 	}
 }
 
-static void sendPacket(const uint8_t *payload, uint8_t size){
+static void sendPacket(const uint8_t *payload, uint8_t size) {
 	char buffer[100] = {'\0'};
 
 	/**
@@ -390,7 +381,7 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 	strobe(STX);
 }
 
-static uint8 checkRX(){
+static uint8 checkRX() {
 	char buffer[100] = {'\0'};
 	strobe(SNOP);
 	if (IS_STATE(STATE_RXFIFO_OVERFLOW)) {
@@ -398,7 +389,7 @@ static uint8 checkRX(){
 		strobe(SFRX);
 	}
 
-	uint8 CRC_status_int = readRegister(PKTSTATUS) & CRC;
+	uint8 CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 
 	strobe(SNOP | READ_BIT);
 	serialSend("RX FIFO_BYTES_AVAILABLE: ");
@@ -411,7 +402,7 @@ static uint8 checkRX(){
 	return readRegister(RXBYTES) && (CRC_status_int);
 }
 
-static void recievePacket(uint8 *payload){
+static void recievePacket(uint8 *payload) {
 	char buffer[100] = {'\0'};
 	uint8 rxbytes = readRegister(RXBYTES);
 	uint8 rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
