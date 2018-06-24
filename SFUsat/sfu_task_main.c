@@ -77,7 +77,7 @@ void vMainTask(void *pvParameters) {
 	serialSendQ("created queue");
 
 	// ---------- INIT TESTS ----------
-	//flash_erase_chip();
+//	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */

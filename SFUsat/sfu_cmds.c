@@ -410,6 +410,7 @@ int8_t cmdFile(const CMD_t *cmd) {
 			serialSendln("Flash erasing");
 			flash_erase_chip();
 			serialSendln("Flash erased");
+			fs_num_increments = 0;
 			return 1;
 		}
 		else{

@@ -75,11 +75,17 @@ void sfu_create_persistent_files();
 void create_filename(char* namebuf, char file_suffix); /* creates filename with appropriate prefix and suffix */
 void sfu_write_fname(char f_suffix, char *fmt, ...); 	/* write printf style data to a file name */
 void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...);
+void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, ...);
 void sfu_read_fname(char f_suffix, uint8_t* outbuf, uint32_t size);
+void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
+void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
+void write_flag_prefix(char input_prefix);
 void format_entry(char* buf, char *fmt, va_list argptr); /* formats our file entries with timestamp and data */
 void write_fd(spiffs_file fd, char *fmt, ...); 			/* printf style write to an already open file */
 void sfu_delete_prefix(const char prefix); 				/* deletes the files with the specified prefix */
 void increment_prefix();
+char read_flag_prefix_noMutex(void);							/* read file prefix we've saved */
+
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */
 
 
