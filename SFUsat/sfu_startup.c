@@ -52,14 +52,14 @@ void logPBISTFails(void){
 	}
 
 	// TODO: Set isFailureDetected to true to test reading flag from flash
-	// isFailureDetected = true;
+//	 isFailureDetected = true;
 
-	char flag_str[] = RESET_FLAG_MSG;
+	uint8_t data[30] = {'\0'};
 
 	if (isFailureDetected) {
 		bool wasReset = false;
-		uint8_t data[50];
-		sfu_read_fname(FSYS_FLAGS, data, 50);
+//		sfu_read_fname(FSYS_FLAGS, data, 50);
+		sfu_read_fname_offset(FSYS_FLAGS, data, RESET_FLAG_LEN + 1, RESET_FLAG_START);
 		uint8_t flag_pbist_val = data[RESET_FLAG_LEN];
 
 		if (flag_pbist_val == '1') {
@@ -67,7 +67,7 @@ void logPBISTFails(void){
 		}
 
 		if (!wasReset) {
-			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, flag_str);
+			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_FLAG_MSG);
 			sfu_write_fname(FSYS_SYS, "PBIST FAILED");
 			restart_software();
 		}

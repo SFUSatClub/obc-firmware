@@ -152,7 +152,7 @@ uint8_t deploy_minusZ(){
 			deploy_current_enable();
 			uint32_t deploy_cnt;
 			for(deploy_cnt = 0; deploy_cnt < DEPLOY_MAX_BURN_SECONDS; deploy_cnt += 15 ){
-				serialSendQ("DEPLOY plusZ working");
+				serialSendQ("DEPLOY minusZ working");
 				vTaskDelay(pdMS_TO_TICKS(15*1000));					/* wait 15 seconds */
 			}
 //			/* while any or both of the deploy sensors are high (not deployed) and timeout has not occurred */

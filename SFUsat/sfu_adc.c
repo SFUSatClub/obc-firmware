@@ -73,7 +73,7 @@ void vADCRead(void *pvParameters) {
 
 		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
 
-		    snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
+		  snprintf(sendBuf, 20,"Current (mA): %d",adc_data[2].value);
 		  serialSendQ(sendBuf);
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
 	}

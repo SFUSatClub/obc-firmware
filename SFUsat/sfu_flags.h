@@ -16,10 +16,14 @@
 #ifndef SFUSAT_SFU_FLAGS_H_
 #define SFUSAT_SFU_FLAGS_H_
 
-#define RESET_FLAG_START 24
-#define RESET_FLAG_MSG	"PBIST_RESET:1"		/* when we reset once we log this */
-#define RESET_CLEAR_MSG	"PBIST_RESET:0"
-#define RESET_FLAG_LEN	RESET_FLAG_START + strlen(RESET_FLAG_MSG) - 1
+#define RESET_FLAG_START 	14
+#define RESET_FLAG_MSG		"PBIST_RESET:1"		/* when we reset once we log this */
+#define RESET_CLEAR_MSG		"PBIST_RESET:0"
+#define RESET_FLAG_LEN		strlen(RESET_FLAG_MSG) - 1
+
+#define PREFIX_FLAG_START 	0
+#define PREFIX_FLAG_BASE	"FSYS_PREFIX:a"		/* when we reset we record this */
+#define PREFIX_FLAG_LEN		strlen(PREFIX_FLAG_BASE) - 1
 
 
 #endif /* SFUSAT_SFU_FLAGS_H_ */
