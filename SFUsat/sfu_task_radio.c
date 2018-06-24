@@ -293,6 +293,10 @@ void vRadioTask(void *pvParameters) {
 		}
 		serialSendln(buffer);
 
+		uint8 regval_txbytes = readRegister(TXBYTES);
+		snprintf(buffer, sizeof(buffer), "TXBYTES VAL at RADIO MAIN = %09x", regval_txbytes);
+		serialSendln(buffer);
+
 		rfTestSequence();
 
 //		uint8 *stat = readAllStatusRegisters();
@@ -620,17 +624,26 @@ static uint8 * readAllStatusRegisters() {
 
 static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
+	uint8 err = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
 		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
 		if(config[i] != regVal){
 			char buffer[30];
 			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
 			serialSendln(buffer);
-			return 1;
+			err = 1;
+			//return 1;
 		}
 		i++;
 	}
-	return 0;
+	if (err != 0){
+		return 1;
+	}
+	else{
+		serialSendln("All REG configs good.");
+		return 0;
+	}
+
 }
 
 static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
