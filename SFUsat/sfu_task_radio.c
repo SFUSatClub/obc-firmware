@@ -252,6 +252,7 @@ static void strobe(uint8 addr);
 static uint8 * readAllStatusRegisters();
 static void rfTestSequence();
 static void printStatusByte();
+void read_RX_FIFO();
 
 //Declarations for RF Interrupt
 SemaphoreHandle_t gioRFSem;
@@ -311,40 +312,54 @@ void vRadioTask(void *pvParameters) {
 	}
 }
 
-static void sendPacket(const uint8 *payload, uint8 size){
-	//need to append Tobi's call sign VA7TSN at front
+static void sendPacket(const uint8_t *payload, uint8_t size){
 	char buffer[100] = {'\0'};
+
+	/**
+	 * Strobe a NOP just to see current status byte.
+	 */
 	strobe(SNOP);
-	uint8 txbytes = readRegister(TXBYTES);
-	uint8 tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
-	uint8 tx_numbytes = txbytes & NUM_TXBYTES;
+	uint8_t txbytes = readRegister(TXBYTES);
+	uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
+	uint8_t tx_numbytes = txbytes & NUM_TXBYTES;
 	snprintf(buffer, sizeof(buffer), "tx_underflowed:%s tx_numbytes:%d", tx_underflowed ? "yes" : "no", tx_numbytes);
 	serialSendln(buffer);
 
+	/**
+	 * Since we just retrieved tx_underflowed from the above TXBYTES register read, the
+	 * following check of bit STATE_TXFIFO_UNDERFLOW in the statusByte response is also equivalent.
+	 */
 	if (IS_STATE(STATE_TXFIFO_UNDERFLOW)) {
 		serialSendln("TX Underflowed; Strobing SFTX...");
 		strobe(SFTX);
 	}
-	strobe(SNOP);
+
 	serialSend("TX FIFO_BYTES_AVAILABLE: ");
 	snprintf(buffer, sizeof(buffer), "0x%x", statusByte & FIFO_BYTES_AVAILABLE);
 	serialSendln(buffer);
+
+	/**
+	 * Append Tobi's call sign VA7TSN at front.
+	 *
+	 * Perform checks to make sure we're copying within both array and ptr bounds.
+	 */
+	uint8_t payload_w_callsign[64] = {'V', 'A', '7', 'T', 'S', 'N'};
+	const uint8_t adjusted_size = sizeof(payload_w_callsign) - 6;
+	const uint8_t max_bytes_to_copy = size < adjusted_size ? size : adjusted_size;
+	/**
+	 * TODO: Restructure code to not allow this to happen.
+	 */
+	if (size > max_bytes_to_copy) {
+		snprintf(buffer, sizeof(buffer), "RF failed to packetize %d bytes", size - max_bytes_to_copy);
+		serialSendln(buffer);
+	}
+	memcpy(payload_w_callsign + 6, payload, max_bytes_to_copy);
+
 	/**
 	 * Strobe a NOP to ensure last operation was a write.
 	 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
 	 */
 	strobe(SNOP);
-	uint8 payload_w_callsign[6 + sizeof(payload)] = {'V', 'A', '7', 'T', 'S', 'N'};
-	uint8 idx1 = 5;
-	uint8 idx2 = 0;
-	for (idx1, idx2; idx1 < sizeof(payload_w_callsign); idx1++, idx2++){
-		payload_w_callsign[idx1] = payload[idx2];
-	}
-//	char callsign[7] = {'V', 'A', '7', 'T', 'S', 'N', '\0'};
-//	char payload_callsign[sizeof(callsign) + sizeof(payload)];
-//	strcpy(payload_callsign, callsign);
-//	strncat(payload_callsign, (char)payload, sizeof(payload_callsign));
-
 	if (writeToTxFIFO(payload_w_callsign, SMARTRF_SETTING_PKTLEN_VAL_TX) == 1) {
 		snprintf(buffer, sizeof(buffer), "%d Bytes Radio TX FIFO written", size);
 		serialSendln(buffer);
@@ -560,8 +575,12 @@ static int writeToTxFIFO(const uint8 *src, uint8 numBytesToWrite) {
 }
 
 /**
- * Reads values from RX FIFO and  them into dest buffer from dest[0] to dest [size - 1].
+ * Reads values from RX FIFO into dest buffer from dest[0] to dest[numBytesToRead - 1].
  *
+ * TODO: Currently the code is always reading register RXBYTES no matter what.
+ * 		 Fix it to use RX's FIFO_BYTES_AVAILABLE first.
+ * 		 See writeToTxFIFO for details.
+ * 		 Basically make the below comment valid again.
  * Assumes last operation was a read (header has R/W bit set to 1); that FIFO_BYTES_AVAILABLE contains number of bytes to read from RX FIFO.
  *
  * @param dest Values read will be stored into this array
@@ -585,13 +604,7 @@ static int readFromRxFIFO(uint8 *dest, uint8 numBytesToRead) {
 static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		char buffer[30];
-		//snprintf(buffer, "addr %02x, config %02x,", SMARTRF_ADDRS[i], config[i]);
 		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
-
-
-		//snprintf(buffer, 30, "new reg content = %02x", readRegister(SMARTRF_ADDRS[i++]));
-		//serialSendln(buffer);
 		i++;
 	}
 }
@@ -652,12 +665,6 @@ static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8
     return checkConfig(SMARTRF_VALS_TX);
 }
 
-static void switchRadioMode(){
-	//
-	serialSendQ("Switch here");
-}
-
-
 void vRFInterruptTask(void *pvParameters){
 	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
 
@@ -702,7 +709,7 @@ void vRFInterruptTask(void *pvParameters){
 	}
 }
 
-void read_RX_FIFO(){
+void read_RX_FIFO() {
 	serialSendln("Reading RX_FIFO");
 	uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
 	uint8 RX_dest[RXBYTES] = { 0 };

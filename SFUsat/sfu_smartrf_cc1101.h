@@ -112,7 +112,7 @@ typedef struct {
 #define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47
 #define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 //sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x1E //62 bytes fixed length packet
+#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x1E //30 bytes fixed length packet
 #define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04 //status byte enabled, no address check
 #define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 //fixed packet length, CRC enabled, use FIFO, no whitening
 #define SMARTRF_SETTING_ADDR_VAL_TX             0x00
