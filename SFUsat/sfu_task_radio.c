@@ -220,12 +220,15 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * FIFO_RX is read-only.
  * Both are accessed through the 0x3F address with appropriate read/write bits set.
  */
-#define PA_TABLE_ADDR (0x3E)
-#define PA_TABLE_SETTING (0x60)
-#define FIFO_TX (0x3F)
-#define FIFO_RX (0x3F)
+#define PA_TABLE_ADDR		(0x3E)
+#define PA_TABLE_SETTING	(0x60)
+#define FIFO_TX				(0x3F)
+#define FIFO_RX				(0x3F)
 
-#define FIFO_LENGTH (64)
+/**
+ * Begin SFUSat-specific symbols.
+ */
+#define FIFO_LENGTH			(64)
 
 //#define pkt_length (30)
 
@@ -235,6 +238,11 @@ QueueHandle_t xRadioTXQueue;
 QueueHandle_t xRadioRXQueue;
 QueueHandle_t xRadioCHIMEQueue;
 
+/**
+ * This global statusByte gets set on each RF SPI transaction.
+ * Used by the IS_STATE(STATE_X) macro.
+ * See "Chip Status Byte Masks" defined above for more information.
+ */
 static uint8 statusByte;
 
 typedef struct RadioDAT {
@@ -253,6 +261,9 @@ static uint8 * readAllStatusRegisters();
 static void rfTestSequence();
 static void printStatusByte();
 void read_RX_FIFO();
+
+#define RF_CALLSIGN			("VA7TSN")
+#define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
 
 //Declarations for RF Interrupt
 SemaphoreHandle_t gioRFSem;
@@ -327,7 +338,10 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 
 	/**
 	 * Since we just retrieved tx_underflowed from the above TXBYTES register read, the
-	 * following check of bit STATE_TXFIFO_UNDERFLOW in the statusByte response is also equivalent.
+	 * following check of bit STATE_TXFIFO_UNDERFLOW in its corresponding statusByte response
+	 * will be the same.
+	 *
+	 * TODO: Potential sanity check with assert(tx_underflowed && IS_STATE(STATE_TXFIFO_UNDERFLOW))
 	 */
 	if (IS_STATE(STATE_TXFIFO_UNDERFLOW)) {
 		serialSendln("TX Underflowed; Strobing SFTX...");
@@ -343,8 +357,9 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 	 *
 	 * Perform checks to make sure we're copying within both array and ptr bounds.
 	 */
-	uint8_t payload_w_callsign[64] = {'V', 'A', '7', 'T', 'S', 'N'};
-	const uint8_t adjusted_size = sizeof(payload_w_callsign) - 6;
+	uint8_t payload_w_callsign[FIFO_LENGTH] = { 0 };
+	strncpy( (char *)payload_w_callsign, RF_CALLSIGN, sizeof(payload_w_callsign) - 1);
+	const uint8_t adjusted_size = sizeof(payload_w_callsign) - RF_CALLSIGN_LEN;
 	const uint8_t max_bytes_to_copy = size < adjusted_size ? size : adjusted_size;
 	/**
 	 * TODO: Restructure code to not allow this to happen.
@@ -353,7 +368,7 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 		snprintf(buffer, sizeof(buffer), "RF failed to packetize %d bytes", size - max_bytes_to_copy);
 		serialSendln(buffer);
 	}
-	memcpy(payload_w_callsign + 6, payload, max_bytes_to_copy);
+	memcpy(payload_w_callsign + RF_CALLSIGN_LEN, payload, max_bytes_to_copy);
 
 	/**
 	 * Strobe a NOP to ensure last operation was a write.
@@ -446,38 +461,6 @@ static void rfTestSequence() {
 	}
 }
 
-// TX task
-void vRadioTX(void *pvParameters) {
-	RadioDAT_t Radio_container;
-	Radio_container.srcsz = 100;
-	uint8 idx = 0;
-	for (idx = 0; idx < Radio_container.srcsz; idx++){
-		Radio_container.srcdat[idx] = idx;
-	}
-
-	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	//initialize radio herehello
-
-
-
-	if (!writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz)){
-		//error
-	}
-
-
-	//writeToTxFIFO(*(Radio_container*)pvParameters.srcdat, *(Radio_container*)pvParameters.srcsz);
-
-
-	// how does pvparameters work?
-
-	uint8 txsize = 10;
-	uint8 txsrc[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-	writeToTxFIFO(txsrc, txsize);
-	strobe(STX);
-	//TODO: check last packet was transmitted
-
-}
-
 static uint8 readRegister(uint8 addr) {
 	uint16 src[] = {addr | READ_BIT, 0x00};
 	uint16 dest[] = {0x00, 0x00};
@@ -546,7 +529,7 @@ static int writeToTxFIFO(const uint8 *src, uint8 numBytesToWrite) {
 			if (numBytesAvailInFIFO & TXFIFO_UNDERFLOW) {
 				return -1;
 			}
-			numBytesAvailInFIFO = 64 - (numBytesAvailInFIFO & NUM_TXBYTES);
+			numBytesAvailInFIFO = FIFO_LENGTH - (numBytesAvailInFIFO & NUM_TXBYTES);
 			/**
 			 * Now numBytesAvailInFIFO is number of bytes currently in RF TX FIFO.
 			 */
@@ -604,7 +587,7 @@ static int readFromRxFIFO(uint8 *dest, uint8 numBytesToRead) {
 static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+		writeRegister(SMARTRF_ADDRS[i], config[i]);
 		i++;
 	}
 }
