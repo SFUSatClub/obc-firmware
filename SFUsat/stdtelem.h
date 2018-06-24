@@ -53,6 +53,8 @@ typedef struct stdtelem{
 	int16_t obc_temp;
 	int16_t lb_temp;
 	int16_t ub_temp;
+	uint16_t ramoccur_1;
+	uint16_t ramoccur_2;
 } stdtelem_t;
 
 
@@ -70,7 +72,6 @@ extern TaskHandle_t xgeneralTelemTaskHandle;
 extern TaskHandle_t xobcCurrentTelemTaskHandle;
 extern TaskHandle_t xtemperatureTelemTaskHandle;
 extern TaskHandle_t xTransmitTelemTaskHandle;
-
 
 /* convenience */
 uint32_t getStdTelemDelay(uint8_t telemIndex);

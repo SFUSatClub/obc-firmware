@@ -19,6 +19,7 @@
 #include "stlm75.h"
 #include "stdtelem.h"
 #include "sfu_fs_structure.h"
+#include "reg_tcram.h"
 
 telem_config_t telemConfig[NUM_TELEM_POINTS];
 stdtelem_t stdTelem;
@@ -44,6 +45,11 @@ void generalTelemTask(void *pvParameters){
 		stdTelem.min_heap = xPortGetMinimumEverFreeHeapSize();
 		stdTelem.fs_free_blocks = fs.free_blocks;
 		stdTelem.fs_prefix = *(char *) fs.user_data;
+		stdTelem.ramoccur_1 = tcram1REG->RAMOCCUR;
+		stdTelem.ramoccur_2 = tcram2REG->RAMOCCUR;
+
+		sfu_write_fname(FSYS_SYS, "R1: %i", stdTelem.ramoccur_1);
+		sfu_write_fname(FSYS_SYS, "R2: %i", stdTelem.ramoccur_2);
 	}
 }
 
@@ -138,9 +144,11 @@ void transmitTelemUART(void *pvParameters){
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
 		clearBuf(buf, 50);
 
-		snprintf(buf, 49, "S3,%i,%i",
+		snprintf(buf, 49, "S3,%i,%i,%i,%i",
 				stdTelem.lb_temp,
-				stdTelem.ub_temp
+				stdTelem.ub_temp,
+				stdTelem.ramoccur_1,
+				stdTelem.ramoccur_2
 		);
 		serialSendQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete

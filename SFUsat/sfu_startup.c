@@ -17,7 +17,8 @@
 #include "sfu_uart.h"
 #include "sfu_utils.h"
 #include "sfu_flags.h"
-
+#include "flash_mibspi.h"
+ 
 Startup_Data_t startData;
 
 void startupInit(){
@@ -186,4 +187,17 @@ void sfu_saveTestComplete(int8_t testNum)
 void sfu_saveTestFailed(int8_t testNum)
 {
 	canREG1->IF1DATx[1U] = canREG1->IF1DATx[1U] | (1U << testNum);
+}
+
+void sfu_startup_logs(void){
+	/* See if we get JEDEC	 */
+	if(flash_test_JEDEC()){
+		sfu_write_fname(FSYS_SYS, "FLASH GOOD");
+	} else{
+		sfu_write_fname(FSYS_SYS, "NO FLASH");
+	}
+
+	/* log reason for reset */
+	sfu_write_fname(FSYS_SYS, "%s", STARTUP_STRING[startData.resetSrc]);
+
 }
