@@ -92,6 +92,7 @@
 
 #define CMD_WD_NONE 		0x00
 #define CMD_WD_RESET 		0x02
+#define	CMD_WD_F_RESET		0x04
 
 #define CMD_DEPLOY_NONE		0x00
 #define CMD_DEPLOY_DISARM 	0x02

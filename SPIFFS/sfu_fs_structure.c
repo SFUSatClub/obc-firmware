@@ -99,6 +99,9 @@ void vFilesystemLifecycleTask(void *pvParameters) {
 	while (1) {
 		if(fs_num_increments == 0){
 			sfusat_spiffs_init();
+			// attempt to read from flag file
+			// if it succeeds, read off the fsys prefix
+			// if it fails, create it and set to A
 			sfu_create_files_wrapped();
 			fs_test_tasks();
 		}
@@ -277,8 +280,8 @@ void sfu_create_files() {
 void sfu_create_files_wrapped(){
 	/* Simply a wrapper around create files. We don't want to try to write while we're creating new files */
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		sfu_create_files();
 		sfu_create_persistent_files();
+		sfu_create_files();
 		xSemaphoreGive(spiffsTopMutex);
 	} else {
 		serialSendQ("FCnm");
@@ -298,14 +301,26 @@ void sfu_create_persistent_files() {
 
 	// Create file to contain flags information
 	create_filename(nameBuf, (char) (FSYS_FLAGS));
+	fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDWR, 0); /* attempt to open */
 
-	fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_RDWR, 0); // create file with appropriate name
-
-	if (fd < 0) { // check that the create worked
-		snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
-		serialSendQ(genBuf);
-	} else { // write to it
+	if (fd < 0) {
+		/* doesn't already exist, so create it */
+		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_CREAT | SPIFFS_RDWR, 0); // create file with appropriate name
+		if(fd < 0){
+			/* uh oh. some sort of error and we're hosed */
+			snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
+			serialSendQ(genBuf);
+		} else{
+			/* created ok */
+			snprintf(genBuf, 20, "Create Flags", SPIFFS_errno(&fs));
+			serialSendQ(genBuf);
+			// TODO: write prefix a
+		}
+	} else {
+		/* already existed */
 		write_fd(fd, "Created"); // first entry is creation time
+		serialSendQ("Detected flag file");
+		// read off the prefix to use
 	}
 
 	if (SPIFFS_close(&fs, fd) < 0) {

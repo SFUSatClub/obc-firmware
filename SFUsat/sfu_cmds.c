@@ -125,6 +125,10 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
+								"  reset\n"
+								"    Reset but no erase\n"
+								"  freset\n"
+								"    Reset with erase"
 		},
 		{
 				.subcmd_id	= CMD_DEPLOY,
@@ -308,6 +312,10 @@ static const struct subcmd_opt CMD_WD_OPTS[] = {
 				.subcmd_id	= CMD_WD_RESET,
 				.name		= "reset",
 		},
+		{
+				.subcmd_id	= CMD_WD_F_RESET,
+				.name		= "f_reset",
+		},
 };
 
 int8_t cmdWd(const CMD_t *cmd) {
@@ -316,6 +324,14 @@ int8_t cmdWd(const CMD_t *cmd) {
 			vTaskSuspend(xTickleTaskHandle);
 			return 1;
 		}
+		if (cmd->subcmd_id == CMD_WD_F_RESET){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+
 	return 1;
 }
 
@@ -662,18 +678,24 @@ static const struct subcmd_opt CMD_RESTART_OPTS[] = {
 		},
 		{
 				.subcmd_id	= CMD_RESTART_ERASE_FILES,
-				.name		= "erase_files",
+				.name		= "erase",
 		},
 };
 
 int8_t cmdRestart(const CMD_t *cmd) {
+
+	/* NOTE:
+	 * 	THESE CAUSE A DATA ABORT
+	 * 		- that's why the call is commented out
+	 */
+
 		if (cmd->subcmd_id == CMD_RESTART_NONE){
-			restart_software();
+//			restart_software();
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_RESTART_ERASE_FILES){
-			flash_erase_chip();
-			restart_software();
+//			flash_erase_chip();
+//			restart_software();
 			return 1;
 		}
 		else{
