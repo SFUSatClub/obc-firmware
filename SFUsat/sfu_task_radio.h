@@ -14,10 +14,6 @@
 
 void vRadioTask( void *pvParameters );
 
-void vRadioRX(void *pvParameters);
-void vRadioTX(void *pvParameters);
-void vRadioCHIME(void *pvParameters);
-
 BaseType_t initRadio();
 static int writeToTxFIFO(const uint8 *src, uint8 size);
 static void gio_rf_interrupt_init(void);

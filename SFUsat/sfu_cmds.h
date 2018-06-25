@@ -68,6 +68,7 @@
 
 #define CMD_RF_NONE			0x00
 #define CMD_RF_TX			0x02
+#define CMD_RF_LOOPBACK		0x04
 
 #define CMD_TASK_NONE		0x00
 #define CMD_TASK_CREATE		0x02
