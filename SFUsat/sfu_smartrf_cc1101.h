@@ -106,7 +106,7 @@ typedef struct {
 
 
 // TX
-#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x5C //on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
+#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C //on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
 #define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2e
 #define SMARTRF_SETTING_IOCFG0_VAL_TX           0x06 //01 RX 06 TX//Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
 #define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47

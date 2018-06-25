@@ -247,8 +247,9 @@ QueueHandle_t xRadioCHIMEQueue;
 static uint8 statusByte;
 
 typedef struct RadioDAT {
-	uint8 srcsz;
-	uint8_t data[128];
+	uint8_t unused;
+	uint8_t size;
+	uint8_t data[256];
 } RadioDAT_t;
 
 
@@ -262,6 +263,7 @@ static uint8 * readAllStatusRegisters();
 static void rfTestSequence();
 static void printStatusByte();
 void read_RX_FIFO();
+static void sendPacket(const uint8_t *payload, uint8_t size);
 
 #define RF_CALLSIGN			("VA7TSN")
 #define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
@@ -271,7 +273,7 @@ SemaphoreHandle_t gioRFSem;
 TaskHandle_t xRFInterruptTaskHandle;
 
 void vRadioTask(void *pvParameters) {
-	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	xRadioTXQueue = xQueueCreate(30, sizeof(RadioDAT_t));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 
 	initRadio();
@@ -304,13 +306,14 @@ void vRadioTask(void *pvParameters) {
 		}
 		serialSendln(buffer);
 
-		uint8 regval_txbytes = readRegister(TXBYTES);
-		snprintf(buffer, sizeof(buffer), "TXBYTES VAL at RADIO MAIN = %09x", regval_txbytes);
-		serialSendln(buffer);
-
 		rfTestSequence();
 
-		vTaskDelay(pdMS_TO_TICKS(5000)); // do we need this?
+		RadioDAT_t currQueuedPacket;
+		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(5000)) == pdPASS) {
+			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x from xRadioTXQueue", currQueuedPacket.unused);
+			serialSendln(buffer);
+			sendPacket(currQueuedPacket.data, currQueuedPacket.size);
+		}
 	}
 }
 
@@ -600,13 +603,6 @@ static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	}
 }
 
-static void readAllConfigRegisters() {
-	uint8 i = 0;
-	while (i < NUM_CONFIG_REGISTERS) {
-		readRegister(SMARTRF_ADDRS[i++]);
-	}
-}
-
 static uint8 * readAllStatusRegisters() {
 	static uint8 contents[NUM_STATUS_REGISTERS];
 	contents[0] = readRegister(PARTNUM);
@@ -626,31 +622,27 @@ static uint8 * readAllStatusRegisters() {
 	return contents;
 }
 
-static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
-	uint8 i = 0;
-	uint8 err = 0;
+static int checkConfig(const uint16_t config[NUM_CONFIG_REGISTERS]) {
+	uint8_t i = 0;
+	uint8_t err = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		uint8_t regVal = readRegister(SMARTRF_ADDRS[i]);
 		if(config[i] != regVal){
 			char buffer[30];
 			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
 			serialSendln(buffer);
 			err = 1;
-			//return 1;
 		}
 		i++;
 	}
-	if (err != 0){
+	if (err) {
 		return 1;
 	}
-	else{
-		serialSendln("All REG configs good.");
-		return 0;
-	}
-
+	serialSendln("All REG configs good");
+	return 0;
 }
 
-static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+static int configureRadio(const uint16_t config[NUM_CONFIG_REGISTERS], const uint8_t PA_TABLE) {
     writeAllConfigRegisters(SMARTRF_VALS_TX);
     writeRegister(PA_TABLE_ADDR, PA_TABLE);
     return checkConfig(SMARTRF_VALS_TX);
@@ -756,7 +748,7 @@ BaseType_t initRadio() {
      * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
-    spiDataConfig.CSNR = RF_CONFIG_CSNR;
+    spiDataConfig.CSNR = RF_CONFIG_CS_UB;
 
     uint8 *stat = readAllStatusRegisters();
     char buffer[30];
