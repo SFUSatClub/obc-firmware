@@ -12,6 +12,9 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "deployables.h"
+#include "sfu_fs_structure.h"
+#include "flash_mibspi.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -52,7 +55,10 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  task  -- Task-related commands\n"
 							  "  sched -- Schedule-related commands\n"
 							  "  state -- State-related commands\n"
-							  "  ack   -- Acks."
+							  "  ack   -- Acks.\n"
+						      "  wd    -- Disable watchdog.\n"
+						      "  deploy -- Inhibit deployment.\n"
+						      "  file   -- File-related commands\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_GET,
@@ -108,11 +114,41 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "    Set the current state\n"
 							  "  prev\n"
 							  "    Show previous state\n"
+							  "  entry\n"
+							  "    Show time we entered current state\n"
 		},
 		{
 				.subcmd_id	= CMD_ACK,
 				.name		= "Ack",
 				.info		= "acks. "
+		},
+		{
+				.subcmd_id	= CMD_WD,
+				.name		= "wd",
+				.info		= "Suspends watchdog tickle tasks.\n"
+								"  reset\n"
+								"    Reset but no erase\n"
+								"  freset\n"
+								"    Reset with erase"
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY,
+				.name		= "deploy",
+				.info		=  "Deployment disable command."
+								"  disarm\n"
+								"    Disarm deployment\n"
+		},
+		{
+				.subcmd_id	= CMD_FILE,
+				.name		= "file",
+				.info		=  "File commands."
+								"  dump\n"
+								"    Dumps a file.\n"
+		},
+		{
+				.subcmd_id	= CMD_RESTART,
+				.name		= "restart",
+				.info		=  "Restart commands\n"
 		}
 };
 int8_t cmdHelp(const CMD_t *cmd) {
@@ -290,8 +326,125 @@ int8_t cmdAck(const CMD_t *cmd) {
 			serialSendQ("Ack!");
 			return 1;
 		}
-
 	return 0;
+}
+
+/**
+ * Watchdog command
+ */
+static const struct subcmd_opt CMD_WD_OPTS[] = {
+		{
+				.subcmd_id	= CMD_WD_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_WD_RESET,
+				.name		= "reset",
+		},
+		{
+				.subcmd_id	= CMD_WD_F_RESET,
+				.name		= "f_reset",
+		},
+};
+
+int8_t cmdWd(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_WD_RESET){
+			serialSendQ("Suspending watchdog task!");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_WD_F_RESET){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+
+	return 1;
+}
+
+/**
+ * Deployables commands
+ */
+static const struct subcmd_opt CMD_DEPLOY_OPTS[] = {
+		{
+				.subcmd_id	= CMD_DEPLOY_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY_DISARM,
+				.name		= "disarm",
+		},
+};
+
+int8_t cmdDeploy(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_DEPLOY_DISARM){
+			deploy_inhibit();
+			return 1;
+		}
+		else{
+			return 1;
+		}
+}
+
+/**
+ * File System commands
+ */
+static const struct subcmd_opt CMD_FILE_OPTS[] = {
+		{
+				.subcmd_id	= CMD_FILE_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_FILE_DUMP,
+				.name		= "dump",
+		},
+		{
+				.subcmd_id	= CMD_FILE_CDUMP,
+				.name		= "dumpc",
+		},
+		{
+				.subcmd_id	= CMD_FILE_CPREFIX,
+				.name		= "cprefix",
+		},
+		{
+				.subcmd_id	= CMD_FILE_SIZE,
+				.name		= "size",
+		},
+		{
+				.subcmd_id	= CMD_FILE_ERASE,
+				.name		= "erase",
+		},
+};
+
+int8_t cmdFile(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_FILE_DUMP){
+			dumpFile(cmd->cmd_file_data.prefix, cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CDUMP){
+			dumpFile(currentPrefix(), cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CPREFIX){
+			serialSendln((const char*)currentPrefix());
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_SIZE){
+			// todo: snag this from spiffs struct
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_ERASE){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			fs_num_increments = 0;
+			return 1;
+		}
+		else{
+			return 1;
+		}
 }
 
 /**
@@ -481,6 +634,10 @@ static const struct subcmd_opt CMD_STATE_OPTS[] = {
 				.subcmd_id	= CMD_STATE_PREV,
 				.name		= "prev",
 		},
+		{
+				.subcmd_id	= CMD_STATE_ENTRY,
+				.name		= "entry",
+		},
 };
 int8_t cmdState(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
@@ -528,9 +685,52 @@ int8_t cmdState(const CMD_t *cmd) {
 			printPrevState(cur_state,&state_persistent_data);
 			return 1;
 		}
+		/*
+		 * Return the time we entered the current state
+		 */
+		case CMD_STATE_ENTRY: {
+			printStateEntryTime();
+			return 1;
+		}
 	}
 
 	return 0;
+}
+
+
+/**
+ * System restart commands
+ */
+static const struct subcmd_opt CMD_RESTART_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RESTART_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RESTART_ERASE_FILES,
+				.name		= "erase",
+		},
+};
+
+int8_t cmdRestart(const CMD_t *cmd) {
+
+	/* NOTE:
+	 * 	THESE CAUSE A DATA ABORT
+	 * 		- that's why the call is commented out
+	 */
+
+		if (cmd->subcmd_id == CMD_RESTART_NONE){
+//			restart_software();
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_RESTART_ERASE_FILES){
+//			flash_erase_chip();
+//			restart_software();
+			return 1;
+		}
+		else{
+			return 1;
+		}
 }
 
 /**
@@ -596,6 +796,34 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdAck,
 				.subcmds		= NULL,
 				.num_subcmds	= 0,
+		},
+		{
+				.cmd_id			= CMD_WD,
+				.name			= "wd",
+				.func			= cmdWd,
+				.subcmds		= CMD_WD_OPTS,
+				.num_subcmds	= LEN(CMD_WD_OPTS),
+		},
+		{
+				.cmd_id			= CMD_DEPLOY,
+				.name			= "deploy",
+				.func			= cmdDeploy,
+				.subcmds		= CMD_DEPLOY_OPTS,
+				.num_subcmds	= LEN(CMD_DEPLOY_OPTS),
+		},
+		{
+				.cmd_id			= CMD_FILE,
+				.name			= "file",
+				.func			= cmdFile,
+				.subcmds		= CMD_FILE_OPTS,
+				.num_subcmds	= LEN(CMD_FILE_OPTS),
+		},
+		{
+				.cmd_id			= CMD_RESTART,
+				.name			= "restart",
+				.func			= cmdRestart,
+				.subcmds		= CMD_RESTART_OPTS,
+				.num_subcmds	= LEN(CMD_RESTART_OPTS),
 		}
 };
 

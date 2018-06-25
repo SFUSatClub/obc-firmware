@@ -10,8 +10,10 @@
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
 #include "adc.h"
+#include "sfu_state.h"
+#include "sfusat_spiffs.h"
+#include "stlm75.h"
 
-QueueHandle_t xQueue;
 QueueHandle_t xSerialTXQueue;
 QueueHandle_t xSerialRXQueue;
 
@@ -25,36 +27,6 @@ void blinky(void *pvParameters) { // blinks LED at 10Hz
 }
 
 
-void vADCRead(void *pvParameters) {
-	// TODO: this task should start a conversion of group 1 (will read ADC channel 2 for starters)
-	// TODO: instead of waiting for the conversion to complete, add a semaphore from the ISR callback (adc1Group1Interrupt)
-	// this task would start conversion, suspend and wait for semaphore (xsemaphoretake). When the semaphore is raised (given) in adc1Group1Interrupt,
-	// it means the conversion is done. This task will take the semaphore back, then grab the data as we do now.
-	// With the data, create a new task and get the data into the task. - task notification, task param, queue, etc.
-	// In the new task, print out the data received.
-	// This is a lot of stuff, but it mimics what we will eventually need to do - call tasks to write data out to flash and save it.
-	// Chapter 6: https://www.freertos.org/Documentation/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
-	// Note in this example we just run the function from the test. Normally we'd have the code in here, not call a far away function
-
-
-	while (1) {
-		adcData_t adc_data[24]; // there are 24 channels
-		char sendBuf[20];
-		// start conversion (it's inside test_adc)
-		// take a semaphore here
-
-		adcStartConversion(adcREG1, adcGROUP1); // sample all channels on ADC1
-		while ((adcIsConversionComplete(adcREG1, adcGROUP1)) == 0); // wait for conversion to complete.
-		adcGetData(adcREG1, adcGROUP1, &adc_data[0]); //
-
-		// if we get here, semaphore is taken, so we have data and can now print/send to other tasks
-
-		snprintf(sendBuf, 20, "Current (mA): %d", adc_data[2].value);
-		//serialSendQ(sendBuf);
-		vTaskDelay(pdMS_TO_TICKS(2000)); // check every 2s
-	}
-}
-
 
 void vStateTask(void *pvParameters) {
 	while (1){
@@ -62,6 +34,7 @@ void vStateTask(void *pvParameters) {
 		vTaskDelay(pdMS_TO_TICKS(2000)); // check state every 2s
 	}
 }
+
 
 
 /**
@@ -157,97 +130,12 @@ void vSerialTask(void *pvParameters) {
 
 	}
 }
-// to send long strings?
-void vSerialSenderTask(void *pvParameters) {
-	while (1) {
 
-	}
-}
-
-void periodicSenderTask(void *pvParameters) { // uses the task parameter to delay itself at a different frequency. Creates UART sender tasks to send whether it was a frequent or infrequent call.
-	serialSendQ("periodic: started");
-	while (1) {
-		uint32_t delayInput = (uint32_t) pvParameters;
-		if (delayInput > 4000) {
-			xTaskCreate(vSenderTask, "SenderInfreq", 100, (void *) "SenderInfreq", 1, NULL);
-		} else {
-			xTaskCreate(vSenderTask, "SenderFreq", 100, (void *) "SenderFreq", 1, NULL);
-		}
-		vTaskDelay(pdMS_TO_TICKS(delayInput)); // delay a certain time. Use the macro
-	}
-}
-
-const size_t MAX_STR_SIZE = 20;
-void vSenderTask(void *pvParameters) {
-	char *toSend = (char *) pvParameters;
-
-	for (;;) {
-		/* Send the value to the queue.
-		 The first parameter is the queue to which data is being sent. The
-		 queue was created before the scheduler was started, so before this task
-		 started to execute.
-		 The second parameter is the address of the data to be sent, in this case
-		 the address of lValueToSend.
-		 The third parameter is the Block time – the time the task should be kept
-		 in the Blocked state to wait for space to become available on the queue
-		 should the queue already be full. In this case a block time is not
-		 specified because the queue should never contain more than one item, and
-		 therefore never be full. */
-		//  xStatus = xQueueSendToBack( xQueue, &toSend, 0 );
-		if (xQueueSendToBack( xQueue, &toSend, 0 ) != pdPASS) {
-			/* The send operation could not complete because the queue was full -
-			 this must be an error as the queue should never contain more than
-			 one item! */
-			serialSendQ("Could not send to the queue.");
-		} else {
-		}
-		vTaskDelete( NULL); // once complete, delete the current instance of the task.
-	}
-}
-
-// gets called whenever a new value is placed in the queue (the transmit queue for the UART). Uses existing non-RTOS save UART driver to send queue values out.
-void vReceiverTask(void *pvParameters) {
-	serialSendQ("receiver: started");
-	/* Declare the variable that will hold the values received from the queue. */
-	char * receivedVal;
-	BaseType_t xStatus;
-	const TickType_t xTicksToWait = pdMS_TO_TICKS(100);
-	/* This task is also defined within an infinite loop. */
-	for (;;) {
-		/* This call should always find the queue empty because this task will
-		 immediately remove any data that is written to the queue. */
-		if (uxQueueMessagesWaiting(xQueue) != 0) {
-			serialSendQ("Queue should have been empty!");
-		}
-		/* Receive data from the queue.
-		 The first parameter is the queue from which data is to be received. The
-		 queue is created before the scheduler is started, and therefore before this
-		 task runs for the first time.
-		 The second parameter is the buffer into which the received data will be
-		 placed. In this case the buffer is simply the address of a variable that
-		 has the required size to hold the received data.
-		 The last parameter is the block time – the maximum amount of time that the
-		 task will remain in the Blocked state to wait for data to be available
-		 should the queue already be empty. */
-		xStatus = xQueueReceive(xQueue, &receivedVal, xTicksToWait);
-		if (xStatus == pdPASS) {
-			/* Data was successfully received from the queue, print out the received value. */
-			serialSendQ(receivedVal);
-		}
-	}
-}
-
-void vTickleTask(void *pvParameters){
-	for (;;){
-		//serialSendQ("tickle");
+void vExternalTickleTask(void *pvParameters){
+	while(1){
 		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 1);
 		vTaskDelay(1); // delay 1ms
 		gioSetBit(WATCHDOG_TICKLE_PORT, WATCHDOG_TICKLE_PIN, 0);
-		vTaskDelay(500); // repeat this cycle every 500ms
+		vTaskDelay(400); // repeat this cycle every 400ms
 	}
 }
-
-void vMonitorTask(void *pvParameters){
-	serialSendQ("Chip is being reset.");
-}
-

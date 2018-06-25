@@ -7,12 +7,18 @@
  * the system performs self tests and clears out the RAM.
  *
  *  Created on: Aug 27, 2017
- *      Author: Richard
+ *      Author: Lana, Richard
  */
 
+#include "can.h"
+#include "reg_system.h"
+#include "sfu_fs_structure.h"
 #include "sfu_startup.h"
 #include "sfu_uart.h"
-
+#include "sfu_utils.h"
+#include "sfu_flags.h"
+#include "flash_mibspi.h"
+ 
 Startup_Data_t startData;
 
 void startupInit(){
@@ -21,6 +27,56 @@ void startupInit(){
 
 void printStartupType(void){
 	serialSendln(STARTUP_STRING[startData.resetSrc]); // print the type of reset that was triggered.
+}
+
+/* logPBISTFails
+ * 	- we can't easily save PBIST into a variable since RAM gets wiped out
+ * 	- so we keep PBIST fails in the CAN register since we're not otherwise using it
+ * 	- if any failures have been caught, log them
+ * 	- upon PBIST fail detect, reset once (logging each time)
+ */
+void logPBISTFails(void){
+	bool isFailureDetected = false;
+	volatile uint8_t pbistComplete = canREG1->IF1DATx[0U];
+	volatile uint8_t pbistFailed = canREG1->IF1DATx[1U];
+	uint8_t i;
+	for (i = 0U; i < 8U; i++)
+	{
+		bool bitComplete = (pbistComplete >> i) & 1U;
+		bool bitFailed = (pbistFailed >> i) & 1U;
+		if (bitComplete && bitFailed)
+		{
+			sfu_write_fname(FSYS_ERROR, "Failed PBIST #%i", i);
+			isFailureDetected = true;
+		}
+	}
+
+	// TODO: Set isFailureDetected to true to test reading flag from flash
+//	 isFailureDetected = true;
+
+	uint8_t data[30] = {'\0'};
+
+	if (isFailureDetected) {
+		bool wasReset = false;
+//		sfu_read_fname(FSYS_FLAGS, data, 50);
+		sfu_read_fname_offset(FSYS_FLAGS, data, RESET_FLAG_LEN + 1, RESET_FLAG_START);
+		uint8_t flag_pbist_val = data[RESET_FLAG_LEN];
+
+		if (flag_pbist_val == '1') {
+			wasReset = true;
+		}
+
+		if (!wasReset) {
+			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_FLAG_MSG);
+			sfu_write_fname(FSYS_SYS, "PBIST FAILED");
+			restart_software();
+		}
+	} else{
+		/* zero out the reset flag so it can be used next time */
+		serialSendln("NO PBIST FAILS");
+		sfu_write_fname(FSYS_SYS, "PBIST FAILS: NONE");
+		sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_CLEAR_MSG);
+	}
 }
 
 void startupCheck(void){
@@ -124,3 +180,24 @@ void startupCheck(void){
 	}
 }
 
+void sfu_saveTestComplete(int8_t testNum)
+{
+	canREG1->IF1DATx[0U] = canREG1->IF1DATx[0U] | (1U << testNum);
+}
+void sfu_saveTestFailed(int8_t testNum)
+{
+	canREG1->IF1DATx[1U] = canREG1->IF1DATx[1U] | (1U << testNum);
+}
+
+void sfu_startup_logs(void){
+	/* See if we get JEDEC	 */
+	if(flash_test_JEDEC()){
+		sfu_write_fname(FSYS_SYS, "FLASH GOOD");
+	} else{
+		sfu_write_fname(FSYS_SYS, "NO FLASH");
+	}
+
+	/* log reason for reset */
+	sfu_write_fname(FSYS_SYS, "%s", STARTUP_STRING[startData.resetSrc]);
+
+}
