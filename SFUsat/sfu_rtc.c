@@ -99,7 +99,7 @@ void rtcInit() {
 
 	gioSetBit(RTC_CS_PORT, RTC_CS_PIN, 0); // using PA1 as the CS line since the RTC wants active HIGH CS. Hercules won't let us change CS polarity, which is why we need to do it with GIO.
 
-	rtcReset(); // zero out the time and everything
+//	rtcReset(); // zero out the time and everything
 
 	// rudimentary checking and time reset on extended power loss
 	if (rtcGetBit(CTRL_STATUS, PON_REG)) { // this means we are powering up first time, or time info is otherwise corrupted
