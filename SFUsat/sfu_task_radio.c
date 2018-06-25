@@ -248,7 +248,7 @@ static uint8 statusByte;
 
 typedef struct RadioDAT {
 	uint8 srcsz;
-	uint8 srcdat[100];
+	uint8_t data[128];
 } RadioDAT_t;
 
 
@@ -381,15 +381,23 @@ static void sendPacket(const uint8_t *payload, uint8_t size) {
 	strobe(STX);
 }
 
-static uint8 checkRX() {
+/**
+ * TODO: Establish if we should really structure things like this (make a separate checkRX instead of just merging with
+ * receivePacket)
+ */
+static uint8_t checkRX() {
 	char buffer[100] = {'\0'};
 	strobe(SNOP);
 	if (IS_STATE(STATE_RXFIFO_OVERFLOW)) {
-		serialSendln("RX Underflowed; Strobing SFRX...");
+		serialSendln("RX Overflowed; Reading out useful data, then strobing SFRX...");
+		/**
+		 * TODO: This strobe will just delete everything from the RX FIFO and make subsequent call to receivePacket fail.
+		 * Handle overflow properly.
+		 */
 		strobe(SFRX);
 	}
 
-	uint8 CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
+	uint8_t CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 
 	strobe(SNOP | READ_BIT);
 	serialSend("RX FIFO_BYTES_AVAILABLE: ");
@@ -399,18 +407,27 @@ static uint8 checkRX() {
 	snprintf(buffer, sizeof(buffer), "Packet CRC is... %s ", CRC_status_int ? "OK!" : "BAD!");
 	serialSendln(buffer);
 
+	/**
+	 * TODO: Fix below meaningless readRegister
+	 */
 	return readRegister(RXBYTES) && (CRC_status_int);
 }
 
-static void recievePacket(uint8 *payload) {
+/**
+ * TODO: Do we want to receive one full "packet" first? I.e., only start reading from RX FIFO if rx_numbytes > packetsize ?
+ * Or should we read everything we can and buffer a full packet on our end?
+ *
+ * 		- Strip off the callsign.
+ */
+static void receivePacket(uint8_t *destPayload) {
 	char buffer[100] = {'\0'};
-	uint8 rxbytes = readRegister(RXBYTES);
-	uint8 rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
-	uint8 rx_numbytes = rxbytes & NUM_RXBYTES;
+	uint8_t rxbytes = readRegister(RXBYTES);
+	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
 	snprintf(buffer, sizeof(buffer), "rx_overflowed:%s rx_numbytes:%d", rx_overflowed ? "yes" : "no", rx_numbytes);
 	serialSendln(buffer);
-	if(readFromRxFIFO(payload, rxbytes) == 1) {
-		snprintf(buffer, sizeof(buffer), "Read %d bytes from RX FIFO", rxbytes);
+	if(readFromRxFIFO(destPayload, rx_numbytes) == 1) {
+		snprintf(buffer, sizeof(buffer), "Read %d bytes from RX FIFO", rx_numbytes);
 	 	serialSendln(buffer);
 	} else {
 	  	serialSendln("Failed to read from RX FIFO");
@@ -442,11 +459,11 @@ static void rfTestSequence() {
 
 	//TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
-	uint8 recieved[SMARTRF_SETTING_PKTLEN_VAL_TX]={0};
+	uint8 received[SMARTRF_SETTING_PKTLEN_VAL_TX] = { 0 };
 	if(checkRX()){
-		recievePacket(recieved);
+		receivePacket(received);
 		for (i = 0; i < SMARTRF_SETTING_PKTLEN_VAL_TX; i++) {
-		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, recieved[i]);
+		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, received[i]);
 		  	serialSendln(buffer);
 		}
 	}
