@@ -156,3 +156,139 @@ int16_t sfu_reset_i2c(i2cBASE_t *i2c){
 	// todo: log error, i2c was reset
     return I2C_OK;
 }
+
+/** @fn void i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data)
+*   @brief Send Data
+*   @param[in] i2c    - i2c module base address
+*   @param[in] length - number of data words to transfer
+*   @param[in] data   - pointer to data to send
+*
+*   Send a block of data pointed to by 'data' and 'length' bytes
+*   long.  If interrupts have been enabled the data is sent using
+*   interrupt mode, otherwise polling mode is used.  In interrupt
+*   mode transmission of the first byte is started and the routine
+*   returns immediately, i2cSend must not be called again until the
+*   transfer is complete, when the i2cNotification callback will
+*   be called.  In polling mode, i2cSend will not return  until
+*   the transfer is complete.
+*
+*   @note if data word is less than 8 bits, then the data must be left
+*         aligned in the data byte.
+*/
+/* SourceId : I2C_SourceId_010 */
+/* DesignId : I2C_DesignId_007 */
+/* Requirements : HL_SR285 */
+int16_t BMS_i2c_send(i2cBASE_t *i2c, uint32 length, uint8 * data)
+{
+
+/* USER CODE BEGIN (17) */
+/* USER CODE END */
+	uint32_t timeout_count;
+	timeout_count = 0;
+
+    if ((g_i2cTransfer_t.mode & (uint32)I2C_TX_INT) != 0U)
+    {
+        /* Interrupt mode */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        g_i2cTransfer_t.data   = data;
+        /* start transmit by sending first byte */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        i2c->DXR = (uint32)(*g_i2cTransfer_t.data);
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+        g_i2cTransfer_t.data++;
+
+        /* Length -1 since one data is written already */
+        g_i2cTransfer_t.length = (length - 1U);
+
+        /* Enable Transmit Interrupt */
+        i2c->IMR |= (uint32)I2C_TX_INT;
+    }
+    else
+    {
+        /* send the data */
+        while (length > 0U)
+        {
+            /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
+            while (((i2c->STR & (uint32)I2C_TX_INT) == 0U) && timeout_count < I2C_TIMEOUT_MAX)
+            {
+            	timeout_count++;
+            } /* Wait */
+            if(timeout_count >= I2C_TIMEOUT_MAX) {
+            	return I2C_TIMEOUT_FAIL;
+            }
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            i2c->DXR = (uint32)(*data);
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+            data++;
+            length--;
+        }
+    }
+    return I2C_OK;
+/* USER CODE BEGIN (18) */
+/* USER CODE END */
+}
+
+/** @fn void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
+*   @brief Receive Data
+*   @param[in] i2c    - i2c module base address
+*   @param[in] length - number of data words to transfer
+*   @param[in] data   - pointer to data buffer
+*
+*   Receive a block of 'length' bytes long and place it into the
+*   data buffer pointed to by 'data'.  If interrupts have been
+*   enabled the data is received using interrupt mode, otherwise
+*   polling mode is used.  In interrupt mode receive is setup and
+*   the routine returns immediately, i2cReceive must not be called
+*   again until the transfer is complete, when the i2cNotification
+*   callback will be called.  In polling mode, i2cReceive will not
+*   return  until the transfer is complete.
+*/
+/* SourceId : I2C_SourceId_015 */
+/* DesignId : I2C_DesignId_012 */
+/* Requirements : HL_SR290 */
+int16_t BMS_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
+{
+
+/* USER CODE BEGIN (26) */
+/* USER CODE END */
+	uint32_t timeout_count;
+	timeout_count = 0;
+
+    if ((i2c->IMR & (uint32)I2C_RX_INT) != 0U)
+    {
+        /* we are in interrupt mode */
+        /* clear error flags */
+        i2c->STR = (uint32)I2C_AL_INT | (uint32)I2C_NACK_INT;
+
+        g_i2cTransfer_t.length = length;
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        g_i2cTransfer_t.data   = data;
+    }
+    else
+    {
+        while (length > 0U)
+        {
+            /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
+            while (((i2c->STR & (uint32)I2C_RX_INT) == 0U) && timeout_count < I2C_TIMEOUT_MAX)
+            {
+            	timeout_count++;
+            } /* Wait */
+            if(timeout_count >= I2C_TIMEOUT_MAX)
+            {
+            	return I2C_TIMEOUT_FAIL;
+            }
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            *data = ((uint8)i2c->DRR);
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+            data++;
+            length--;
+        }
+    }
+    return I2C_OK;
+/* USER CODE BEGIN (27) */
+/* USER CODE END */
+}
+
