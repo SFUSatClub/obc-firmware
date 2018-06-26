@@ -514,6 +514,7 @@ static void chimeTestSequence(){
 	serialSendln(buffer);
 
 	strobe(SNOP);
+	if(statusByte & 0x70 == 0x70){strobe(SFTX);}
 		if (writeToTxFIFO(goldsequence, SMARTRF_SETTING_PKTLEN_VAL_UB) == 1) {
 			snprintf(buffer, sizeof(buffer), "%d Bytes Radio TX FIFO written", SMARTRF_SETTING_PKTLEN_VAL_UB);
 			serialSendln(buffer);
@@ -522,6 +523,8 @@ static void chimeTestSequence(){
 			serialSendln(buffer);
 		}
 
+
+	strobe(STX);
 	spiDataConfig.CSNR = RF_CONFIG_CS_LB;
 }
 
