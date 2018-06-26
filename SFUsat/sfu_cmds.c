@@ -204,6 +204,7 @@ int8_t cmdGet(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_GET_NONE:
 		case CMD_GET_TASKS: {
+			serialSendln("TASKS::");
 			serialSend("Task\t\tState\tPrio\tStack\tNum\n");
 			vTaskList(buffer);
 			serialSend(buffer);

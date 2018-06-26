@@ -16,13 +16,13 @@
 #include "sfu_hardwaredefs.h"
 
 #ifdef DEPLOY_TESTMODE			/* #defined in sfu_hwdefs */
-#define DEPLOY_DELAY	30		/* 10  seconds */
+#define DEPLOY_DELAY	600		/* 10  seconds */
 #else
 #define DEPLOY_DELAY	1800 	/* 30 minutes */
 #endif
 
 /* user tweakable */
-#define DEPLOY_CHECK_INTERVAL 		5000		/* 5 seconds */
+#define DEPLOY_CHECK_INTERVAL 		15000		/* 5 seconds */
 #define DEPLOY_MAX_BURN_SECONDS		15			/* 12 seconds */
 
 extern TaskHandle_t deployTaskHandle;
