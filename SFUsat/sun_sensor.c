@@ -98,7 +98,7 @@ uint8_t set_mux_channel(uint8_t addr, uint8_t channel) {
 		uint8_t data[2] = {'/0'};
 		uint8_t cmd;
 		cmd = addr;
-data[0]=channel;
+		data[0]=channel;
 		i2cSetMode(i2cREG1, I2C_MASTER);
 		i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
 		i2cSetSlaveAdd(i2cREG1, addr);
@@ -140,48 +140,86 @@ data[0]=channel;
 }
 
 output_value *read_sun_sensor() {						// must loop 4-6 times to get all the values of each sensor of each mux
-	output_value output[16];
+	output_value output[32]; //Changed from 16 to 32
 
 	output_value *sun_info_ptr;
-	adcData_t adc_data[24];
+	adcData_t adc_data[32]; //Changed from 24 to 32 since 32 MUX channels/Photodiode sensors
 
 	//table of values for sensor number, addr of mux its assigned to as well as channel on mux
-	mux_info mux1[6] = {
-			{1,			Sensor_MUX_X_neg,	2},
-			{2,			Sensor_MUX_X_neg,	3},
-			{3,			Sensor_MUX_X_neg,	4},
-			{4,			Sensor_MUX_X_neg,	5},
-			{-1,			-1,				-1}, // -1 are taken as NULL values
-			{-1,			-1,				-1}
+	//Each XY PCB Panel has 6 photodiodes and an 8 output mux. (2 Channels arent used)
+	//Photodiodes on 2, 6, 8 are operational on June 25th 2018
+	mux_info mux1[8] = {
+			{1,			Sensor_MUX_X_pos,	1},
+			{2,			Sensor_MUX_X_pos,	2},
+			{3,			Sensor_MUX_X_pos,	3},
+			{4,			Sensor_MUX_X_pos,	6},
+			{5,			Sensor_MUX_X_pos,	7},
+			{6,			Sensor_MUX_X_pos,	8},
+			{25,		Sensor_MUX_X_pos,	4},
+			{26,		Sensor_MUX_X_pos,	5}
 	};
-	mux_info mux2[6] = {
-			{5,			Sensor_MUX_X_neg,	0},
-			{6,			Sensor_MUX_X_neg,	2},
-			{7,			Sensor_MUX_X_neg,	4},
-			{8,			Sensor_MUX_X_neg,	6},
-			{9,			Sensor_MUX_X_neg,	7},
-			{-1,			-1,				-1}
+	mux_info mux2[8] = {
+			{7,			Sensor_MUX_X_neg,	1},
+			{8,			Sensor_MUX_X_neg,	2},
+			{9,			Sensor_MUX_X_neg,	3},
+			{10,		Sensor_MUX_X_neg,	6},
+			{11,		Sensor_MUX_X_neg,	7},
+			{12,		Sensor_MUX_X_neg,	8},
+			{27,		Sensor_MUX_X_neg,	4},
+			{28,		Sensor_MUX_X_neg,	5}
 	};
-	mux_info mux3[6] = {
-			{10,			Sensor_MUX_Y_pos,	1},
-			{11,			Sensor_MUX_Y_pos,	2},
-			{12,			Sensor_MUX_Y_pos,	3},
-			{13,			Sensor_MUX_Y_pos,	2},
-			{14,			Sensor_MUX_Y_pos,	3},
-			{15,			Sensor_MUX_Y_pos,	7}
+	mux_info mux3[8] = {
+			{13,		Sensor_MUX_Y_pos,	1},
+			{14,		Sensor_MUX_Y_pos,	2},
+			{15,		Sensor_MUX_Y_pos,	3},
+			{16,		Sensor_MUX_Y_pos,	6},
+			{17,		Sensor_MUX_Y_pos,	7},
+			{18,		Sensor_MUX_Y_pos,	8},
+			{29,		Sensor_MUX_Y_pos,	4},
+			{30,		Sensor_MUX_Y_pos,	5}
 	};
-	mux_info mux4[6] = {
-			{14,			Sensor_MUX_Y_neg,	0},
-			{15,			Sensor_MUX_Y_neg,	1},
-			{16,			Sensor_MUX_Y_neg,	2},
-			{-1,			-1,					-1},
-			//{16,			Sensor_MUX_Y_neg,	6},
-			{-1,			-1,					-1},
-			{-1,			-1,					-1}
+	mux_info mux4[8] = {
+			{19,		Sensor_MUX_Y_neg,	1},
+			{20,		Sensor_MUX_Y_neg,	2},
+			{21,		Sensor_MUX_Y_neg,	3},
+			{22,		Sensor_MUX_Y_neg,	6},
+			{23,		Sensor_MUX_Y_neg,	7},
+			{24,		Sensor_MUX_Y_neg,	8},
+			{31,		Sensor_MUX_Y_neg,	4},
+			{32,		Sensor_MUX_Y_neg,	5}
 	};
 
 	uint8_t i = 0;
-	for(i = 0; i < 6; i++) { //loop through channels on muxes (As far as I know there are at most 6 sensors per mux)
+	for(i = 0; i < 8; i++)
+	{
+		//Loops through the channels of each mux. Pulls the data from the data line
+		set_mux_channel(mux1[i].mux_addr, mux1[i].mux_channel)
+		set_mux_channel(mux2[i].mux_addr, mux2[i].mux_channel)
+		set_mux_channel(mux3[i].mux_addr, mux3[i].mux_channel)
+		set_mux_channel(mux4[i].mux_addr, mux4[i].mux_channel)
+
+		//Reading Data from the corresponding channel number for each mux
+		adcStartConversion(adcREG1, adcGROUP1); //Sample all channels on ADC1
+		while((adcIsConversionComplete(adcREG1, adcGROUP1)) == 0);	//Wait for conversion to complete
+		adcGetData(adcREG1, adcGROUP1, &adc_data[0]);
+
+		output[(mux1[i].sensor_num-1)].value = adc_data[7].value;
+		output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
+
+		output[(mux2[i].sensor_num-1)].value = adc_data[5].value;
+		output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
+
+		output[(mux3[i].sensor_num-1)].value = adc_data[4].value;
+		output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
+
+		output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
+		output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
+	}
+
+	sun_info_ptr = output; //pointer to output struct
+	return sun_info_ptr;
+
+/*	for(i = 0; i < 6; i++) { //loop through channels on muxes (As far as I know there are at most 6 sensors per mux)
 		//sets the channel for the muxes
 		if(mux1[i].sensor_num != -1){
 			set_mux_channel(mux1[i].mux_addr, mux1[i].mux_channel);
@@ -216,9 +254,9 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 			output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
 			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 		};
-	};
-	sun_info_ptr = output; //pointer to output struct
-	return sun_info_ptr;
+	};*/
+/*	sun_info_ptr = output; //pointer to output struct
+	return sun_info_ptr;*/
 }
 
 //int16_t read_register(uint8_t addr, uint8_t *reg_return) {
