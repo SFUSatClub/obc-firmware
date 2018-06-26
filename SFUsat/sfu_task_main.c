@@ -61,7 +61,7 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
-  gio_interrupt_example_rtos_init();
+    gio_interrupt_example_rtos_init();
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
@@ -93,11 +93,12 @@ void vMainTask(void *pvParameters) {
 			BLINKY_TASK_DEFAULT_PRIORITY,	  	// Priorities are in sfu_tasks.h
 			&xBlinkyTaskHandle );				// Task handles are above
 
+	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vRadioTask, "radio", 600, NULL, portPRIVILEGE_BIT | RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 	xTaskCreate(vFilesystemLifecycleTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-// 	vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(deploy_task, "deploy", 128, NULL, 4, &deployTaskHandle);
 
 	/* Std telemetry */
@@ -106,7 +107,8 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
 	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
 
- /* Startup things that need RTOS */ 
+ /* Startup things that need RTOS */  
+ 
 	logPBISTFails();
 	sfu_startup_logs();
 
@@ -174,8 +176,7 @@ void vMainTask(void *pvParameters) {
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
-    //gio_interrupt_example_rtos_init();
-	//rf_interrupt_init();
+    gio_interrupt_example_rtos_init();
 	stateMachineInit(); // we start in SAFE mode
 
 	// ---------- BRINGUP/PRELIMINARY PHASE ----------
@@ -214,8 +215,7 @@ void vMainTask(void *pvParameters) {
 //	xTaskCreate(sfu_fs_lifecycle, "fs life", 1500, NULL, 4, &xFSLifecycle);
 	xTaskCreate(vLogToFileTask, "logging", 500, NULL, LOGGING_TASK_DEFAULT_PRIORITY, &xLogToFileTaskHandle);
 //
-	initRadio();
-	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
+//	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
 //	vTaskSuspend(xRadioTaskHandle);
 	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 
