@@ -125,6 +125,41 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 		[TEST0] = SMARTRF_SETTING_TEST0_VAL_TX
 };
 
+const uint16 SMARTRF_VALS_UB[NUM_CONFIG_REGISTERS] = {
+		[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_UB,
+		[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_UB,
+		[IOCFG2] = SMARTRF_SETTING_IOCFG2_VAL_UB,
+		[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_UB,
+		[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_UB,
+		[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_UB,
+		[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_UB,
+		[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_VAL_UB,
+		[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_UB,
+		[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_VAL_UB,
+		[FREQ2] = SMARTRF_SETTING_FREQ2_VAL_UB,
+		[FREQ1] = SMARTRF_SETTING_FREQ1_VAL_UB,
+		[FREQ0] = SMARTRF_SETTING_FREQ0_VAL_UB,
+		[MDMCFG4] = SMARTRF_SETTING_MDMCFG4_VAL_UB,
+		[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_VAL_UB,
+		[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_VAL_UB,
+		[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_VAL_UB,
+		[MDMCFG0] = SMARTRF_SETTING_MDMCFG0_VAL_UB,
+		[DEVIATN] = SMARTRF_SETTING_DEVIATN_VAL_UB,
+		[MCSM1] = SMARTRF_SETTING_MCSM1_VAL_UB,
+		[MCSM0] = SMARTRF_SETTING_MCSM0_VAL_UB,
+		[FOCCFG] = SMARTRF_SETTING_FOCCFG_VAL_UB,
+		[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_VAL_UB,
+		[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_VAL_UB,
+		[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_UB,
+		[FSCAL3] = SMARTRF_SETTING_FSCAL3_VAL_UB,
+		[FSCAL2] = SMARTRF_SETTING_FSCAL2_VAL_UB,
+		[FSCAL1] = SMARTRF_SETTING_FSCAL1_VAL_UB,
+		[FSCAL0] = SMARTRF_SETTING_FSCAL0_VAL_UB,
+		[TEST2] = SMARTRF_SETTING_TEST2_VAL_UB,
+		[TEST1] = SMARTRF_SETTING_TEST1_VAL_UB,
+		[TEST0] = SMARTRF_SETTING_TEST0_VAL_UB
+};
+
 
 /**
  * Masks.
@@ -211,7 +246,8 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 #define NUM_TXBYTES			(0b01111111) // TXBYTES Bits 6:0  Number of bytes in TX FIFO.
 #define RXFIFO_OVERFLOW		(0b10000000) // RXBYTES Bits 7    Indicates if RX FIFO has overflowed.
 #define NUM_RXBYTES			(0b01111111) // RXBYTES Bits 6:0  Number of bytes in RX FIFO.
-#define CRC					(0b10000000) // PKTLEN Bit 7	  Indicates if packet is CRC okay.
+#define CRC_OK				(0b10000000) // PKTSTATUS Bit 7	  The last CRC comparison matched. Cleared when entering/restarting RX mode.
+#define PKTSTATUS_CS		(0b01000000) // PKTSTATUS Bit 6   Carrier sense. Cleared when entering IDLE mode.
 
 /**
  * FIFO Buffers (section 10.2, page 32).
@@ -220,12 +256,15 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  * FIFO_RX is read-only.
  * Both are accessed through the 0x3F address with appropriate read/write bits set.
  */
-#define PA_TABLE_ADDR (0x3E)
-#define PA_TABLE_SETTING (0x60)
-#define FIFO_TX (0x3F)
-#define FIFO_RX (0x3F)
+#define PA_TABLE_ADDR		(0x3E)
+#define PA_TABLE_SETTING	(0x60)
+#define FIFO_TX				(0x3F)
+#define FIFO_RX				(0x3F)
 
-#define FIFO_LENGTH (64)
+/**
+ * Begin SFUSat-specific symbols.
+ */
+#define FIFO_LENGTH			(64)
 
 //#define pkt_length (30)
 
@@ -235,13 +274,12 @@ QueueHandle_t xRadioTXQueue;
 QueueHandle_t xRadioRXQueue;
 QueueHandle_t xRadioCHIMEQueue;
 
+/**
+ * This global statusByte gets set on each RF SPI transaction.
+ * Used by the IS_STATE(STATE_X) macro.
+ * See "Chip Status Byte Masks" defined above for more information.
+ */
 static uint8 statusByte;
-
-typedef struct RadioDAT {
-	uint8 srcsz;
-	uint8 srcdat[100];
-} RadioDAT_t;
-
 
 /**
  * Forward declarations
@@ -253,16 +291,20 @@ static uint8 * readAllStatusRegisters();
 static void rfTestSequence();
 static void printStatusByte();
 void read_RX_FIFO();
+static uint8_t packetizeAndSend(const uint8_t *payload, uint8_t size);
+static void sendPacket(const uint8_t *payload, uint8_t size);
+static void writeRegister(uint8 addr, uint8 val);
+
+#define RF_CALLSIGN			("VA7TSN")
+#define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
 
 //Declarations for RF Interrupt
 SemaphoreHandle_t gioRFSem;
 TaskHandle_t xRFInterruptTaskHandle;
 
 void vRadioTask(void *pvParameters) {
-	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
+	xRadioTXQueue = xQueueCreate(40, sizeof(RadioDAT_t));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
-
-	char *txCurrQueuedStr = NULL;
 
 	initRadio();
 
@@ -294,57 +336,90 @@ void vRadioTask(void *pvParameters) {
 		}
 		serialSendln(buffer);
 
-		uint8 regval_txbytes = readRegister(TXBYTES);
-		snprintf(buffer, sizeof(buffer), "TXBYTES VAL at RADIO MAIN = %09x", regval_txbytes);
-		serialSendln(buffer);
-
 		rfTestSequence();
 
-//		uint8 *stat = readAllStatusRegisters();
-//		serialSend("status registers\n");
-//		int temp = 0;
-//		for ( i = 0; i < NUM_STATUS_REGISTERS; i++ ) {
-//			temp += snprintf(buffer + temp, sizeof(buffer), "%d: %02x\n", i, stat[i]);
-//		}
-//		serialSend(buffer);
+		strobe(SRX);
 
-		vTaskDelay(pdMS_TO_TICKS(5000)); // do we need this?
+		RadioDAT_t currQueuedPacket;
+		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(1000)) == pdPASS) {
+			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x from xRadioTXQueue", currQueuedPacket.unused);
+			serialSendln(buffer);
+			packetizeAndSend(currQueuedPacket.data, currQueuedPacket.size);
+		}
 	}
 }
 
-static void sendPacket(const uint8_t *payload, uint8_t size){
+static uint8_t packetizeAndSend(const uint8_t *payload, uint8_t size) {
+	char buffer[100] = {'\0'};
+
+	uint8_t txbytes = readRegister(TXBYTES);
+	uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
+	uint8_t tx_numbytes = txbytes & NUM_TXBYTES;
+	if (IS_STATE(STATE_TXFIFO_UNDERFLOW)) {
+		serialSendln("TX Underflowed; Strobing SFTX...");
+		strobe(SFTX);
+	}
+
+	snprintf(buffer, sizeof(buffer), "TX underflowed:%s numbytes:%d FIFO_BYTES_AVAILABLE: 0x%x\n",
+			tx_underflowed ? "yes" : "no",
+			tx_numbytes,
+			statusByte & FIFO_BYTES_AVAILABLE);
+	serialSend(buffer);
+
+	if ( FIFO_LENGTH - tx_numbytes < SMARTRF_SETTING_PKTLEN_VAL_TX ) {
+		serialSendln("Could not fit one packet to TX FIFO; skipping");
+		return 0;
+	}
+
+	serialSendln("Sending packet to TX FIFO");
+	size_t i;
+	for ( i = 0; i < RF_CALLSIGN_LEN; i++ ) {
+		writeRegister(FIFO_TX, RF_CALLSIGN[i]);
+	}
+	for ( i = 0; i < SMARTRF_SETTING_PKTLEN_VAL_TX - RF_CALLSIGN_LEN; i++ ) {
+		writeRegister(FIFO_TX, payload[i]);
+	}
+	strobe(STX);
+	return 1;
+}
+
+static void sendPacket(const uint8_t *payload, uint8_t size) {
 	char buffer[100] = {'\0'};
 
 	/**
 	 * Strobe a NOP just to see current status byte.
 	 */
 	strobe(SNOP);
+
 	uint8_t txbytes = readRegister(TXBYTES);
 	uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
 	uint8_t tx_numbytes = txbytes & NUM_TXBYTES;
-	snprintf(buffer, sizeof(buffer), "tx_underflowed:%s tx_numbytes:%d", tx_underflowed ? "yes" : "no", tx_numbytes);
-	serialSendln(buffer);
-
 	/**
 	 * Since we just retrieved tx_underflowed from the above TXBYTES register read, the
-	 * following check of bit STATE_TXFIFO_UNDERFLOW in the statusByte response is also equivalent.
+	 * following check of bit STATE_TXFIFO_UNDERFLOW in its corresponding statusByte response
+	 * will be the same.
+	 *
+	 * TODO: Potential sanity check with assert(tx_underflowed && IS_STATE(STATE_TXFIFO_UNDERFLOW))
 	 */
 	if (IS_STATE(STATE_TXFIFO_UNDERFLOW)) {
 		serialSendln("TX Underflowed; Strobing SFTX...");
 		strobe(SFTX);
 	}
 
-	serialSend("TX FIFO_BYTES_AVAILABLE: ");
-	snprintf(buffer, sizeof(buffer), "0x%x", statusByte & FIFO_BYTES_AVAILABLE);
-	serialSendln(buffer);
+	snprintf(buffer, sizeof(buffer), "TX underflowed:%s numbytes:%d FIFO_BYTES_AVAILABLE: 0x%x\n",
+			tx_underflowed ? "yes" : "no",
+			tx_numbytes,
+			statusByte & FIFO_BYTES_AVAILABLE);
+	serialSend(buffer);
 
 	/**
 	 * Append Tobi's call sign VA7TSN at front.
 	 *
 	 * Perform checks to make sure we're copying within both array and ptr bounds.
 	 */
-	uint8_t payload_w_callsign[64] = {'V', 'A', '7', 'T', 'S', 'N'};
-	const uint8_t adjusted_size = sizeof(payload_w_callsign) - 6;
+	uint8_t payload_w_callsign[FIFO_LENGTH] = { 0 };
+	strncpy( (char *)payload_w_callsign, RF_CALLSIGN, sizeof(payload_w_callsign) - 1);
+	const uint8_t adjusted_size = sizeof(payload_w_callsign) - RF_CALLSIGN_LEN;
 	const uint8_t max_bytes_to_copy = size < adjusted_size ? size : adjusted_size;
 	/**
 	 * TODO: Restructure code to not allow this to happen.
@@ -353,7 +428,7 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 		snprintf(buffer, sizeof(buffer), "RF failed to packetize %d bytes", size - max_bytes_to_copy);
 		serialSendln(buffer);
 	}
-	memcpy(payload_w_callsign + 6, payload, max_bytes_to_copy);
+	memcpy(payload_w_callsign + RF_CALLSIGN_LEN, payload, max_bytes_to_copy);
 
 	/**
 	 * Strobe a NOP to ensure last operation was a write.
@@ -375,15 +450,23 @@ static void sendPacket(const uint8_t *payload, uint8_t size){
 	strobe(STX);
 }
 
-static uint8 checkRX(){
+/**
+ * TODO: Establish if we should really structure things like this (make a separate checkRX instead of just merging with
+ * receivePacket)
+ */
+static uint8_t checkRX() {
 	char buffer[100] = {'\0'};
 	strobe(SNOP);
 	if (IS_STATE(STATE_RXFIFO_OVERFLOW)) {
-		serialSendln("RX Underflowed; Strobing SFRX...");
+		serialSendln("RX Overflowed; Reading out useful data, then strobing SFRX...");
+		/**
+		 * TODO: This strobe will just delete everything from the RX FIFO and make subsequent call to receivePacket fail.
+		 * Handle overflow properly.
+		 */
 		strobe(SFRX);
 	}
 
-	uint8 CRC_status_int = readRegister(PKTSTATUS) & CRC;
+	uint8_t CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 
 	strobe(SNOP | READ_BIT);
 	serialSend("RX FIFO_BYTES_AVAILABLE: ");
@@ -393,23 +476,45 @@ static uint8 checkRX(){
 	snprintf(buffer, sizeof(buffer), "Packet CRC is... %s ", CRC_status_int ? "OK!" : "BAD!");
 	serialSendln(buffer);
 
+	/**
+	 * TODO: Fix below meaningless readRegister
+	 */
 	return readRegister(RXBYTES) && (CRC_status_int);
 }
 
-static void recievePacket(uint8 *payload){
+/**
+ * TODO: Do we want to receive one full "packet" first? I.e., only start reading from RX FIFO if rx_numbytes > packetsize ?
+ * Or should we read everything we can and buffer a full packet on our end?
+ *
+ * 		- Strip off the callsign.
+ */
+static void receivePacket(uint8_t *destPayload) {
 	char buffer[100] = {'\0'};
-	uint8 rxbytes = readRegister(RXBYTES);
-	uint8 rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
-	uint8 rx_numbytes = rxbytes & NUM_RXBYTES;
+	uint8_t rxbytes = readRegister(RXBYTES);
+	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
 	snprintf(buffer, sizeof(buffer), "rx_overflowed:%s rx_numbytes:%d", rx_overflowed ? "yes" : "no", rx_numbytes);
 	serialSendln(buffer);
-	if(readFromRxFIFO(payload, rxbytes) == 1) {
-		snprintf(buffer, sizeof(buffer), "Read %d bytes from RX FIFO", rxbytes);
+	if(readFromRxFIFO(destPayload, rx_numbytes) == 1) {
+		snprintf(buffer, sizeof(buffer), "Read %d bytes from RX FIFO", rx_numbytes);
 	 	serialSendln(buffer);
 	} else {
 	  	serialSendln("Failed to read from RX FIFO");
 	}
 	strobe(SFRX);
+}
+
+static void chimeTestSequence(){
+	char buffer[100] = {'\0'};
+	spiDataConfig.CSNR = RF_CONFIG_CS_UB;
+
+	uint8 goldsequence[SMARTRF_SETTING_PKTLEN_VAL_UB-7] = {0x67, 0x87, 0x5d, 0xef, 0xcb, 0x74, 0x0e, 0x55, 0xd1, 0x3f, 0x17, 0xb7, 0xcb, 0x67, 0xcd, 0x10, 0x7e, 0xc6, 0x34, 0xfa, 0x40, 0x11, 0x5e, 0xdc, 0x85, 0x7e, 0x42, 0x70, 0xf9, 0x18, 0x88, 0xbe, 0xf9, 0x65, 0x1c, 0xcd, 0x3b, 0xcc, 0x71, 0x70, 0x5a, 0xeb, 0x7f, 0x89, 0x41, 0xa4, 0x3f, 0xc0, 0x19, 0x7e, 0x5c, 0x45, 0xaa, 0xa4, 0x50};
+
+	snprintf(buffer, sizeof(buffer), "Sending CHIME cal. signal");
+	serialSendln(buffer);
+	sendPacket(goldsequence, SMARTRF_SETTING_PKTLEN_VAL_UB-7);
+
+	spiDataConfig.CSNR = RF_CONFIG_CS_LB;
 }
 
 static void rfTestSequence() {
@@ -436,45 +541,33 @@ static void rfTestSequence() {
 
 	//TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 
-	uint8 recieved[SMARTRF_SETTING_PKTLEN_VAL_TX]={0};
-	if(checkRX()){
-		recievePacket(recieved);
-		for (i = 0; i < SMARTRF_SETTING_PKTLEN_VAL_TX; i++) {
-		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, recieved[i]);
-		  	serialSendln(buffer);
-		}
+
+//	if(checkRX()){
+//		receivePacket(received);
+//		for (i = 0; i < SMARTRF_SETTING_PKTLEN_VAL_TX; i++) {
+//		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, received[i]);
+//		  	serialSendln(buffer);
+//		}
+//	}
+	uint8_t received[FIFO_LENGTH] = { 0 };
+	uint8_t rxbytes = readRegister(RXBYTES);
+	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
+	uint8_t bytes_actually_read = 0;
+	i = 0;
+	while (i < rx_numbytes) {
+		received[i++] = readRegister(FIFO_RX);
 	}
-}
-
-// TX task
-void vRadioTX(void *pvParameters) {
-	RadioDAT_t Radio_container;
-	Radio_container.srcsz = 100;
-	uint8 idx = 0;
-	for (idx = 0; idx < Radio_container.srcsz; idx++){
-		Radio_container.srcdat[idx] = idx;
+	if (rx_overflowed) {
+		serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
+		strobe(SFRX);
 	}
-
-	xRadioTXQueue = xQueueCreate(10, sizeof(portCHAR *));
-	//initialize radio herehello
-
-
-
-	if (!writeToTxFIFO(Radio_container.srcdat, Radio_container.srcsz)){
-		//error
+	bytes_actually_read = i;
+	i = 0;
+	for ( i = 0; i < bytes_actually_read; i++ ) {
+		snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, received[i]);
+		serialSendln(buffer);
 	}
-
-
-	//writeToTxFIFO(*(Radio_container*)pvParameters.srcdat, *(Radio_container*)pvParameters.srcsz);
-
-
-	// how does pvparameters work?
-
-	uint8 txsize = 10;
-	uint8 txsrc[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-	writeToTxFIFO(txsrc, txsize);
-	strobe(STX);
-	//TODO: check last packet was transmitted
 
 }
 
@@ -546,7 +639,7 @@ static int writeToTxFIFO(const uint8 *src, uint8 numBytesToWrite) {
 			if (numBytesAvailInFIFO & TXFIFO_UNDERFLOW) {
 				return -1;
 			}
-			numBytesAvailInFIFO = 64 - (numBytesAvailInFIFO & NUM_TXBYTES);
+			numBytesAvailInFIFO = FIFO_LENGTH - (numBytesAvailInFIFO & NUM_TXBYTES);
 			/**
 			 * Now numBytesAvailInFIFO is number of bytes currently in RF TX FIFO.
 			 */
@@ -604,15 +697,8 @@ static int readFromRxFIFO(uint8 *dest, uint8 numBytesToRead) {
 static void writeAllConfigRegisters(const uint16 config[NUM_CONFIG_REGISTERS]) {
 	uint8 i = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		writeRegister(SMARTRF_ADDRS[i], config[i]); //why is this only VAL_RX?
+		writeRegister(SMARTRF_ADDRS[i], config[i]);
 		i++;
-	}
-}
-
-static void readAllConfigRegisters() {
-	uint8 i = 0;
-	while (i < NUM_CONFIG_REGISTERS) {
-		readRegister(SMARTRF_ADDRS[i++]);
 	}
 }
 
@@ -635,31 +721,27 @@ static uint8 * readAllStatusRegisters() {
 	return contents;
 }
 
-static int checkConfig(const uint16 config[NUM_CONFIG_REGISTERS]) {
-	uint8 i = 0;
-	uint8 err = 0;
+static int checkConfig(const uint16_t config[NUM_CONFIG_REGISTERS]) {
+	uint8_t i = 0;
+	uint8_t err = 0;
 	while (i < NUM_CONFIG_REGISTERS) {
-		uint8 regVal = readRegister(SMARTRF_ADDRS[i]);
+		uint8_t regVal = readRegister(SMARTRF_ADDRS[i]);
 		if(config[i] != regVal){
 			char buffer[30];
 			snprintf(buffer, 30, "Reg %02x = %02x != %02x", SMARTRF_ADDRS[i], regVal, config[i]);
 			serialSendln(buffer);
 			err = 1;
-			//return 1;
 		}
 		i++;
 	}
-	if (err != 0){
+	if (err) {
 		return 1;
 	}
-	else{
-		serialSendln("All REG configs good.");
-		return 0;
-	}
-
+	serialSendln("All REG configs good");
+	return 0;
 }
 
-static int configureRadio(const uint16 config[NUM_CONFIG_REGISTERS], const uint8 PA_TABLE) {
+static int configureRadio(const uint16_t config[NUM_CONFIG_REGISTERS], const uint8_t PA_TABLE) {
     writeAllConfigRegisters(SMARTRF_VALS_TX);
     writeRegister(PA_TABLE_ADDR, PA_TABLE);
     return checkConfig(SMARTRF_VALS_TX);
@@ -765,15 +847,17 @@ BaseType_t initRadio() {
      * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
-    spiDataConfig.CSNR = RF_CONFIG_CSNR;
 
-    uint8 *stat = readAllStatusRegisters();
-    char buffer[30];
+    //---------configure lower band CC1101
+    spiDataConfig.CSNR = RF_CONFIG_CS_LB;
 
     strobe(SRES);
     strobe(SNOP);
 
-    snprintf(buffer, 30, "Radio Status Registers:");
+    uint8 *stat = readAllStatusRegisters();
+    char buffer[30];
+
+    snprintf(buffer, 30, "LB Radio Status Registers:");
     serialSendln(buffer);
     snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
     			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
@@ -790,9 +874,33 @@ BaseType_t initRadio() {
 //attach irq
 
     strobe(SRX);
-//move here ##
 
-//Move ##
+
+    //---------configure Upper band CC1101
+    spiDataConfig.CSNR = RF_CONFIG_CS_UB;
+
+    strobe(SRES);
+    strobe(SNOP);
+
+    stat = readAllStatusRegisters();
+
+    snprintf(buffer, 30, "UB Radio Status Registers:");
+    serialSendln(buffer);
+    snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+        			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
+    				stat[10], stat[11], stat[12], stat[13]);
+    serialSendln(buffer);
+
+    if(configureRadio(SMARTRF_VALS_UB, PA_TABLE_SETTING)){
+        	snprintf(buffer, 30, "radio registers do not match!");
+        	serialSendln(buffer);
+    }
+
+    strobe(SNOP);
+    strobe(SIDLE);
+
+    spiDataConfig.CSNR = RF_CONFIG_CS_LB;
+
 	return pdPASS;
 }
 

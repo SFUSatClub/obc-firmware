@@ -105,16 +105,16 @@ typedef struct {
 #define SMARTRF_SETTING_RCCTRL0_STATUS_ADDR   0x003D
 
 
-// TX
-#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x5C //on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
-#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2e
-#define SMARTRF_SETTING_IOCFG0_VAL_TX           0x06 //01 RX 06 TX//Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
-#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47
-#define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 //sync word: 1101 0011 1001 0001
+// Lower Band
+#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C // on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
+#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2E
+#define SMARTRF_SETTING_IOCFG0_VAL_TX           0x01 // assert when rf fifo is filled above threshold or end of packet is reached, deassert when fifo is emtpy
+#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47 // set rx fifo threshold to 64 bytes. triggers at end of complete packet or 64 bytes
+#define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 // sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x1E //30 bytes fixed length packet
-#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04 //status byte enabled, no address check
-#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 //fixed packet length, CRC enabled, use FIFO, no whitening
+#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x20 // 32 bytes fixed length packet
+#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x08 // auto-flush when CRC failed; does not append two bytes
+#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 // fixed packet length, CRC enabled, use FIFO, no whitening
 #define SMARTRF_SETTING_ADDR_VAL_TX             0x00
 #define SMARTRF_SETTING_CHANNR_VAL_TX           0x00
 #define SMARTRF_SETTING_FSCTRL1_VAL_TX          0x06
@@ -167,5 +167,82 @@ typedef struct {
 #define SMARTRF_SETTING_RXBYTES_VAL_TX          0x00
 #define SMARTRF_SETTING_RCCTRL1_STATUS_VAL_TX   0x00
 #define SMARTRF_SETTING_RCCTRL0_STATUS_VAL_TX   0x00
+
+//Upper Band
+//# Modulation Format = 2-FSK
+//# PA Ramping = false
+//# Packet Length = 62
+//# Packet Length Mode = Fixed packet length mode. Length configured in PKTLEN register
+//# no CRC
+//# Preamble Count = 4
+//# RX Filter BW = 58.035714
+//# Sync Word Qualifier Mode = 30/32 sync word bits detected
+//# TX Power = 0
+//# Whitening = false
+//# ---------------------------------------------------
+//# Packet sniffer stttings for CC1101 Upper band 790Mhz
+//# ---------------------------------------------------
+#define SMARTRF_SETTING_IOCFG2_VAL_UB           0x1C
+#define SMARTRF_SETTING_IOCFG1_VAL_UB           0x2E
+#define SMARTRF_SETTING_IOCFG0_VAL_UB           0x06
+#define SMARTRF_SETTING_FIFOTHR_VAL_UB          0x47
+#define SMARTRF_SETTING_SYNC1_VAL_UB            0xD3
+#define SMARTRF_SETTING_SYNC0_VAL_UB            0x91
+#define SMARTRF_SETTING_PKTLEN_VAL_UB           0x3E
+#define SMARTRF_SETTING_PKTCTRL1_VAL_UB         0x00
+#define SMARTRF_SETTING_PKTCTRL0_VAL_UB         0x00
+#define SMARTRF_SETTING_ADDR_VAL_UB             0x00
+#define SMARTRF_SETTING_CHANNR_VAL_UB           0x00
+#define SMARTRF_SETTING_FSCTRL1_VAL_UB          0x06
+#define SMARTRF_SETTING_FSCTRL0_VAL_UB          0x00
+#define SMARTRF_SETTING_FREQ2_VAL_UB            0x1E
+#define SMARTRF_SETTING_FREQ1_VAL_UB            0x62
+#define SMARTRF_SETTING_FREQ0_VAL_UB            0x76
+#define SMARTRF_SETTING_MDMCFG4_VAL_UB          0xF5
+#define SMARTRF_SETTING_MDMCFG3_VAL_UB          0x83
+#define SMARTRF_SETTING_MDMCFG2_VAL_UB          0x03
+#define SMARTRF_SETTING_MDMCFG1_VAL_UB          0x22
+#define SMARTRF_SETTING_MDMCFG0_VAL_UB          0xF8
+#define SMARTRF_SETTING_DEVIATN_VAL_UB          0x15
+#define SMARTRF_SETTING_MCSM2_VAL_UB            0x07
+#define SMARTRF_SETTING_MCSM1_VAL_UB            0x30
+#define SMARTRF_SETTING_MCSM0_VAL_UB            0x18
+#define SMARTRF_SETTING_FOCCFG_VAL_UB           0x16
+#define SMARTRF_SETTING_BSCFG_VAL_UB            0x6C
+#define SMARTRF_SETTING_AGCCTRL2_VAL_UB         0x03
+#define SMARTRF_SETTING_AGCCTRL1_VAL_UB         0x40
+#define SMARTRF_SETTING_AGCCTRL0_VAL_UB         0x91
+#define SMARTRF_SETTING_WOREVT1_VAL_UB          0x87
+#define SMARTRF_SETTING_WOREVT0_VAL_UB          0x6B
+#define SMARTRF_SETTING_WORCTRL_VAL_UB          0xFB
+#define SMARTRF_SETTING_FREND1_VAL_UB           0x56
+#define SMARTRF_SETTING_FREND0_VAL_UB           0x10
+#define SMARTRF_SETTING_FSCAL3_VAL_UB           0xE9
+#define SMARTRF_SETTING_FSCAL2_VAL_UB           0x2A
+#define SMARTRF_SETTING_FSCAL1_VAL_UB           0x00
+#define SMARTRF_SETTING_FSCAL0_VAL_UB           0x1F
+#define SMARTRF_SETTING_RCCTRL1_VAL_UB          0x41
+#define SMARTRF_SETTING_RCCTRL0_VAL_UB          0x00
+#define SMARTRF_SETTING_FSTEST_VAL_UB           0x59
+#define SMARTRF_SETTING_PTEST_VAL_UB            0x7F
+#define SMARTRF_SETTING_AGCTEST_VAL_UB          0x3F
+#define SMARTRF_SETTING_TEST2_VAL_UB            0x81
+#define SMARTRF_SETTING_TEST1_VAL_UB            0x35
+#define SMARTRF_SETTING_TEST0_VAL_UB            0x0B
+#define SMARTRF_SETTING_PARTNUM_VAL_UB          0x00
+#define SMARTRF_SETTING_VERSION_VAL_UB          0x04
+#define SMARTRF_SETTING_FREQEST_VAL_UB          0x00
+#define SMARTRF_SETTING_LQI_VAL_UB              0x00
+#define SMARTRF_SETTING_RSSI_VAL_UB             0x00
+#define SMARTRF_SETTING_MARCSTATE_VAL_UB        0x00
+#define SMARTRF_SETTING_WORTIME1_VAL_UB         0x00
+#define SMARTRF_SETTING_WORTIME0_VAL_UB         0x00
+#define SMARTRF_SETTING_PKTSTATUS_VAL_UB        0x00
+#define SMARTRF_SETTING_VCO_VC_DAC_VAL_UB       0x00
+#define SMARTRF_SETTING_TXBYTES_VAL_UB          0x00
+#define SMARTRF_SETTING_RXBYTES_VAL_UB          0x00
+#define SMARTRF_SETTING_RCCTRL1_STATUS_VAL_UB   0x00
+#define SMARTRF_SETTING_RCCTRL0_STATUS_VAL_UB   0x00
+
 
 #endif /* SFUSAT_SFU_SMARTRF_CC1101_H_ */

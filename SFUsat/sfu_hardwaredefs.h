@@ -57,10 +57,15 @@
  * Radio
  */
 #define RF_SPI_REG 				spiREG3
-#define RF_CONFIG_CS_HOLD 		TRUE		// CS false = high during data transfer
-#define RF_CONFIG_WDEL 			TRUE		// wdelay
-#define RF_CONFIG_DFSEL 		SPI_FMT_0 	// data format
-#define RF_CONFIG_CSNR 			0x00 		// chip select to use
+#define RF_CONFIG_CS_HOLD 		TRUE				// CS false = high during data transfer
+#define RF_CONFIG_WDEL 			TRUE				// wdelay
+#define RF_CONFIG_DFSEL 		SPI_FMT_0			// data format
+#define RF_CONFIG_CSNR 			0x00 				// chip select to use
+/**
+ * Active low. So mask just the bit we want to 0 and set everything else to 1.
+ */
+#define RF_CONFIG_CS_LB			~( (uint8_t) 2 );	// Lower band CC1101 CS; 435 MHz
+#define RF_CONFIG_CS_UB			~( (uint8_t) 16 );	// Upper band CC1101 CS; 790 MHz
 
 /**
  * IRQs
