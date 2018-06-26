@@ -258,6 +258,13 @@ static const struct subcmd_opt CMD_RF_OPTS[] = {
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_RF_NONE: {
+			RadioDAT_t currQueuedPacket;
+			//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+			strcpy((char *)currQueuedPacket.data, "test test test 123");
+			currQueuedPacket.size = sizeof("test test test 123") - 1;
+			currQueuedPacket.unused = 0xDE;
+			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+
 			return 1;
 		}
 		case CMD_RF_LOOPBACK: {

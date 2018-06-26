@@ -106,15 +106,15 @@ typedef struct {
 
 
 // TX
-#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C //on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
-#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2e
-#define SMARTRF_SETTING_IOCFG0_VAL_TX           0x06 //01 RX 06 TX//Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
-#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47
-#define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 //sync word: 1101 0011 1001 0001
+#define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C // on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
+#define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2E
+#define SMARTRF_SETTING_IOCFG0_VAL_TX           0x01 // assert when rf fifo is filled above threshold or end of packet is reached, deassert when fifo is emtpy
+#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47 // set rx fifo threshold to 64 bytes. triggers at end of complete packet or 64 bytes
+#define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 // sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x1E //30 bytes fixed length packet
-#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x04 //status byte enabled, no address check
-#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 //fixed packet length, CRC enabled, use FIFO, no whitening
+#define SMARTRF_SETTING_PKTLEN_VAL_TX           0x20 // 32 bytes fixed length packet
+#define SMARTRF_SETTING_PKTCTRL1_VAL_TX         0x08 // auto-flush when CRC failed; does not append two bytes
+#define SMARTRF_SETTING_PKTCTRL0_VAL_TX         0x04 // fixed packet length, CRC enabled, use FIFO, no whitening
 #define SMARTRF_SETTING_ADDR_VAL_TX             0x00
 #define SMARTRF_SETTING_CHANNR_VAL_TX           0x00
 #define SMARTRF_SETTING_FSCTRL1_VAL_TX          0x06
