@@ -12,6 +12,7 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "sfu_task_radio.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -254,6 +255,10 @@ static const struct subcmd_opt CMD_RF_OPTS[] = {
 				.subcmd_id	= CMD_RF_LOOPBACK,
 				.name		= "loopback",
 		},
+		{
+				.subcmd_id	= RF_TEST_SEQUENCE,
+				.name		= "tx",
+		},
 };
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
@@ -283,6 +288,10 @@ int8_t cmdRF(const CMD_t *cmd) {
 			}
 			serialSendln("CMD_RF_LOOPBACK unknown selection");
 			return 0;
+		}
+		case RF_TEST_SEQUENCE:{
+			rfTestSequence();
+			return 1;
 		}
 	}
 	return 0;

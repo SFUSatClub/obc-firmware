@@ -109,7 +109,7 @@ typedef struct {
 #define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C // on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
 #define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2E
 #define SMARTRF_SETTING_IOCFG0_VAL_TX           0x01 // assert when rf fifo is filled above threshold or end of packet is reached, deassert when fifo is emtpy
-#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x47 // set rx fifo threshold to 64 bytes. triggers at end of complete packet or 64 bytes
+#define SMARTRF_SETTING_FIFOTHR_VAL_TX          0x20 // set rx fifo threshold to 64 bytes. triggers at end of complete packet or 64 bytes
 #define SMARTRF_SETTING_SYNC1_VAL_TX            0xD3 // sync word: 1101 0011 1001 0001
 #define SMARTRF_SETTING_SYNC0_VAL_TX            0x91
 #define SMARTRF_SETTING_PKTLEN_VAL_TX           0x20 // 32 bytes fixed length packet
@@ -129,7 +129,7 @@ typedef struct {
 #define SMARTRF_SETTING_MDMCFG0_VAL_TX          0xF8
 #define SMARTRF_SETTING_DEVIATN_VAL_TX          0x13
 #define SMARTRF_SETTING_MCSM2_VAL_TX            0x07 //RX timeout
-#define SMARTRF_SETTING_MCSM1_VAL_TX            0x30 //idle after sending packet
+#define SMARTRF_SETTING_MCSM1_VAL_TX            0x33 //idle after sending packet
 #define SMARTRF_SETTING_MCSM0_VAL_TX            0x18 //autocal when going from IDLE to TX
 #define SMARTRF_SETTING_FOCCFG_VAL_TX           0x16
 #define SMARTRF_SETTING_BSCFG_VAL_TX            0x6C

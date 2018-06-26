@@ -53,6 +53,8 @@
 #define RF_CONFIG_WDEL 			TRUE				// wdelay
 #define RF_CONFIG_DFSEL 		SPI_FMT_0			// data format
 #define RF_CONFIG_CSNR 			0x00 				// chip select to use
+#define RF_IRQ_PORT				gioPORTA
+#define RF_IRQ_PIN				5
 /**
  * Active low. So mask just the bit we want to 0 and set everything else to 1.
  */
@@ -62,8 +64,7 @@
 /**
  * IRQs
  */
-#define RF_IRQ_PIN 				2
-#define RF_IRQ_PORT 			gioPORTB
+
 #define GIO_IRQ_PIN 			5
 #define GIO_IRQ_PORT 			gioPORTA
 

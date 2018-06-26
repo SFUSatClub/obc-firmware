@@ -253,7 +253,7 @@ static uint8 readRegister(uint8 addr);
 static int readFromRxFIFO(uint8 *dest, uint8 numBytesToRead);
 static void strobe(uint8 addr);
 static uint8 * readAllStatusRegisters();
-static void rfTestSequence();
+//void rfTestSequence();
 static void printStatusByte();
 void read_RX_FIFO();
 static uint8_t packetizeAndSend(const uint8_t *payload, uint8_t size);
@@ -264,20 +264,24 @@ static void writeRegister(uint8 addr, uint8 val);
 #define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
 
 //Declarations for RF Interrupt
-SemaphoreHandle_t gioRFSem;
+//SemaphoreHandle_t gioRFSem;
 TaskHandle_t xRFInterruptTaskHandle;
+bool enableRFISR = 0;
 
 void vRadioTask(void *pvParameters) {
+	enableRFISR = 0;
 	xRadioTXQueue = xQueueCreate(40, sizeof(RadioDAT_t));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
-
 	initRadio();
-
+	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN);
 	strobe(SRX);
 
 	char buffer[100] = {'\0'};
-
+	uint8_t rxbuf[64] = {'\0'};
+	uint8 numBytesAvailInFIFO = readRegister(RXBYTES);
+	uint8_t CRC_status_int;
 	while (1) {
+		enableRFISR = 1;
 
 		/**
 		 * Notification example.
@@ -286,7 +290,7 @@ void vRadioTask(void *pvParameters) {
 		 * https://www.freertos.org/ulTaskNotifyTake.html
 		 */
 		uint32 notif = ulTaskNotifyTake(pdTRUE, 0);
-		snprintf(buffer, sizeof(buffer), "radio task (0x%x)", notif);
+
 		switch (notif) {
 			case 0xBEEFDEAD: {
 				spiEnableLoopback(RF_SPI_REG, Analog_Lbk);
@@ -297,13 +301,27 @@ void vRadioTask(void *pvParameters) {
 			} case 0x1: {
 				rfTestSequence();
 				break;
+			} case 0x77777777:{
+
+
+				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
+				numBytesAvailInFIFO = readRegister(RXBYTES);
+				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", numBytesAvailInFIFO, CRC_status_int ? "OK!" : "BAD!");
+				serialSendln(buffer);
+
+				receivePacket(rxbuf);	// read in the data
+				serialSendln((const char *)rxbuf);
+				clearBuf((char *)rxbuf, 64);
 			}
 		}
+		numBytesAvailInFIFO = readRegister(RXBYTES);
+		snprintf(buffer, sizeof(buffer), "radio task (0x%x), numBytes: 0x%x", notif, numBytesAvailInFIFO);
 		serialSendln(buffer);
+		clearBuf(buffer, 100);
 
-		rfTestSequence();
-
-		strobe(SRX);
+		if(IS_STATE(STATE_IDLE)){	//TODO: this should be handled by reg config or ISR
+			strobe(SRX);
+		}
 
 		RadioDAT_t currQueuedPacket;
 		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(1000)) == pdPASS) {
@@ -462,25 +480,30 @@ static void receivePacket(uint8_t *destPayload) {
 	serialSendln(buffer);
 	if(readFromRxFIFO(destPayload, rx_numbytes) == 1) {
 		snprintf(buffer, sizeof(buffer), "Read %d bytes from RX FIFO", rx_numbytes);
-	 	serialSendln(buffer);
+//	 	serialSendln(buffer);
 	} else {
 	  	serialSendln("Failed to read from RX FIFO");
 	}
 	strobe(SFRX);
 }
 
-static void rfTestSequence() {
+void rfTestSequence() {
+	/* note: always give an array of len [SMARTRF_SETTING_PKTLEN_VAL_TX - 6]
+	 * to sendPacket.
+	 *
+	 * Place a null character at the end of the valid data.
+	 */
+
 	strobe(SNOP);
-	char buffer[100] = {'\0'};
-	uint8 test[SMARTRF_SETTING_PKTLEN_VAL_TX] = { 0 };
-	int i = 2;
-	test[0] = SMARTRF_SETTING_PKTLEN_VAL_TX;
-	test[1] = 0x10;
-	while (i < SMARTRF_SETTING_PKTLEN_VAL_TX-7) {
-		test[i] = i;
-		i++;
-	}
-	test[sizeof(test)-1] = '\0';
+//	char buffer[100] = {'\0'};
+	uint8 mystr[] = {'H', 'E', 'L','L','O',' ','W','O','R','L','D','\0'};
+
+	uint8 test[SMARTRF_SETTING_PKTLEN_VAL_TX - 6] = { 0 };
+//	int i;
+
+	strcpy((char *)test, (char *)mystr);
+
+//	test[sizeof(test)-1] = '\0';
 
 	sendPacket(test, SMARTRF_SETTING_PKTLEN_VAL_TX);
 
@@ -500,26 +523,26 @@ static void rfTestSequence() {
 //		 	snprintf(buffer, sizeof(buffer), "RX Byte #%d: %02x", i, received[i]);
 //		  	serialSendln(buffer);
 //		}
+////	}
+//	uint8_t received[FIFO_LENGTH] = { 0 };
+//	uint8_t rxbytes = readRegister(RXBYTES);
+//	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+//	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
+//	uint8_t bytes_actually_read = 0;
+//	i = 0;
+//	while (i < rx_numbytes) {
+//		received[i++] = readRegister(FIFO_RX);
 //	}
-	uint8_t received[FIFO_LENGTH] = { 0 };
-	uint8_t rxbytes = readRegister(RXBYTES);
-	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
-	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
-	uint8_t bytes_actually_read = 0;
-	i = 0;
-	while (i < rx_numbytes) {
-		received[i++] = readRegister(FIFO_RX);
-	}
-	if (rx_overflowed) {
-		serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
-		strobe(SFRX);
-	}
-	bytes_actually_read = i;
-	i = 0;
-	for ( i = 0; i < bytes_actually_read; i++ ) {
-		snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, received[i]);
-		serialSendln(buffer);
-	}
+//	if (rx_overflowed) {
+//		serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
+//		strobe(SFRX);
+//	}
+//	bytes_actually_read = i;
+//	i = 0;
+//	for ( i = 0; i < bytes_actually_read; i++ ) {
+//		snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, received[i]);
+//		serialSendln(buffer);
+//	}
 
 }
 
@@ -699,80 +722,80 @@ static int configureRadio(const uint16_t config[NUM_CONFIG_REGISTERS], const uin
     return checkConfig(SMARTRF_VALS_TX);
 }
 
-void vRFInterruptTask(void *pvParameters){
-	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+//void vRFInterruptTask(void *pvParameters){
+//	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
+//
+//	//pulled from example
+//	while(1){
+//		serialSendln("It's an RF one!");
+//		vTaskDelay(pdMS_TO_TICKS(5000));
+//
+//		//uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
+//		//uint8 RX_dest[RXBYTES] = {0};
+//		//char buffer[RXBYTES];
+//		//char buffer2[16];
+//		//uint8 count = 0;
+//		//uint8 size = 0;
+//		//const uint8 RX_FIFO_MAX_SIZE = 111100; //60
+//
+//
+//		xSemaphoreTake(gioRFSem, portMAX_DELAY);
+//
+//		read_RX_FIFO();
+//
+//		//snprintf(buffer2, 30, "RXBYTES: %02x \n", num_of_RXBYTES);
+//		//serialSendln(buffer2);
+//
+//
+////		while (NUM_RXBYTES < RX_FIFO_MAX_SIZE) {
+////			//(NUM_RXBYTES);
+////			serialSendQ("LOOPING HERE");
+////			vTaskDelay(pdMS_TO_TICKS(1000));
+////		}
+//
+//
+//
+////		if (readRegister(RXBYTES) != 0) {
+////			readFromRxFIFO(RX_dest, num_of_RXBYTES);
+////			for (count = 0; count < num_of_RXBYTES; count++) {
+////				snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
+////				serialSendln(buffer);
+////			}
+////		}
+//		//strobe(SFRX);
+//	}
+//}
 
-	//pulled from example
-	while(1){
-		serialSendln("It's an RF one!");
-		vTaskDelay(pdMS_TO_TICKS(5000));
-
-		//uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
-		//uint8 RX_dest[RXBYTES] = {0};
-		//char buffer[RXBYTES];
-		//char buffer2[16];
-		//uint8 count = 0;
-		//uint8 size = 0;
-		//const uint8 RX_FIFO_MAX_SIZE = 111100; //60
-
-
-		xSemaphoreTake(gioRFSem, portMAX_DELAY);
-
-		read_RX_FIFO();
-
-		//snprintf(buffer2, 30, "RXBYTES: %02x \n", num_of_RXBYTES);
-		//serialSendln(buffer2);
-
-
-//		while (NUM_RXBYTES < RX_FIFO_MAX_SIZE) {
-//			//(NUM_RXBYTES);
-//			serialSendQ("LOOPING HERE");
-//			vTaskDelay(pdMS_TO_TICKS(1000));
+//void read_RX_FIFO() {
+//	serialSendln("Reading RX_FIFO");
+//	uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
+//	uint8 RX_dest[RXBYTES] = { 0 };
+//	char buffer[RXBYTES];
+//	//char buffer2[16];
+//	uint8 count = 0;
+//	uint8 pktlen = 60;
+//
+//	if (readRegister(RXBYTES) >= pktlen) {
+//		readFromRxFIFO(RX_dest, num_of_RXBYTES);
+//		for (count = 0; count < num_of_RXBYTES; count++) {
+//			snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
+//			serialSendln(buffer);
 //		}
+//	}
+//
+//}
 
-
-
-//		if (readRegister(RXBYTES) != 0) {
-//			readFromRxFIFO(RX_dest, num_of_RXBYTES);
-//			for (count = 0; count < num_of_RXBYTES; count++) {
-//				snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
-//				serialSendln(buffer);
-//			}
-//		}
-		//strobe(SFRX);
-	}
-}
-
-void read_RX_FIFO() {
-	serialSendln("Reading RX_FIFO");
-	uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
-	uint8 RX_dest[RXBYTES] = { 0 };
-	char buffer[RXBYTES];
-	//char buffer2[16];
-	uint8 count = 0;
-	uint8 pktlen = 60;
-
-	if (readRegister(RXBYTES) >= pktlen) {
-		readFromRxFIFO(RX_dest, num_of_RXBYTES);
-		for (count = 0; count < num_of_RXBYTES; count++) {
-			snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
-			serialSendln(buffer);
-		}
-	}
-
-}
-
-void rf_interrupt_init(void){
-	//pulled from example
-	gioRFSem = xSemaphoreCreateBinary();
-	xRFInterruptTaskHandle = NULL;
-
-	if(gioRFSem != NULL){ // setup the task to handle the ISR
-		xTaskCreate(vRFInterruptTask, "RF Interrupt", 200, NULL, 3, xRFInterruptTaskHandle);
-	}
-
-	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN); // enable the notification callback for this particular pin
-}
+//void rf_interrupt_init(void){
+//	//pulled from example
+//	gioRFSem = xSemaphoreCreateBinary();
+//	xRFInterruptTaskHandle = NULL;
+//
+//	if(gioRFSem != NULL){ // setup the task to handle the ISR
+//		xTaskCreate(vRFInterruptTask, "RF Interrupt", 200, NULL, 3, xRFInterruptTaskHandle);
+//	}
+//
+//	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN); // enable the notification callback for this particular pin
+//}
 
 void gio_notification_RF(gioPORT_t *port, uint32 bit){
 	// This gets called by the ISR callback (notification). Doesn't need to be in another function, but this just keeps things tidy
@@ -783,9 +806,12 @@ void gio_notification_RF(gioPORT_t *port, uint32 bit){
 	BaseType_t xHigherPriorityTaskWoken;
 	xHigherPriorityTaskWoken = pdFALSE;
 
-	if(port == GIO_IRQ_PORT && bit == GIO_IRQ_PIN){ // Always need to check which pin actually triggered the interrupt
-		xSemaphoreGiveFromISR(gioRFSem, &xHigherPriorityTaskWoken);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	if(port == RF_IRQ_PORT && bit == RF_IRQ_PIN){ // Always need to check which pin actually triggered the interrupt
+//		xSemaphoreGiveFromISR(gioRFSem, &xHigherPriorityTaskWoken);
+		if(xRadioTaskHandle != NULL && enableRFISR){
+			xTaskNotifyFromISR(xRadioTaskHandle, 0x77777777, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		}
 	}
 }
 
