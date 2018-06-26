@@ -125,6 +125,41 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
 		[TEST0] = SMARTRF_SETTING_TEST0_VAL_TX
 };
 
+const uint16 SMARTRF_VALS_UB[NUM_CONFIG_REGISTERS] = {
+		[IOCFG0] = SMARTRF_SETTING_IOCFG0_VAL_UB,
+		[IOCFG1] = SMARTRF_SETTING_IOCFG1_VAL_UB,
+		[IOCFG2] = SMARTRF_SETTING_IOCFG2_VAL_UB,
+		[FIFOTHR] = SMARTRF_SETTING_FIFOTHR_VAL_UB,
+		[SYNC1] = SMARTRF_SETTING_SYNC1_VAL_UB,
+		[SYNC0] = SMARTRF_SETTING_SYNC0_VAL_UB,
+		[PKTLEN] = SMARTRF_SETTING_PKTLEN_VAL_UB,
+		[PKTCTRL1] = SMARTRF_SETTING_PKTCTRL1_VAL_UB,
+		[PKTCTRL0] = SMARTRF_SETTING_PKTCTRL0_VAL_UB,
+		[FSCTRL1] = SMARTRF_SETTING_FSCTRL1_VAL_UB,
+		[FREQ2] = SMARTRF_SETTING_FREQ2_VAL_UB,
+		[FREQ1] = SMARTRF_SETTING_FREQ1_VAL_UB,
+		[FREQ0] = SMARTRF_SETTING_FREQ0_VAL_UB,
+		[MDMCFG4] = SMARTRF_SETTING_MDMCFG4_VAL_UB,
+		[MDMCFG3] = SMARTRF_SETTING_MDMCFG3_VAL_UB,
+		[MDMCFG2] = SMARTRF_SETTING_MDMCFG2_VAL_UB,
+		[MDMCFG1] = SMARTRF_SETTING_MDMCFG1_VAL_UB,
+		[MDMCFG0] = SMARTRF_SETTING_MDMCFG0_VAL_UB,
+		[DEVIATN] = SMARTRF_SETTING_DEVIATN_VAL_UB,
+		[MCSM1] = SMARTRF_SETTING_MCSM1_VAL_UB,
+		[MCSM0] = SMARTRF_SETTING_MCSM0_VAL_UB,
+		[FOCCFG] = SMARTRF_SETTING_FOCCFG_VAL_UB,
+		[AGCCTRL2] = SMARTRF_SETTING_AGCCTRL2_VAL_UB,
+		[AGCCTRL1] = SMARTRF_SETTING_AGCCTRL1_VAL_UB,
+		[WORCTRL] = SMARTRF_SETTING_WORCTRL_VAL_UB,
+		[FSCAL3] = SMARTRF_SETTING_FSCAL3_VAL_UB,
+		[FSCAL2] = SMARTRF_SETTING_FSCAL2_VAL_UB,
+		[FSCAL1] = SMARTRF_SETTING_FSCAL1_VAL_UB,
+		[FSCAL0] = SMARTRF_SETTING_FSCAL0_VAL_UB,
+		[TEST2] = SMARTRF_SETTING_TEST2_VAL_UB,
+		[TEST1] = SMARTRF_SETTING_TEST1_VAL_UB,
+		[TEST0] = SMARTRF_SETTING_TEST0_VAL_UB
+};
+
 
 /**
  * Masks.
@@ -469,6 +504,19 @@ static void receivePacket(uint8_t *destPayload) {
 	strobe(SFRX);
 }
 
+static void chimeTestSequence(){
+	char buffer[100] = {'\0'};
+	spiDataConfig.CSNR = RF_CONFIG_CS_UB;
+
+	uint8 goldsequence[SMARTRF_SETTING_PKTLEN_VAL_UB-7] = {0x67, 0x87, 0x5d, 0xef, 0xcb, 0x74, 0x0e, 0x55, 0xd1, 0x3f, 0x17, 0xb7, 0xcb, 0x67, 0xcd, 0x10, 0x7e, 0xc6, 0x34, 0xfa, 0x40, 0x11, 0x5e, 0xdc, 0x85, 0x7e, 0x42, 0x70, 0xf9, 0x18, 0x88, 0xbe, 0xf9, 0x65, 0x1c, 0xcd, 0x3b, 0xcc, 0x71, 0x70, 0x5a, 0xeb, 0x7f, 0x89, 0x41, 0xa4, 0x3f, 0xc0, 0x19, 0x7e, 0x5c, 0x45, 0xaa, 0xa4, 0x50};
+
+	snprintf(buffer, sizeof(buffer), "Sending CHIME cal. signal");
+	serialSendln(buffer);
+	sendPacket(goldsequence, SMARTRF_SETTING_PKTLEN_VAL_UB-7);
+
+	spiDataConfig.CSNR = RF_CONFIG_CS_LB;
+}
+
 static void rfTestSequence() {
 	strobe(SNOP);
 	char buffer[100] = {'\0'};
@@ -799,15 +847,17 @@ BaseType_t initRadio() {
      * CC1101 is active-low, on CS0
      * SPI_CS_0 -> 0xFE -> 11111110
      */
-    spiDataConfig.CSNR = RF_CONFIG_CS_LB;
 
-    uint8 *stat = readAllStatusRegisters();
-    char buffer[30];
+    //---------configure lower band CC1101
+    spiDataConfig.CSNR = RF_CONFIG_CS_LB;
 
     strobe(SRES);
     strobe(SNOP);
 
-    snprintf(buffer, 30, "Radio Status Registers:");
+    uint8 *stat = readAllStatusRegisters();
+    char buffer[30];
+
+    snprintf(buffer, 30, "LB Radio Status Registers:");
     serialSendln(buffer);
     snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
     			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
@@ -824,9 +874,33 @@ BaseType_t initRadio() {
 //attach irq
 
     strobe(SRX);
-//move here ##
 
-//Move ##
+
+    //---------configure Upper band CC1101
+    spiDataConfig.CSNR = RF_CONFIG_CS_UB;
+
+    strobe(SRES);
+    strobe(SNOP);
+
+    stat = readAllStatusRegisters();
+
+    snprintf(buffer, 30, "UB Radio Status Registers:");
+    serialSendln(buffer);
+    snprintf(buffer, 30, "%02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, %02x, ",
+        			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], stat[7], stat[8], stat[9],
+    				stat[10], stat[11], stat[12], stat[13]);
+    serialSendln(buffer);
+
+    if(configureRadio(SMARTRF_VALS_UB, PA_TABLE_SETTING)){
+        	snprintf(buffer, 30, "radio registers do not match!");
+        	serialSendln(buffer);
+    }
+
+    strobe(SNOP);
+    strobe(SIDLE);
+
+    spiDataConfig.CSNR = RF_CONFIG_CS_LB;
+
 	return pdPASS;
 }
 
