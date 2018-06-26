@@ -11,6 +11,10 @@
 
 #include "sys_common.h"
 #include "sfu_utils.h"
+#include "FreeRTOS.h"
+#include "rtos_task.h"
+
+extern TaskHandle_t xStateEntryHandle;
 
 // create the list of state enums, and strings so we can print out the state. https://stackoverflow.com/questions/9907160/how-to-convert-enum-names-to-string-in-c
 #define FOREACH_STATE(state) \
@@ -54,9 +58,11 @@ void setStateRTOS_mode();
 void printPrevState(State_t currstate, InstanceData_t *data);
 uint8_t setStateManual(InstanceData_t *data,  uint8_t state_to_set);
 bool getStateRTOS_mode();
-
+uint32_t stateEntryTime();
+void printStateEntryTime();
 extern State_t cur_state;
 extern InstanceData_t state_persistent_data;
+
 
 uint8_t stateCheckPowerGood(InstanceData_t *data);
 uint8_t stateCheckEnterSafe(InstanceData_t *data); // enter safe on some large error or from ground command

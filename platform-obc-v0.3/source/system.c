@@ -104,7 +104,7 @@ void setupPLL(void)
                         |  (uint32)((uint32)0x1FU << 24U)
                         |  (uint32)0x00000000U
                         |  (uint32)((uint32)(6U - 1U)<< 16U)
-                        |  (uint32)(0x7700U);
+                        |  (uint32)(0x2C00U);
 
     /**   - Setup pll control register 2
     *     - Setup spreading rate
@@ -169,14 +169,14 @@ void setupFlash(void)
 
     /** - Setup flash read mode, address wait states and data wait states */
     flashWREG->FRDCNTL =  0x00000000U
-                       | (uint32)((uint32)3U << 8U)
-                       | (uint32)((uint32)1U << 4U)
+                       | (uint32)((uint32)1U << 8U)
+                       | (uint32)((uint32)0U << 4U)
                        |  1U;
 
     /** - Setup flash access wait states for bank 7 */
     FSM_WR_ENA_HL    = 0x5U;
     EEPROM_CONFIG_HL = 0x00000002U
-                     | (uint32)((uint32)9U << 16U) ;
+                     | (uint32)((uint32)2U << 16U) ;
 
 /* USER CODE BEGIN (7) */
 /* USER CODE END */

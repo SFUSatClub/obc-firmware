@@ -51,4 +51,5 @@ char* utoa2(uint32_t num, char *buffer, int base, int itr);
 void clearBuf(char *buf,uint32_t length);
 uint32_t adc_to_mA(uint32_t adcval); // based on some rough calibration, convert an ADC reading of the INA301 current output to an actual current draw
 
+void restart_software();
 #endif /* SFUSAT_SFU_UTILS_H */

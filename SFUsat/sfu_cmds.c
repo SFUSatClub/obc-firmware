@@ -13,6 +13,10 @@
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
 #include "sfu_task_radio.h"
+#include "deployables.h"
+#include "sfu_fs_structure.h"
+#include "flash_mibspi.h"
+
 
 struct subcmd_opt {
 	const char *name;
@@ -53,7 +57,10 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "  task  -- Task-related commands\n"
 							  "  sched -- Schedule-related commands\n"
 							  "  state -- State-related commands\n"
-							  "  ack   -- Acks."
+							  "  ack   -- Acks.\n"
+						      "  wd    -- Disable watchdog.\n"
+						      "  deploy -- Inhibit deployment.\n"
+						      "  file   -- File-related commands\n"
 		},
 		{
 				.subcmd_id	= CMD_HELP_GET,
@@ -75,8 +82,7 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 		{
 				.subcmd_id	= CMD_HELP_RF,
 				.name		= "rf",
-				.info		= "RF-related commands\n"
-						  	  "  loopback [1|0] -- Enable or disable radio SPI loopback\n"
+				.info		= "RF-related commands (none)"
 		},
 		{
 				.subcmd_id	= CMD_HELP_TASK,
@@ -109,13 +115,44 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 							  "    Set the current state\n"
 							  "  prev\n"
 							  "    Show previous state\n"
+							  "  entry\n"
+							  "    Show time we entered current state\n"
 		},
 		{
 				.subcmd_id	= CMD_ACK,
 				.name		= "Ack",
 				.info		= "acks. "
+		},
+		{
+				.subcmd_id	= CMD_WD,
+				.name		= "wd",
+				.info		= "Suspends watchdog tickle tasks.\n"
+								"  reset\n"
+								"    Reset but no erase\n"
+								"  freset\n"
+								"    Reset with erase"
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY,
+				.name		= "deploy",
+				.info		=  "Deployment disable command."
+								"  disarm\n"
+								"    Disarm deployment\n"
+		},
+		{
+				.subcmd_id	= CMD_FILE,
+				.name		= "file",
+				.info		=  "File commands."
+								"  dump\n"
+								"    Dumps a file.\n"
+		},
+		{
+				.subcmd_id	= CMD_RESTART,
+				.name		= "restart",
+				.info		=  "Restart commands\n"
 		}
 };
+
 int8_t cmdHelp(const CMD_t *cmd) {
 	const struct subcmd_opt *subcmd_opt = NULL;
 	FOR_EACH(subcmd_opt, CMD_HELP_OPTS) {
@@ -164,11 +201,12 @@ static const struct subcmd_opt CMD_GET_OPTS[] = {
 				.name		= "epoch",
 		},
 };
-static char buffer[250];
+char buffer[250];
 int8_t cmdGet(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_GET_NONE:
 		case CMD_GET_TASKS: {
+			serialSendln("TASKS::");
 			serialSend("Task\t\tState\tPrio\tStack\tNum\n");
 			vTaskList(buffer);
 			serialSend(buffer);
@@ -231,10 +269,6 @@ static const struct subcmd_opt CMD_EXEC_OPTS[] = {
 };
 int8_t cmdExec(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
-		case CMD_EXEC_NONE: {
-			serialSendQ("exec stub");
-			return 1;
-		}
 		case CMD_EXEC_RADIO: {
 			initRadio();
 			return 1;
@@ -244,8 +278,9 @@ int8_t cmdExec(const CMD_t *cmd) {
 }
 
 /*
- * RF Command.
+ * RF Command
  */
+
 static const struct subcmd_opt CMD_RF_OPTS[] = {
 		{
 				.subcmd_id	= CMD_RF_NONE,
@@ -306,8 +341,125 @@ int8_t cmdAck(const CMD_t *cmd) {
 			serialSendQ("Ack!");
 			return 1;
 		}
-
 	return 0;
+}
+
+/**
+ * Watchdog command
+ */
+static const struct subcmd_opt CMD_WD_OPTS[] = {
+		{
+				.subcmd_id	= CMD_WD_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_WD_RESET,
+				.name		= "reset",
+		},
+		{
+				.subcmd_id	= CMD_WD_F_RESET,
+				.name		= "f_reset",
+		},
+};
+
+int8_t cmdWd(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_WD_RESET){
+			serialSendQ("Suspending watchdog task!");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_WD_F_RESET){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			vTaskSuspend(xTickleTaskHandle);
+			return 1;
+		}
+
+	return 1;
+}
+
+/**
+ * Deployables commands
+ */
+static const struct subcmd_opt CMD_DEPLOY_OPTS[] = {
+		{
+				.subcmd_id	= CMD_DEPLOY_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_DEPLOY_DISARM,
+				.name		= "disarm",
+		},
+};
+
+int8_t cmdDeploy(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_DEPLOY_DISARM){
+			deploy_inhibit();
+			return 1;
+		}
+		else{
+			return 1;
+		}
+}
+
+/**
+ * File System commands
+ */
+static const struct subcmd_opt CMD_FILE_OPTS[] = {
+		{
+				.subcmd_id	= CMD_FILE_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_FILE_DUMP,
+				.name		= "dump",
+		},
+		{
+				.subcmd_id	= CMD_FILE_CDUMP,
+				.name		= "dumpc",
+		},
+		{
+				.subcmd_id	= CMD_FILE_CPREFIX,
+				.name		= "cprefix",
+		},
+		{
+				.subcmd_id	= CMD_FILE_SIZE,
+				.name		= "size",
+		},
+		{
+				.subcmd_id	= CMD_FILE_ERASE,
+				.name		= "erase",
+		},
+};
+
+int8_t cmdFile(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_FILE_DUMP){
+			dumpFile(cmd->cmd_file_data.prefix, cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CDUMP){
+			dumpFile(currentPrefix(), cmd->cmd_file_data.suffix);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_CPREFIX){
+			serialSendln((const char*)currentPrefix());
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_SIZE){
+			// todo: snag this from spiffs struct
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_FILE_ERASE){
+			serialSendln("Flash erasing");
+			flash_erase_chip();
+			serialSendln("Flash erased");
+			fs_num_increments = 0;
+			return 1;
+		}
+		else{
+			return 1;
+		}
 }
 
 /**
@@ -497,6 +649,10 @@ static const struct subcmd_opt CMD_STATE_OPTS[] = {
 				.subcmd_id	= CMD_STATE_PREV,
 				.name		= "prev",
 		},
+		{
+				.subcmd_id	= CMD_STATE_ENTRY,
+				.name		= "entry",
+		},
 };
 int8_t cmdState(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
@@ -544,17 +700,59 @@ int8_t cmdState(const CMD_t *cmd) {
 			printPrevState(cur_state,&state_persistent_data);
 			return 1;
 		}
+		/*
+		 * Return the time we entered the current state
+		 */
+		case CMD_STATE_ENTRY: {
+			printStateEntryTime();
+			return 1;
+		}
 	}
 
 	return 0;
 }
 
+
+/**
+ * System restart commands
+ */
+static const struct subcmd_opt CMD_RESTART_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RESTART_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RESTART_ERASE_FILES,
+				.name		= "erase",
+		},
+};
+
+int8_t cmdRestart(const CMD_t *cmd) {
+
+	/* NOTE:
+	 * 	THESE CAUSE A DATA ABORT
+	 * 		- that's why the call is commented out
+	 */
+
+		if (cmd->subcmd_id == CMD_RESTART_NONE){
+//			restart_software();
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_RESTART_ERASE_FILES){
+//			flash_erase_chip();
+//			restart_software();
+			return 1;
+		}
+		else{
+			return 1;
+		}
+}
+
 /**
  * Command table.
  *
- * If adding a new entry, make sure ALL fields are initialized!
- * Entries with .subcmds=NULL and .num_subcmds=0 are valid but will not be accessible through the UART command system.
- * Field .name must be set to the empty string at least, otherwise checkAndRunCommandStr will run strcmp on it and bring UB
+ * If adding a new entry, make sure all fields are initialized:
+ * 		- .name is required to be set to something
  */
 static const struct cmd_opt CMD_OPTS[] = {
 		{
@@ -582,8 +780,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.cmd_id			= CMD_RF,
 				.func			= cmdRF,
 				.name			= "rf",
-				.subcmds		= CMD_RF_OPTS,
-				.num_subcmds	= LEN(CMD_RF_OPTS),
+				.subcmds		= NULL,
+				.num_subcmds	= 0,
 		},
 		{
 				.cmd_id			= CMD_TASK,
@@ -612,6 +810,34 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdAck,
 				.subcmds		= NULL,
 				.num_subcmds	= 0,
+		},
+		{
+				.cmd_id			= CMD_WD,
+				.name			= "wd",
+				.func			= cmdWd,
+				.subcmds		= CMD_WD_OPTS,
+				.num_subcmds	= LEN(CMD_WD_OPTS),
+		},
+		{
+				.cmd_id			= CMD_DEPLOY,
+				.name			= "deploy",
+				.func			= cmdDeploy,
+				.subcmds		= CMD_DEPLOY_OPTS,
+				.num_subcmds	= LEN(CMD_DEPLOY_OPTS),
+		},
+		{
+				.cmd_id			= CMD_FILE,
+				.name			= "file",
+				.func			= cmdFile,
+				.subcmds		= CMD_FILE_OPTS,
+				.num_subcmds	= LEN(CMD_FILE_OPTS),
+		},
+		{
+				.cmd_id			= CMD_RESTART,
+				.name			= "restart",
+				.func			= cmdRestart,
+				.subcmds		= CMD_RESTART_OPTS,
+				.num_subcmds	= LEN(CMD_RESTART_OPTS),
 		}
 };
 
@@ -687,7 +913,6 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	}
 
 	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
-	memset(cmd_t.cmd_data, 0, sizeof(cmd_t.cmd_data));
 	/**
 	 * The third token will be interpreted as a hex string if it exists.
 	 * No preceding 0x required.
@@ -703,10 +928,10 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 * 		cmd_t.cmd_task_data.task_id will be == TASK_BLINKY (4)
 	 */
 	const char *data = strtok(NULL, delim);
+	unsigned int i = 0;
 	if (data != NULL) {
 		const int data_len = strlen(data);
-		unsigned int i = 0;
-		for (i = 0; i < sizeof(cmd_t.cmd_data) * 2 && i < data_len; i += 2) {
+		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
 			char c[3] = {NULL};
 			c[0] = *(data + i);
 			// TODO: fix dereference beyond null char
@@ -714,14 +939,8 @@ int8_t checkAndRunCommandStr(char *cmd) {
 			c[1] = n == '\0' ? '0' : n;
 			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
 		}
-		int ret = sprintf(buffer, "cmd_data set to: 0x");
-		i = 0;
-		for (i = 0; i < data_len && i < sizeof(cmd_t.cmd_data); i++) {
-			ret += snprintf(buffer + ret, sizeof(buffer), "%02x", cmd_t.cmd_data[i]);
-		}
-		serialSend(buffer);
 	}
-
+	serialSend((char *)cmd_t.cmd_data);
 
 	/**
 	 * Invoke the intended command with the command struct created above.

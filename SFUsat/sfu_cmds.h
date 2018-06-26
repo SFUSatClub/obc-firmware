@@ -30,6 +30,10 @@
 #define CMD_SCHED		0x0A
 #define CMD_STATE		0x0C
 #define CMD_ACK			0x0F
+#define CMD_WD			0x10
+#define CMD_DEPLOY		0x12
+#define CMD_FILE		0x14
+#define CMD_RESTART		0x15
 
 /**
  * Magic numbers to identify the sub-commands of a command.
@@ -67,6 +71,7 @@
 #define CMD_RF_LOOPBACK		0x04
 #define RF_TEST_SEQUENCE	0x06
 
+
 #define CMD_TASK_NONE		0x00
 #define CMD_TASK_CREATE		0x02
 #define CMD_TASK_DELETE		0x04
@@ -84,8 +89,26 @@
 #define CMD_STATE_GET		0x02
 #define CMD_STATE_PREV		0x04
 #define CMD_STATE_SET		0x06
+#define CMD_STATE_ENTRY		0x08
 
 #define CMD_ACK_NONE		0x00
+
+#define CMD_WD_NONE 		0x00
+#define CMD_WD_RESET 		0x02
+#define	CMD_WD_F_RESET		0x04
+
+#define CMD_DEPLOY_NONE		0x00
+#define CMD_DEPLOY_DISARM 	0x02
+
+#define CMD_FILE_NONE		0x00
+#define CMD_FILE_DUMP	 	0x02
+#define CMD_FILE_CDUMP 		0x04
+#define CMD_FILE_CPREFIX 	0x06
+#define CMD_FILE_SIZE		0x08
+#define CMD_FILE_ERASE		0x0A
+
+#define CMD_RESTART_NONE	0x00
+#define CMD_RESTART_ERASE_FILES	0x02
 
 /**
  * Maximum command argument size.
@@ -96,21 +119,25 @@
  */
 #define CMD_DATA_MAX_SIZE (14)
 
-typedef enum TASK_IDS {
-	TASK_MAIN,
-	TASK_RADIO,
-	TASK_TICKLE,
-	/**
-	 * The following tasks are used only in development and not in release.
-	 * They may be #ifdef'd out or removed in the future.
-	 */
-	TASK_SERIAL,
-	TASK_BLINKY,
-	TASK_NUM_IDS,
-} TASK_ID;
+/**
+ * Magic numbers to identify a task.
+ * - Definition order does not matter.
+ * - Exact value does not matter.
+ * - Must fit within a uint8_t (0x00 to 0xFF).
+ */
+#define TASK_MAIN         (0x00)
+#define TASK_RADIO        (0x01)
+#define TASK_TICKLE       (0x02)
+#define TASK_SERIAL       (0x03)
+/**
+ * The following tasks are used only in development and not in release.
+ * They may be #ifdef'd out or removed in the future.
+ */
+#define TASK_BLINKY       (0x04)
+#define TASK_NUM_IDS      (5)
 
 typedef struct CMD_TASK_DATA {
-	TASK_ID task_id : 4;
+	uint8_t task_id : 4;
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_TASK_DATA_t;
 
@@ -119,6 +146,12 @@ typedef struct CMD_STATE_DATA {
 	State_t state_id : 4;	// number of bits
 	uint8_t unused[CMD_DATA_MAX_SIZE - 1];
 } CMD_STATE_DATA_t;
+
+typedef struct CMD_FILE_DATA {
+	uint8_t prefix;
+	uint8_t suffix;
+	uint8_t unused[CMD_DATA_MAX_SIZE - 2];
+} CMD_FILE_DATA_t;
 
 /**
  * CMD_SCHED_MISC_DATA_t provides structured access to miscellaneous data when specifying a CMD_SCHED_DATA_t.
@@ -153,6 +186,8 @@ typedef struct CMD_SCHED_DATA {
 		CMD_TASK_DATA_t scheduled_cmd_task_data;
 		CMD_STATE_DATA_t scheduled_cmd_state_data;
 		CMD_SCHED_MISC_DATA_t cmd_sched_misc_data;
+		CMD_FILE_DATA_t cmd_file_misc_data;
+
 	};
 	uint8_t scheduled_cmd_id;
 	uint8_t scheduled_subcmd_id;
@@ -173,6 +208,7 @@ typedef struct CMD {
 		CMD_TASK_DATA_t cmd_task_data;
 		CMD_STATE_DATA_t cmd_state_data;
 		CMD_SCHED_DATA_t cmd_sched_data;
+		CMD_FILE_DATA_t cmd_file_data;
 	};
 	uint8_t cmd_id;
 	uint8_t subcmd_id;

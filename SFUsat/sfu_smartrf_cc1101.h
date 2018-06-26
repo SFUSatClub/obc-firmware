@@ -106,6 +106,7 @@ typedef struct {
 
 
 // TX
+
 #define SMARTRF_SETTING_IOCFG2_VAL_TX           0x1C // on for 3.58us, set HW 1. GDO2 is stuck, no matter the setting a single 35us pulse occures per task cycle
 #define SMARTRF_SETTING_IOCFG1_VAL_TX           0x2E
 #define SMARTRF_SETTING_IOCFG0_VAL_TX           0x01 // assert when rf fifo is filled above threshold or end of packet is reached, deassert when fifo is emtpy
