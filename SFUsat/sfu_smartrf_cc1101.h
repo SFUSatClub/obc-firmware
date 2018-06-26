@@ -188,7 +188,7 @@ typedef struct {
 #define SMARTRF_SETTING_FIFOTHR_VAL_UB          0x47
 #define SMARTRF_SETTING_SYNC1_VAL_UB            0xD3
 #define SMARTRF_SETTING_SYNC0_VAL_UB            0x91
-#define SMARTRF_SETTING_PKTLEN_VAL_UB           0x3E
+#define SMARTRF_SETTING_PKTLEN_VAL_UB           0x37
 #define SMARTRF_SETTING_PKTCTRL1_VAL_UB         0x00
 #define SMARTRF_SETTING_PKTCTRL0_VAL_UB         0x00
 #define SMARTRF_SETTING_ADDR_VAL_UB             0x00
