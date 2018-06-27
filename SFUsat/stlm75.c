@@ -43,7 +43,7 @@
 int16_t read_temp(uint8_t addr) {
 	if (xSemaphoreTake(xI2CMutex, pdMS_TO_TICKS(500) ) == pdTRUE) {
 		int16_t temp;
-		temp = read_temp_raw(OBC_TEMP);
+		temp = read_temp_raw(addr);
 		if (temp <= -20000) {
 			sfu_reset_i2c(i2cREG1);
 		}
@@ -83,7 +83,7 @@ int16_t read_temp_raw(uint8_t addr) {
 	int16_t temp_deg_c = 0;
 	int16_t errcode = 0;
 
-	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
+	i2cSetSlaveAdd(i2cREG1, addr);
 	i2cSetDirection(i2cREG1, I2C_TRANSMITTER);
 	i2cSetCount(i2cREG1, 1); 							// the total number of bytes to transact before sending stop bit
 	i2cSetMode(i2cREG1, I2C_MASTER);
@@ -93,7 +93,7 @@ int16_t read_temp_raw(uint8_t addr) {
 	if (errcode != I2C_OK)
 		return errcode;
 
-	i2cSetSlaveAdd(i2cREG1, OBC_TEMP);
+	i2cSetSlaveAdd(i2cREG1, addr);
 	i2cSetCount(i2cREG1, 2); 							// the total number of bytes to transact before sending stop bit
 	i2cSetDirection(i2cREG1, I2C_RECEIVER);
 	i2cSetMode(i2cREG1, I2C_MASTER);

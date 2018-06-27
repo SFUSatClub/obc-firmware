@@ -16,6 +16,7 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
+#include "sun_sensor.h"
 #include "sfu_i2c.h"
 #include "stlm75.h"
 #include "deployables.h"
@@ -77,13 +78,17 @@ void vMainTask(void *pvParameters) {
 	serialSendQ("created queue");
 
 	// ---------- INIT TESTS ----------
+	// TODO: if tests fail, actually do something
+	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	test_adc_init();
+
 //	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
 	gioSetBit(DEPLOY_EN_PORT, DEPLOY_EN_PIN, 1); /* active high */
 
-//	bms_test();
+	bms_test();
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run
@@ -94,7 +99,7 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );				// Task handles are above
 
 	//NOTE: Task priorities are #defined in sfu_tasks.h
-	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
+	xTaskCreate(vSerialTask, "serial", 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vFilesystemLifecycleTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
