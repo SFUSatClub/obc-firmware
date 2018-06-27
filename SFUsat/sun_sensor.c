@@ -20,6 +20,9 @@
 #define RD_CMD 0x1
 #define WR_CMD 0x0
 
+output_value output[32]; //Changed from 16 to 32
+
+
 /* adc from mux
  * - returns the ADC channel (0 based, so the real ADC number) associated with a mux
  */
@@ -139,11 +142,9 @@ uint8_t set_mux_channel(uint8_t addr, uint8_t channel) {
 	return channel;
 }
 
-output_value *read_sun_sensor() {						// must loop 4-6 times to get all the values of each sensor of each mux
-	output_value output[32]; //Changed from 16 to 32
 
-	output_value *sun_info_ptr;
-	adcData_t adc_data[32]; //Changed from 24 to 32 since 32 MUX channels/Photodiode sensors
+bool read_sun_sensor() {						// must loop 4-6 times to get all the values of each sensor of each mux
+	adcData_t adc_data[24];
 
 	//table of values for sensor number, addr of mux its assigned to as well as channel on mux
 	//Each XY PCB Panel has 6 photodiodes and an 8 output mux. (2 Channels arent used)
@@ -200,63 +201,29 @@ output_value *read_sun_sensor() {						// must loop 4-6 times to get all the val
 
 		//Reading Data from the corresponding channel number for each mux
 		adcStartConversion(adcREG1, adcGROUP1); //Sample all channels on ADC1
-		while((adcIsConversionComplete(adcREG1, adcGROUP1)) == 0);	//Wait for conversion to complete
+		uint32_t timeout = 0;
+		while((adcIsConversionComplete(adcREG1, adcGROUP1)) == 0 && timeout < 30000){
+			timeout++;
+		}
+		if(timeout >= (30000 - 1)){
+			return 0;	// failure: ADC timeout
+		}
 		adcGetData(adcREG1, adcGROUP1, &adc_data[0]);
 
-		output[(mux1[i].sensor_num-1)].value = adc_data[7].value;
+		output[(mux1[i].sensor_num-1)].value = adc_channel_val(adc_from_mux(mux1[i].mux_addr), &adc_data[0]); //adc_data[7].value;
 		output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
 
-		output[(mux2[i].sensor_num-1)].value = adc_data[5].value;
+		output[(mux2[i].sensor_num-1)].value = adc_channel_val(adc_from_mux(mux2[i].mux_addr), &adc_data[0]);//adc_data[5].value;
 		output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
 
-		output[(mux3[i].sensor_num-1)].value = adc_data[4].value;
+		output[(mux3[i].sensor_num-1)].value = adc_channel_val(adc_from_mux(mux3[i].mux_addr), &adc_data[0]); //adc_data[4].value;
 		output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
 
-		output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
+		output[(mux4[i].sensor_num-1)].value = adc_channel_val(adc_from_mux(mux4[i].mux_addr), &adc_data[0]);//adc_data[6].value;
 		output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
 	}
 
-	sun_info_ptr = output; //pointer to output struct
-	return sun_info_ptr;
-
-/*	for(i = 0; i < 6; i++) { //loop through channels on muxes (As far as I know there are at most 6 sensors per mux)
-		//sets the channel for the muxes
-		if(mux1[i].sensor_num != -1){
-			set_mux_channel(mux1[i].mux_addr, mux1[i].mux_channel);
-		};
-		if(mux2[i].sensor_num != -1){
-			set_mux_channel(mux2[i].mux_addr, mux2[i].mux_channel);
-		};
-		if(mux3[i].sensor_num != -1){
-			set_mux_channel(mux1[i].mux_addr, mux3[i].mux_channel);
-		};
-		if(mux4[i].sensor_num != -1){
-			set_mux_channel(mux1[i].mux_addr, mux4[i].mux_channel);
-		};
-		//Reading the values from the ADC
-		adcStartConversion(adcREG1,adcGROUP1); // sample all channels on ADC1
-		while((adcIsConversionComplete(adcREG1,adcGROUP1))==0); // wait for conversion to complete.
-		adcGetData(adcREG1, adcGROUP1,&adc_data[0]);
-
-		if(mux1[i].sensor_num != -1) {		//place holder for garbage value
-			output[(mux1[i].sensor_num-1)].value = adc_data[7].value;
-			output[(mux1[i].sensor_num-1)].sensor_num = mux1[i].sensor_num;
-		};
-		if(mux2[i].sensor_num != -1) {
-			output[(mux2[i].sensor_num-1)].value = adc_data[5].value;
-			output[(mux2[i].sensor_num-1)].sensor_num = mux2[i].sensor_num;
-		};
-		if(mux3[i].sensor_num != -1) {
-			output[(mux3[i].sensor_num-1)].value = adc_data[4].value;
-			output[(mux3[i].sensor_num-1)].sensor_num = mux3[i].sensor_num;
-		};
-		if(mux4[i].sensor_num != -1) {
-			output[(mux4[i].sensor_num-1)].value = adc_data[6].value;
-			output[(mux4[i].sensor_num-1)].sensor_num = mux4[i].sensor_num;
-		};
-	};*/
-/*	sun_info_ptr = output; //pointer to output struct
-	return sun_info_ptr;*/
+	return 1;
 }
 
 //int16_t read_register(uint8_t addr, uint8_t *reg_return) {
