@@ -289,8 +289,12 @@ static const struct subcmd_opt CMD_RF_OPTS[] = {
 				.name		= "loopback",
 		},
 		{
-				.subcmd_id	= RF_TEST_SEQUENCE,
+				.subcmd_id	= CMD_RF_TX,
 				.name		= "tx",
+		},
+		{
+				.subcmd_id	= CMD_RF_RESET,
+				.name		= "reset",
 		},
 };
 int8_t cmdRF(const CMD_t *cmd) {
@@ -322,8 +326,13 @@ int8_t cmdRF(const CMD_t *cmd) {
 			serialSendln("CMD_RF_LOOPBACK unknown selection");
 			return 0;
 		}
-		case RF_TEST_SEQUENCE:{
-			rfTestSequence();
+		case CMD_RF_TX:{
+			xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
+			return 1;
+		}
+		case CMD_RF_RESET: {
+			xTaskNotify(xRadioTaskHandle, RF_NOTIF_RESET, eSetValueWithOverwrite);
+			serialSendln("CMD_RF_RESET");
 			return 1;
 		}
 	}

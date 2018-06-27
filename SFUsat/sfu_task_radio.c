@@ -300,7 +300,7 @@ void vRadioTask(void *pvParameters) {
 			} case 0xDEADBEEF: {
 				spiDisableLoopback(RF_SPI_REG);
 				break;
-			} case 0x1: {
+			} case RF_NOTIF_TX: {
 				rfTestSequence();
 				break;
 			} case 0x77777777:{
@@ -327,19 +327,24 @@ void vRadioTask(void *pvParameters) {
 					serialSendln((const char *)rxbuf);
 				}
 				clearBuf((char *)rxbuf, 64);
+				break;
+			} case RF_NOTIF_RESET: {
+				strobe(SFTX);
+				strobe(SFRX);
+				break;
 			}
 		}
 		numBytesAvailInFIFO = readRegister(RXBYTES);
 		snprintf(buffer, sizeof(buffer), "radio task (0x%x), numBytes: 0x%x", notif, numBytesAvailInFIFO);
 		serialSendln(buffer);
-		clearBuf(buffer, 100);
+		clearBuf(buffer, sizeof(buffer));
 
 		if(IS_STATE(STATE_IDLE)){	//TODO: this should be handled by reg config or ISR
 			strobe(SRX);
 		}
 
 		RadioDAT_t currQueuedPacket;
-		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(1000)) == pdPASS) {
+		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(5000)) == pdPASS) {
 			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x from xRadioTXQueue", currQueuedPacket.unused);
 			serialSendln(buffer);
 			sendPacket(currQueuedPacket.data, currQueuedPacket.size);
