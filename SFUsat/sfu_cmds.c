@@ -780,8 +780,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.cmd_id			= CMD_RF,
 				.func			= cmdRF,
 				.name			= "rf",
-				.subcmds		= NULL,
-				.num_subcmds	= 0,
+				.subcmds		= CMD_RF_OPTS,
+				.num_subcmds	= LEN(CMD_RF_OPTS),
 		},
 		{
 				.cmd_id			= CMD_TASK,

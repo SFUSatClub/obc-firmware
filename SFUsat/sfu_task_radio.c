@@ -310,7 +310,20 @@ void vRadioTask(void *pvParameters) {
 				serialSendln(buffer);
 
 				receivePacket(rxbuf);	// read in the data
-				serialSendln((const char *)rxbuf);
+				if(validateCommand(rxbuf)){
+					/* send to serial */
+					uint8_t uart_cnt;
+					for(uart_cnt = 6; uart_cnt < sizeof(rxbuf); uart_cnt++){
+						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE){
+							serialSendln("RF RX -> UART ERR");
+							break;
+						}
+					}
+				}
+				else{
+					/* invalid command, print out */
+					serialSendln((const char *)rxbuf);
+				}
 				clearBuf((char *)rxbuf, 64);
 			}
 		}
