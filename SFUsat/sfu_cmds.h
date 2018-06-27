@@ -33,7 +33,8 @@
 #define CMD_WD			0x10
 #define CMD_DEPLOY		0x12
 #define CMD_FILE		0x14
-#define CMD_RESTART		0x15
+#define CMD_RESTART		0x16
+#define CMD_SUN			0x18
 
 /**
  * Magic numbers to identify the sub-commands of a command.
@@ -106,6 +107,13 @@
 
 #define CMD_RESTART_NONE	0x00
 #define CMD_RESTART_ERASE_FILES	0x02
+
+#define CMD_SUN_NONE		0x00
+#define CMD_SUN_PLUSX		0x02
+#define CMD_SUN_MINUSX		0x04
+#define CMD_SUN_PLUSY		0x06
+#define CMD_SUN_MINUSY		0x08
+
 
 /**
  * Maximum command argument size.

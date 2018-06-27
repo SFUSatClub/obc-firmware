@@ -47,13 +47,15 @@
 #include "sys_vim.h"
 
 /* USER CODE BEGIN (1) */
+#define SFUSAT 0
+#if SFUSAT
 /* USER CODE END */
 
 /** @struct g_i2CTransfer
 *   @brief Interrupt mode globals
 *
 */
-static struct g_i2cTransfer
+struct g_i2cTransfer
 {
     uint32  mode;
     uint32  length;
@@ -61,6 +63,7 @@ static struct g_i2cTransfer
 } g_i2cTransfer_t;
 
 /* USER CODE BEGIN (2) */
+#endif
 /* USER CODE END */
 
 /** @fn void i2cInit(void)

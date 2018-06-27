@@ -23,6 +23,7 @@
 #include "rtos_task.h"
 #include "sfu_uart.h"
 #include "sfu_task_logging.h"
+
 SemaphoreHandle_t xI2CMutex;
 static uint8_t num_resets;
 
@@ -153,7 +154,99 @@ int16_t sfu_reset_i2c(i2cBASE_t *i2c){
     serialSendln("I2C RESET");
 
 	sfu_i2c_init();
-    xTaskResumeAll();
-    addLogItem(logtype_i2c, error_1);
+   xTaskResumeAll();
+	// todo: log error, i2c was reset
     return I2C_OK;
 }
+
+
+int16_t BMS_i2c_send(i2cBASE_t *i2c, uint32 length, uint8 * data){
+
+	uint32_t timeout_count;
+	timeout_count = 0;
+
+    if ((g_i2cTransfer_t.mode & (uint32)I2C_TX_INT) != 0U)
+    {
+        /* Interrupt mode */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        g_i2cTransfer_t.data   = data;
+        /* start transmit by sending first byte */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        i2c->DXR = (uint32)(*g_i2cTransfer_t.data);
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+        g_i2cTransfer_t.data++;
+
+        /* Length -1 since one data is written already */
+        g_i2cTransfer_t.length = (length - 1U);
+
+        /* Enable Transmit Interrupt */
+        i2c->IMR |= (uint32)I2C_TX_INT;
+    }
+    else
+    {
+        /* send the data */
+        while (length > 0U)
+        {
+            /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
+            while (((i2c->STR & (uint32)I2C_TX_INT) == 0U) && timeout_count < I2C_TIMEOUT_MAX)
+            {
+            	timeout_count++;
+            } /* Wait */
+            if(timeout_count >= I2C_TIMEOUT_MAX) {
+            	return I2C_TIMEOUT_FAIL;
+            }
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            i2c->DXR = (uint32)(*data);
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+            data++;
+            length--;
+        }
+    }
+    return I2C_OK;
+}
+
+int16_t BMS_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data){
+	uint32_t timeout_count;
+	timeout_count = 0;
+
+    if ((i2c->IMR & (uint32)I2C_RX_INT) != 0U)
+    {
+        /* we are in interrupt mode */
+        /* clear error flags */
+        i2c->STR = (uint32)I2C_AL_INT | (uint32)I2C_NACK_INT;
+
+        g_i2cTransfer_t.length = length;
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        g_i2cTransfer_t.data   = data;
+    }
+    else
+    {
+        while (length > 0U)
+        {
+            /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
+            while (((i2c->STR & (uint32)I2C_RX_INT) == 0U) && timeout_count < I2C_TIMEOUT_MAX)
+            {
+            	timeout_count++;
+            } /* Wait */
+            if(timeout_count >= I2C_TIMEOUT_MAX)
+            {
+            	return I2C_TIMEOUT_FAIL;
+            }
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            *data = ((uint8)i2c->DRR);
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+            data++;
+            length--;
+        }
+    }
+    return I2C_OK;
+}
+
+// =======
+//     addLogItem(logtype_i2c, error_1);
+//     return I2C_OK;
+// }
+// >>>>>>> i2c-integrate
