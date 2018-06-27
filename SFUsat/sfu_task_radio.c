@@ -312,7 +312,7 @@ void vRadioTask(void *pvParameters) {
 				/* complete command and CRC are good, feed to UART */
 				if(validateCommand(rxbuf) && CRC_status_int){
 					uint8_t uart_cnt;
-					for(uart_cnt = 6; uart_cnt < sizeof(rxbuf); uart_cnt++){
+					for(uart_cnt = 6; uart_cnt < strlen((const char *)rxbuf) + 1; uart_cnt++){
 						/* loop through the command, including \r\n, don't send null char */
 						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE){
 							serialSendln("RF RX -> UART ERR");
@@ -347,15 +347,15 @@ void vRadioTask(void *pvParameters) {
 
 bool validateCommand(uint8_t *input){
 	/* check that call sign and /r/n are in the received data */
-	uint8_t len = sizeof(input);
+	uint8_t len = strlen((const char *)input);
 	if(	input[0] == 'V'	&&
 		input[1] == 'A'	&&
 		input[2] == '7'	&&
 		input[3] == 'T'	&&
 		input[4] == 'S'	&&
 		input[5] == 'N'	&&
-		input[len - 2] == '\n'	&&
-		input[len - 3] == '\r'
+		input[len - 1] == '\n'	&&
+		input[len - 2] == '\r'
 	){
 		return 1;
 	}
