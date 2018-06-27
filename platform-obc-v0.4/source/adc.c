@@ -95,7 +95,7 @@ void adcInit(void)
     *     - Enable/Disable continuous conversion
     */
     adcREG1->GxMODECR[0U] = (uint32)ADC_12_BIT
-                          | (uint32)0x00000000U
+                          | (uint32)0x00000020U
                           | (uint32)0x00000000U;
 
     /** - Setup event group hardware trigger
@@ -225,15 +225,15 @@ static const uint32 s_adcSelect[2U][3U] =
     0x00000000U |
     0x00000000U |
     0x00000000U |
-    0x00000000U |
-    0x00000000U |
-    0x00000000U |
-    0x00000000U |
+    0x00020000U |
+    0x00040000U |
+    0x00080000U |
+    0x00100000U |
     0x00000000U |
     0x00000000U |
     0x00000000U,
-    0x00000001U |
-    0x00000002U |
+    0x00000000U |
+    0x00000000U |
     0x00000004U |
     0x00000000U |
     0x00000000U |

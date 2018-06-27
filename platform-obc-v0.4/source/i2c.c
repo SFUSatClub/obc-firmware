@@ -55,7 +55,7 @@
 *   @brief Interrupt mode globals
 *
 */
-static struct g_i2cTransfer
+struct g_i2cTransfer
 {
     uint32  mode;
     uint32  length;

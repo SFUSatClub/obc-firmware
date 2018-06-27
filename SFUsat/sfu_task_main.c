@@ -16,6 +16,7 @@
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
 #include "sfu_startup.h"
+#include "sun_sensor.h"
 #include "sfu_i2c.h"
 #include "stlm75.h"
 #include "deployables.h"
@@ -77,6 +78,10 @@ void vMainTask(void *pvParameters) {
 	serialSendQ("created queue");
 
 	// ---------- INIT TESTS ----------
+	// TODO: if tests fail, actually do something
+	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	test_adc_init();
+
 //	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
