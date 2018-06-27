@@ -83,7 +83,7 @@ void vMainTask(void *pvParameters) {
 	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
 	gioSetBit(DEPLOY_EN_PORT, DEPLOY_EN_PIN, 1); /* active high */
 
-//	bms_test();
+	bms_test();
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
 	xTaskCreate( blinky,  						// Function for the task to run
@@ -94,7 +94,7 @@ void vMainTask(void *pvParameters) {
 			&xBlinkyTaskHandle );				// Task handles are above
 
 	//NOTE: Task priorities are #defined in sfu_tasks.h
-	xTaskCreate(vSerialTask, "serial", 300, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
+	xTaskCreate(vSerialTask, "serial", 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
 	xTaskCreate(vFilesystemLifecycleTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
 	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);

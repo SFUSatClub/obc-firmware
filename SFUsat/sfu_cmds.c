@@ -12,6 +12,7 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "sun_sensor.h"
 #include "deployables.h"
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
@@ -125,10 +126,17 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
-								"  reset\n"
+          				"  reset\n"
 								"    Reset but no erase\n"
 								"  freset\n"
 								"    Reset with erase"
+		},
+		{
+				.subcmd_id	= CMD_SUN,
+				.name		= "sun",
+				.info		= "Sun sensors.\n"
+								"	all\n"
+								"		reads sun sensors"
 		},
 		{
 				.subcmd_id	= CMD_DEPLOY,
@@ -319,6 +327,7 @@ static const struct subcmd_opt CMD_WD_OPTS[] = {
 		},
 };
 
+
 int8_t cmdWd(const CMD_t *cmd) {
 		if (cmd->subcmd_id == CMD_WD_RESET){
 			serialSendQ("Suspending watchdog task!");
@@ -417,6 +426,65 @@ int8_t cmdFile(const CMD_t *cmd) {
 		else{
 			return 1;
 		}
+}
+
+/**
+ * Sun sensor command
+ */
+static const struct subcmd_opt CMD_SUN_OPTS[] = {
+		{
+				.subcmd_id	= CMD_SUN_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_SUN_PLUSX,
+				.name		= "x",
+		},
+		{
+				.subcmd_id	= CMD_SUN_MINUSX,
+				.name		= "mx",
+		},
+		{
+				.subcmd_id	= CMD_SUN_PLUSY,
+				.name		= "y",
+		},
+		{
+				.subcmd_id	= CMD_SUN_MINUSY,
+				.name		= "my",
+		}
+};
+int8_t cmdSun(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_SUN_NONE){
+			serialSendln("SUN:");
+//			read_all_mux_channels(0x00);
+			read_all_mux_channels(0x4C);
+			read_all_mux_channels(0x4D);
+			read_all_mux_channels(0x4E);
+			read_all_mux_channels(0x4F);
+//			read_sun_sensor();					// must loop 4-6 times to get all the values of each sensor of each mux
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_PLUSX){
+			read_all_mux_channels(0x4C);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_MINUSX){
+			read_all_mux_channels(0x4D);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_PLUSY){
+			read_all_mux_channels(0x4E);
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_SUN_MINUSY){
+			read_all_mux_channels(0x4F);
+			return 1;
+		}
+		else{
+			return 1;
+		}
+
+	return 0;
 }
 
 /**
@@ -776,7 +844,14 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.num_subcmds	= LEN(CMD_WD_OPTS),
 		},
 		{
-				.cmd_id			= CMD_DEPLOY,
+				.cmd_id			= CMD_SUN,
+				.name			= "sun",
+				.func			= cmdSun,
+				.subcmds		= CMD_SUN_OPTS,
+				.num_subcmds	= LEN(CMD_SUN_OPTS),
+    },
+	{
+      	  	  	.cmd_id			= CMD_DEPLOY,
 				.name			= "deploy",
 				.func			= cmdDeploy,
 				.subcmds		= CMD_DEPLOY_OPTS,

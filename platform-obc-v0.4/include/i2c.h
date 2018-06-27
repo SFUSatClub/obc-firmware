@@ -50,6 +50,15 @@ extern "C" {
 #endif
 
 /* USER CODE BEGIN (0) */
+#define SFUSAT_I2C 1
+#if SFUSAT_I2C
+struct g_i2cTransfer
+{
+    uint32  mode;
+    uint32  length;
+    uint8   * data;
+} g_i2cTransfer_t;
+#endif
 /* USER CODE END */
 
 /** @enum i2cMode

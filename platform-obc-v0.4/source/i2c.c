@@ -47,6 +47,8 @@
 #include "sys_vim.h"
 
 /* USER CODE BEGIN (1) */
+
+#if !SFUSAT_I2C
 /* USER CODE END */
 
 /** @struct g_i2CTransfer
@@ -61,6 +63,7 @@ static struct g_i2cTransfer
 } g_i2cTransfer_t;
 
 /* USER CODE BEGIN (2) */
+#endif
 /* USER CODE END */
 
 /** @fn void i2cInit(void)
