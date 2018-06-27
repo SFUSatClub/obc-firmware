@@ -269,8 +269,14 @@ static int receivePacket(uint8_t *destPayload, uint8_t size);
 //SemaphoreHandle_t gioRFSem;
 TaskHandle_t xRFInterruptTaskHandle;
 bool enableRFISR = 0;
+bool rfInhibit = 1;
 
 void vRadioTask(void *pvParameters) {
+	rfInhibit = 1;
+	serialSendQ("RF INHIBITED");
+	vTaskDelay(pdMS_TO_TICKS(30000));
+	rfInhibit = 0;
+	serialSendQ("RF ENABLED");
 	enableRFISR = 0;
 	xRadioTXQueue = xQueueCreate(40, sizeof(RadioDAT_t));
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));

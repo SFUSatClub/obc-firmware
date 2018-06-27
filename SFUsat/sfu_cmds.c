@@ -313,54 +313,69 @@ static const struct subcmd_opt CMD_RF_OPTS[] = {
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_RF_NONE: {
-			RadioDAT_t currQueuedPacket;
-			//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
-			strcpy((char *)currQueuedPacket.data, "test test test 123");
-			currQueuedPacket.size = sizeof("test test test 123") - 1;
-			currQueuedPacket.unused = 0xDE;
-			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+			if(!rfInhibit){
+				RadioDAT_t currQueuedPacket;
+				//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+				strcpy((char *)currQueuedPacket.data, "test test test 123");
+				currQueuedPacket.size = sizeof("test test test 123") - 1;
+				currQueuedPacket.unused = 0xDE;
+				xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
 
-			return 1;
+				return 1;
+			}
+			return 0;
 		}
 		case CMD_RF_LOOPBACK: {
-			uint8_t option = cmd->cmd_data[0];
-			switch (option) {
-				case 0x00: {
-					xTaskNotify(xRadioTaskHandle, 0xBEEFDEAD, eSetValueWithOverwrite);
-					serialSendln("RF SPI loopback disabled");
-					return 1;
-				}
-				case 0x10: {
-					xTaskNotify(xRadioTaskHandle, 0xDEADBEEF, eSetValueWithOverwrite);
-					serialSendln("RF SPI loopback enabled");
-					return 1;
-				}
+			if(!rfInhibit){
+				uint8_t option = cmd->cmd_data[0];
+					switch (option) {
+						case 0x00: {
+							xTaskNotify(xRadioTaskHandle, 0xBEEFDEAD, eSetValueWithOverwrite);
+							serialSendln("RF SPI loopback disabled");
+							return 1;
+						}
+						case 0x10: {
+							xTaskNotify(xRadioTaskHandle, 0xDEADBEEF, eSetValueWithOverwrite);
+							serialSendln("RF SPI loopback enabled");
+							return 1;
+						}
+					}
+					serialSendln("CMD_RF_LOOPBACK unknown selection");
+					return 0;
 			}
-			serialSendln("CMD_RF_LOOPBACK unknown selection");
 			return 0;
 		}
 		case CMD_RF_TX:{
-			//xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
-			RadioDAT_t currQueuedPacket;
-			memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
-			strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
-			uint8_t data_len = strlen((char*)cmd->cmd_data);
-			currQueuedPacket.data[data_len] = '\r';
-			currQueuedPacket.data[data_len + 1] = '\n';
-			currQueuedPacket.size = data_len + 2;
-			currQueuedPacket.unused = 0xFA;
-			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
-			return 1;
+			if(!rfInhibit){
+				//xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
+				RadioDAT_t currQueuedPacket;
+				memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+				strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
+				uint8_t data_len = strlen((char*)cmd->cmd_data);
+				currQueuedPacket.data[data_len] = '\r';
+				currQueuedPacket.data[data_len + 1] = '\n';
+				currQueuedPacket.size = data_len + 2;
+				currQueuedPacket.unused = 0xFA;
+				xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+				return 1;
+			}
+			return 0;
 		}
 		case CMD_RF_RESET: {
-			xTaskNotify(xRadioTaskHandle, RF_NOTIF_RESET, eSetValueWithOverwrite);
-			serialSendln("CMD_RF_RESET");
-			return 1;
+			if(!rfInhibit){
+				xTaskNotify(xRadioTaskHandle, RF_NOTIF_RESET, eSetValueWithOverwrite);
+				serialSendln("CMD_RF_RESET");
+				return 1;
+			}
+			return 0;
 		}
 		case CMD_RF_STX: {
-			xTaskNotify(xRadioTaskHandle, RF_NOTIF_STX, eSetValueWithOverwrite);
-			serialSendln("RF_NOTIF_STX");
-			return 1;
+			if(!rfInhibit){
+				xTaskNotify(xRadioTaskHandle, RF_NOTIF_STX, eSetValueWithOverwrite);
+				serialSendln("RF_NOTIF_STX");
+				return 1;
+			}
+			return 0;
 		}
 	}
 	return 0;
