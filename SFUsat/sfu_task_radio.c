@@ -259,6 +259,7 @@ void read_RX_FIFO();
 static uint8_t packetizeAndSend(const uint8_t *payload, uint8_t size);
 static void sendPacket(const uint8_t *payload, uint8_t size);
 static void writeRegister(uint8 addr, uint8 val);
+bool validateCommand(uint8_t *input);
 
 #define RF_CALLSIGN			("VA7TSN")
 #define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
