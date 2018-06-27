@@ -329,8 +329,19 @@ void vRadioTask(void *pvParameters) {
 				clearBuf((char *)rxbuf, 64);
 				break;
 			} case RF_NOTIF_RESET: {
-				strobe(SFTX);
-				strobe(SFRX);
+				uint8_t rxbytes = readRegister(RXBYTES);
+				uint8_t txbytes = readRegister(TXBYTES);
+				uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+				uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
+				if (rx_overflowed) {
+					serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
+					strobe(SFRX);
+				}
+				if (tx_underflowed) {
+					serialSendln("TX Underflowed; Strobing SFTX...");
+					strobe(SFTX);
+				}
+				strobe(SRX);
 				break;
 			}
 		}
@@ -344,7 +355,7 @@ void vRadioTask(void *pvParameters) {
 		}
 
 		RadioDAT_t currQueuedPacket;
-		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(5000)) == pdPASS) {
+		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(1000)) == pdPASS) {
 			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x from xRadioTXQueue", currQueuedPacket.unused);
 			serialSendln(buffer);
 			sendPacket(currQueuedPacket.data, currQueuedPacket.size);
