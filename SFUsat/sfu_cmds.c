@@ -329,9 +329,12 @@ int8_t cmdRF(const CMD_t *cmd) {
 		case CMD_RF_TX:{
 			xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
 			RadioDAT_t currQueuedPacket;
-			//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+			memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
 			strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
-			currQueuedPacket.size = strlen((char*)cmd->cmd_data);
+			uint8_t data_len = strlen((char*)cmd->cmd_data);
+			currQueuedPacket.data[data_len] = '\r';
+			currQueuedPacket.data[data_len + 1] = '\n';
+			currQueuedPacket.size = data_len + 2;
 			currQueuedPacket.unused = 0xFA;
 			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
 			return 1;
