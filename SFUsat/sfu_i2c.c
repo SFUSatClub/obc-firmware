@@ -22,6 +22,8 @@
 #include "sfu_utils.h"
 #include "rtos_task.h"
 #include "sfu_uart.h"
+#include "sfu_task_logging.h"
+
 SemaphoreHandle_t xI2CMutex;
 static uint8_t num_resets;
 
@@ -152,37 +154,14 @@ int16_t sfu_reset_i2c(i2cBASE_t *i2c){
     serialSendln("I2C RESET");
 
 	sfu_i2c_init();
-    xTaskResumeAll();
+   xTaskResumeAll();
 	// todo: log error, i2c was reset
     return I2C_OK;
 }
 
-/** @fn void i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data)
-*   @brief Send Data
-*   @param[in] i2c    - i2c module base address
-*   @param[in] length - number of data words to transfer
-*   @param[in] data   - pointer to data to send
-*
-*   Send a block of data pointed to by 'data' and 'length' bytes
-*   long.  If interrupts have been enabled the data is sent using
-*   interrupt mode, otherwise polling mode is used.  In interrupt
-*   mode transmission of the first byte is started and the routine
-*   returns immediately, i2cSend must not be called again until the
-*   transfer is complete, when the i2cNotification callback will
-*   be called.  In polling mode, i2cSend will not return  until
-*   the transfer is complete.
-*
-*   @note if data word is less than 8 bits, then the data must be left
-*         aligned in the data byte.
-*/
-/* SourceId : I2C_SourceId_010 */
-/* DesignId : I2C_DesignId_007 */
-/* Requirements : HL_SR285 */
-int16_t BMS_i2c_send(i2cBASE_t *i2c, uint32 length, uint8 * data)
-{
 
-/* USER CODE BEGIN (17) */
-/* USER CODE END */
+int16_t BMS_i2c_send(i2cBASE_t *i2c, uint32 length, uint8 * data){
+
 	uint32_t timeout_count;
 	timeout_count = 0;
 
@@ -226,33 +205,9 @@ int16_t BMS_i2c_send(i2cBASE_t *i2c, uint32 length, uint8 * data)
         }
     }
     return I2C_OK;
-/* USER CODE BEGIN (18) */
-/* USER CODE END */
 }
 
-/** @fn void i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
-*   @brief Receive Data
-*   @param[in] i2c    - i2c module base address
-*   @param[in] length - number of data words to transfer
-*   @param[in] data   - pointer to data buffer
-*
-*   Receive a block of 'length' bytes long and place it into the
-*   data buffer pointed to by 'data'.  If interrupts have been
-*   enabled the data is received using interrupt mode, otherwise
-*   polling mode is used.  In interrupt mode receive is setup and
-*   the routine returns immediately, i2cReceive must not be called
-*   again until the transfer is complete, when the i2cNotification
-*   callback will be called.  In polling mode, i2cReceive will not
-*   return  until the transfer is complete.
-*/
-/* SourceId : I2C_SourceId_015 */
-/* DesignId : I2C_DesignId_012 */
-/* Requirements : HL_SR290 */
-int16_t BMS_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
-{
-
-/* USER CODE BEGIN (26) */
-/* USER CODE END */
+int16_t BMS_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data){
 	uint32_t timeout_count;
 	timeout_count = 0;
 
@@ -288,7 +243,10 @@ int16_t BMS_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data)
         }
     }
     return I2C_OK;
-/* USER CODE BEGIN (27) */
-/* USER CODE END */
 }
 
+// =======
+//     addLogItem(logtype_i2c, error_1);
+//     return I2C_OK;
+// }
+// >>>>>>> i2c-integrate

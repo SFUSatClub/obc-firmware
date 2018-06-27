@@ -147,7 +147,9 @@ int16_t read_register(uint8_t addr, uint8_t *reg_return) {
 	i2cSetCount(i2cREG1, 1);
 	i2cSetStop(i2cREG1);
 	i2cSetStart(i2cREG1);
-	i2cSend(i2cREG1, 1,&cmd);
+// 	i2cSend(i2cREG1, 1,&cmd);
+  BMS_i2cSend(i2cREG1, 1,&cmd);
+
 
 	while(!i2cIsBusBusy(i2cREG1)){}	// RA: do we need this?
 
@@ -183,7 +185,9 @@ int16_t write_register(uint8_t addr, uint8_t *to_write) {
 	i2cSetSlaveAdd(i2cREG1, BATT_CHRG);
 	i2cSetCount(i2cREG1,3);
 	i2cSetStart(i2cREG1);
-	i2cSend(i2cREG1, 2,&cmd[0]);
+// 	i2cSend(i2cREG1, 2,&cmd[0]);
+  BMS_i2cSend(i2cREG1, 2,&cmd[0]);
+
 	i2cSetStop(i2cREG1);
 //	i2cClearSCD(i2cREG1);
 
@@ -192,7 +196,9 @@ int16_t write_register(uint8_t addr, uint8_t *to_write) {
 	i2cSetSlaveAdd(i2cREG1, BATT_CHRG);
 	i2cSetCount(i2cREG1,3);
 	i2cSetStart(i2cREG1);
-	i2cSend(i2cREG1, 2,&cmd[0]);
+// 	i2cSend(i2cREG1, 2,&cmd[0]);
+    BMS_i2cSend(i2cREG1, 2,&cmd[0]);
+
 	i2cSetStop(i2cREG1);
 	i2cClearSCD(i2cREG1);
 	// RA: this is the hack to get the BMS to talk properly
