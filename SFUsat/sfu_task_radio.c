@@ -302,36 +302,37 @@ void vRadioTask(void *pvParameters) {
 			} case RF_NOTIF_TX: {
 				rfTestSequence();
 				break;
-			} case 0x77777777:{
+			} case RF_NOTIF_RX:{
 				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 				uint8_t rxbytes = readRegister(RXBYTES);
 				uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
 				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", rx_numbytes, CRC_status_int ? "OK!" : "BAD!");
 				serialSendln(buffer);
 
+				memset( rxbuf, '\0', sizeof(rxbuf) );
 				uint8_t bytes_actually_read = receivePacket(rxbuf, sizeof(rxbuf));
+				rxbuf[sizeof(rxbuf) - 1] = '\0'; // just in case
 
 				/* complete command and CRC are good, feed to UART */
-				if(validateCommand(rxbuf, bytes_actually_read) && CRC_status_int){
+				if(validateCommand(rxbuf, bytes_actually_read) && CRC_status_int) {
+					uint8_t cmd_len = strlen((const char*)rxbuf);
 					uint8_t uart_cnt;
-					for(uart_cnt = RF_CALLSIGN_LEN; uart_cnt < bytes_actually_read; uart_cnt++){
+					for(uart_cnt = RF_CALLSIGN_LEN; uart_cnt < cmd_len; uart_cnt++) {
 						/* loop through the command, including \r\n, don't send null char */
-						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE){
+						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE) {
 							serialSendln("RF RX -> UART ERR");
 							break;
 						}
 					}
-				}
-				else{
+				} else {
 					serialSendln("Rcvd invalid cmd from rf: ");
 					uint8_t i = 0;
 					for ( i = 0; i < bytes_actually_read; i++ ) {
 						snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, rxbuf[i]);
 						serialSendln(buffer);
 					}
-					//serialSendln((const char *)rxbuf);
 				}
-				clearBuf((char *)rxbuf, sizeof(rxbuf));
+
 				break;
 			} case RF_NOTIF_RESET: {
 				uint8_t rxbytes = readRegister(RXBYTES);
@@ -381,8 +382,12 @@ bool validateCommand(uint8_t *input, uint8_t size){
 			return 0;
 		}
 	}
-	return  input[RF_CALLSIGN_LEN + 0] == '\r' &&
-			input[RF_CALLSIGN_LEN + 1] == '\n';
+	for ( i = RF_CALLSIGN_LEN; i < size - 1; i++ ) {
+		if ( input[i] == '\r' && input[i + 1] == '\n' ) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 static int8_t sendPacket(const uint8_t *payload, uint8_t size) {
@@ -500,8 +505,6 @@ static int8_t sendPacket(const uint8_t *payload, uint8_t size) {
  * 		- Strip off the callsign.
  */
 static int receivePacket(uint8_t *destPayload, uint8_t destSize) {
-	char buffer[100] = {'\0'};
-
 	uint8_t rxbytes = readRegister(RXBYTES);
 	uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
 	uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
@@ -515,11 +518,6 @@ static int receivePacket(uint8_t *destPayload, uint8_t destSize) {
 		strobe(SFRX);
 	}
 	bytes_actually_read = i;
-	i = 0;
-	for ( i = 0; i < bytes_actually_read; i++ ) {
-		snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, destPayload[i]);
-		serialSendln(buffer);
-	}
 	return bytes_actually_read;
 }
 
@@ -812,7 +810,7 @@ void gio_notification_RF(gioPORT_t *port, uint32 bit){
 	if(port == RF_IRQ_PORT && bit == RF_IRQ_PIN){ // Always need to check which pin actually triggered the interrupt
 //		xSemaphoreGiveFromISR(gioRFSem, &xHigherPriorityTaskWoken);
 		if(xRadioTaskHandle != NULL && enableRFISR){
-			xTaskNotifyFromISR(xRadioTaskHandle, 0x77777777, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+			xTaskNotifyFromISR(xRadioTaskHandle, RF_NOTIF_RX, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 		}
 	}

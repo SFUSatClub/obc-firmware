@@ -39,6 +39,7 @@ uint8 hello;
 
 
 #define RF_NOTIF_TX			(0x101)
+#define RF_NOTIF_RX			(0x201)
 #define RF_NOTIF_RESET		(0xDEADDDDD)
 
 #endif /* SFUSAT_SFU_TASK_RADIO_H_ */
