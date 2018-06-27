@@ -27,6 +27,7 @@ void rf_interrupt_init(void); // standalone initializer for tasks and semaphore
 void gio_notification_RF(gioPORT_t *port, uint32 bit); // called in gionotification, raises semaphore to start the task
 void vRFInterruptTask(void *pvParameters); // Task that runs when the interrupt fires
 void rfTestSequence();
+bool validateCommand(uint8_t *input);
 typedef struct RadioDAT {
 	uint8_t unused;
 	uint8_t size;
