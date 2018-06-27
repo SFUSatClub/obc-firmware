@@ -17,7 +17,12 @@
 #include "sfu_utils.h"
 #include "sfusat_spiffs.h"
 
-
+// Transfer group completion flags
+uint8_t TG0_IS_Complete;
+uint8_t TG1_IS_Complete;
+uint8_t TG2_IS_Complete;
+uint8_t TG3_IS_Complete;
+uint8_t TG4_IS_Complete;
 
 void mibspi_write_byte(uint16_t toWrite){
     while (TG1_IS_Complete != 0xA5){} // wait for other transfers to complete
@@ -62,14 +67,14 @@ void flash_erase_sector(uint32_t address){
 	 uint16_t sendOut[4] = { 0 };
 
 	 // packet size = data bytes + command (1) + address (3) bytes
-	    // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB first)
-	    sendOut[0] = SECTOR_ERASE;
-	    sendOut[1] = (address & 0xFF0000) >> 16;
-	    sendOut[2] = (address & 0xFF00) >> 8;
-	    sendOut[3] = (address) & 0xFF;
+	 // address is 24 bit, so fudge the bits around such that the SPI 3 bytes are in the correct order (MSB first)
+	sendOut[0] = SECTOR_ERASE;
+	sendOut[1] = (address & 0xFF0000) >> 16;
+	sendOut[2] = (address & 0xFF00) >> 8;
+	sendOut[3] = (address) & 0xFF;
 
-			mibspi_write_byte(WRITE_ENABLE);
-			mibspi_send(FLASH_4_BYTE_GROUP, sendOut);
+	mibspi_write_byte(WRITE_ENABLE);
+	mibspi_send(FLASH_4_BYTE_GROUP, sendOut);
 }
 
 void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packet, uint16_t databytes){
@@ -95,6 +100,8 @@ void construct_send_packet_6(uint16_t command, uint32_t address, uint16_t *packe
 }
 
 void flash_read_16(uint32_t address, uint16_t *outBuffer){
+	uint16_t dummyBytes_16[16];
+	uint16_t TG3_RX[20]; // transfer group RX buffers must have same number of elements as the transfer group
     construct_send_packet_16(FLASH_READ, address, dummyBytes_16);
     mibspi_receive(FLASH_20_BYTE_GROUP,TG3_RX);
 
@@ -154,6 +161,7 @@ boolean rw16_test(uint32_t address){
 }
 
 uint16_t flash_status(){
+	uint16 TG1_RX[2];
     mibspi_write_two(READ_REG_STATUS,0x0000);
     mibspi_receive(FLASH_2_BYTE_GROUP,TG1_RX);
 
@@ -182,7 +190,6 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t *pack
 }
 
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
-	// TODO: make RTOS-safe version.
 	// for size, every 16 bytes, construct a packet and send it out.
 
 	uint16_t sendOut[16] = { 0 };
@@ -211,12 +218,9 @@ void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src){
 			}
 			construct_send_packet_16(FLASH_WRITE, address, sendOut);
 		}
-
 }
 
 void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest){
-	// TODO: make RTOS-safe version.
-
 	uint32_t readCounter; // the place in each output frame
 	uint32_t inIndex; // the place in the input data buffer
 	uint16_t readBuffer[16] = {0xFFFF}; // since F is empty flash value but we only ever use the 8 LSB's

@@ -20,6 +20,7 @@
 #ifdef _SPIFFS_TEST
 #include "testrunner.h"
 #endif
+
 // ----------- >8 ------------
 
 // --------- SFUSat --------------------
@@ -206,14 +207,15 @@ typedef uint8_t u8_t;
 
 // SPIFFS_LOCK and SPIFFS_UNLOCK protects spiffs from reentrancy on api level
 // These should be defined on a multithreaded system
+//SemaphoreHandle_t spiffsHALMutex;
 
 // define this to enter a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_LOCK
-//#define SPIFFS_LOCK(fs) xSemaphoreTake( spiffsMutex, pdMS_TO_TICKS(SPIFFS_WRITE_TIMEOUT_MS) )
+//#define SPIFFS_LOCK(fs) xSemaphoreTake( spiffsHALMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS));
 #endif
 // define this to exit a mutex if you're running on a multithreaded system
 #ifndef SPIFFS_UNLOCK
-#define SPIFFS_UNLOCK(fs) //xSemaphoreGive(spiffsMutex)
+//#define SPIFFS_UNLOCK(fs) xSemaphoreGive(spiffsHALMutex);
 #endif
 
 // Enable if only one spiffs instance with constant configuration will exist

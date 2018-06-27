@@ -88,7 +88,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
                    | (uint32)((uint32)0U << 5U)  /* Bit 5 */
                    | (uint32)((uint32)1U << 6U)  /* Bit 6 */
-                   | (uint32)((uint32)0U << 7U); /* Bit 7 */
+                   | (uint32)((uint32)1U << 7U); /* Bit 7 */
 
     /** - Port A open drain enable */
     gioPORTA->PDR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
@@ -107,8 +107,8 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */
                    | (uint32)((uint32)0U << 4U)  /* Bit 4 */
                    | (uint32)((uint32)0U << 5U)  /* Bit 5 */
-                   | (uint32)((uint32)0U << 6U)  /* Bit 6 */
-                   | (uint32)((uint32)0U << 7U); /* Bit 7 */
+                   | (uint32)((uint32)1U << 6U)  /* Bit 6 */
+                   | (uint32)((uint32)1U << 7U); /* Bit 7 */
 
     /** - Port A pullup / pulldown enable*/
     gioPORTA->PULDIS  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
@@ -133,7 +133,7 @@ void gioInit(void)
                    | (uint32)((uint32)0U << 7U); /* Bit 7 */
 
     /** - Port B direction */
-    gioPORTB->DIR  = (uint32)((uint32)0U << 0U)  /* Bit 0 */
+    gioPORTB->DIR  = (uint32)((uint32)1U << 0U)  /* Bit 0 */
                    | (uint32)((uint32)0U << 1U)  /* Bit 1 */
                    | (uint32)((uint32)0U << 2U)  /* Bit 2 */
                    | (uint32)((uint32)0U << 3U)  /* Bit 3 */

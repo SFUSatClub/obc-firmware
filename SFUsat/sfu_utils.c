@@ -1,6 +1,7 @@
 #include "sfu_utils.h"
 #include "gio.h"
 #include "sfu_hardwaredefs.h"
+#include "reg_system.h"
 
 void busyWait(uint32_t ticksToWait){
 	// DON'T USE THIS - only for writing quick tests
@@ -90,3 +91,6 @@ uint32_t adc_to_mA(uint32_t adcval){
 	return (47*adcval-26870)/10;
 }
 
+void restart_software() {
+	systemREG1->SYSECR = systemREG1->SYSECR | (1U << 15);
+}

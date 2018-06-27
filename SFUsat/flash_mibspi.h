@@ -31,19 +31,11 @@
 #include "rtos_semphr.h"
 
 // flags for complete transfers
-uint32_t TG0_IS_Complete;
-uint32_t TG1_IS_Complete;
-uint32_t TG2_IS_Complete;
-uint32_t TG3_IS_Complete;
-uint32_t TG4_IS_Complete;
-
-// Various buffers
-uint16_t TG4_RX[4];
-uint16_t TG3_RX[20]; // transfer group RX buffers must have same number of elements as the transfer group
-uint16 TG1_RX[2];
-uint16_t dummyBytes_16[16];
-
-volatile uint32_t address; // stores flash address to write to
+extern uint8_t TG0_IS_Complete;
+extern uint8_t TG1_IS_Complete;
+extern uint8_t TG2_IS_Complete;
+extern uint8_t TG3_IS_Complete;
+extern uint8_t TG4_IS_Complete;
 
 // Flash Specific
 void flash_mibspi_init();
@@ -70,13 +62,11 @@ void construct_send_packet_16(uint16_t command, uint32_t address, uint16_t * pac
 void flash_write_arbitrary(uint32_t address, uint32_t size, uint8_t *src); // write an arbitrary data buffer to flash
 void flash_read_arbitrary(uint32_t address, uint32_t size, uint8_t *dest);
 
-
 // SPI drivers
 void mibspi_send(uint8_t transfer_group, uint16_t * TX_DATA);
 void mibspi_receive(uint8_t transfer_group,uint16_t * RX_DATA);
 void mibspi_write_byte(uint16_t toWrite);
 void mibspi_write_two(uint16_t arg1, uint16_t arg2);
-
 
 // Flash Commands
 #define FLASH_READ 0x0003
