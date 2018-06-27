@@ -280,7 +280,6 @@ void vRadioTask(void *pvParameters) {
 
 	char buffer[100] = {'\0'};
 	uint8_t rxbuf[FIFO_LENGTH] = {'\0'};
-	uint8 numBytesAvailInFIFO = readRegister(RXBYTES);
 	uint8_t CRC_status_int;
 	while (1) {
 		enableRFISR = 1;
@@ -305,8 +304,9 @@ void vRadioTask(void *pvParameters) {
 				break;
 			} case 0x77777777:{
 				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
-				numBytesAvailInFIFO = readRegister(RXBYTES);
-				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", numBytesAvailInFIFO, CRC_status_int ? "OK!" : "BAD!");
+				uint8_t rxbytes = readRegister(RXBYTES);
+				uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
+				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", rx_numbytes, CRC_status_int ? "OK!" : "BAD!");
 				serialSendln(buffer);
 
 				uint8_t bytes_actually_read = receivePacket(rxbuf, sizeof(rxbuf));
@@ -314,7 +314,7 @@ void vRadioTask(void *pvParameters) {
 				/* complete command and CRC are good, feed to UART */
 				if(validateCommand(rxbuf, bytes_actually_read) && CRC_status_int){
 					uint8_t uart_cnt;
-					for(uart_cnt = 6; uart_cnt < strlen((const char *)rxbuf) + 1; uart_cnt++){
+					for(uart_cnt = RF_CALLSIGN_LEN; uart_cnt < bytes_actually_read; uart_cnt++){
 						/* loop through the command, including \r\n, don't send null char */
 						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE){
 							serialSendln("RF RX -> UART ERR");
@@ -323,10 +323,15 @@ void vRadioTask(void *pvParameters) {
 					}
 				}
 				else{
-					/* invalid command, print out */
-					serialSendln((const char *)rxbuf);
+					serialSendln("Rcvd invalid cmd from rf: ");
+					uint8_t i = 0;
+					for ( i = 0; i < bytes_actually_read; i++ ) {
+						snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, rxbuf[i]);
+						serialSendln(buffer);
+					}
+					//serialSendln((const char *)rxbuf);
 				}
-				clearBuf((char *)rxbuf, 64);
+				clearBuf((char *)rxbuf, sizeof(rxbuf));
 				break;
 			} case RF_NOTIF_RESET: {
 				uint8_t rxbytes = readRegister(RXBYTES);
@@ -345,10 +350,10 @@ void vRadioTask(void *pvParameters) {
 				break;
 			}
 		}
-		numBytesAvailInFIFO = readRegister(RXBYTES);
-		snprintf(buffer, sizeof(buffer), "radio task (0x%x), numBytes: 0x%x", notif, numBytesAvailInFIFO);
+		uint8_t rxbytes = readRegister(RXBYTES);
+		uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
+		snprintf(buffer, sizeof(buffer), "radio task (0x%x), numBytes: 0x%x", notif, rx_numbytes);
 		serialSendln(buffer);
-		clearBuf(buffer, sizeof(buffer));
 
 		if(IS_STATE(STATE_IDLE)){	//TODO: this should be handled by reg config or ISR
 			strobe(SRX);
@@ -376,8 +381,8 @@ bool validateCommand(uint8_t *input, uint8_t size){
 			return 0;
 		}
 	}
-	return  input[RF_CALLSIGN_LEN + 0] == '\n' &&
-			input[RF_CALLSIGN_LEN + 1] == '\r';
+	return  input[RF_CALLSIGN_LEN + 0] == '\r' &&
+			input[RF_CALLSIGN_LEN + 1] == '\n';
 }
 
 static int8_t sendPacket(const uint8_t *payload, uint8_t size) {
