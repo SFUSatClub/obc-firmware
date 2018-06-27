@@ -101,9 +101,8 @@ void vMainTask(void *pvParameters) {
 	//NOTE: Task priorities are #defined in sfu_tasks.h
 	xTaskCreate(vSerialTask, "serial", 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
 	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vFilesystemLifecycleTask, "fs", 400, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-	xTaskCreate(vRadioTask, "radio", 300, NULL, RADIO_TASK_DEFAULT_PRIORITY, &xRadioTaskHandle);
-	vTaskSuspend(xRadioTaskHandle);
+	xTaskCreate(vFilesystemLifecycleTask, "fs", 500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
+	xTaskCreate(vRadioTask, "radio", 600, NULL, portPRIVILEGE_BIT | 6, &xRadioTaskHandle);
 	xTaskCreate(deploy_task, "deploy", 128, NULL, 4, &deployTaskHandle);
 
 	/* Std telemetry */

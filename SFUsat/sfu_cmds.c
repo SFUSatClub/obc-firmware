@@ -13,6 +13,7 @@
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
 #include "sun_sensor.h"
+#include "sfu_task_radio.h"
 #include "deployables.h"
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
@@ -286,11 +287,79 @@ int8_t cmdExec(const CMD_t *cmd) {
 /*
  * RF Command
  */
+static const struct subcmd_opt CMD_RF_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RF_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RF_LOOPBACK,
+				.name		= "loopback",
+		},
+		{
+				.subcmd_id	= CMD_RF_TX,
+				.name		= "tx",
+		},
+		{
+				.subcmd_id	= CMD_RF_RESET,
+				.name		= "reset",
+		},
+		{
+				.subcmd_id	= CMD_RF_STX,
+				.name		= "stx",
+		},
 
+};
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
-		case CMD_EXEC_RADIO: {
-			initRadio();
+		case CMD_RF_NONE: {
+			RadioDAT_t currQueuedPacket;
+			//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+			strcpy((char *)currQueuedPacket.data, "test test test 123");
+			currQueuedPacket.size = sizeof("test test test 123") - 1;
+			currQueuedPacket.unused = 0xDE;
+			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+
+			return 1;
+		}
+		case CMD_RF_LOOPBACK: {
+			uint8_t option = cmd->cmd_data[0];
+			switch (option) {
+				case 0x00: {
+					xTaskNotify(xRadioTaskHandle, 0xBEEFDEAD, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback disabled");
+					return 1;
+				}
+				case 0x10: {
+					xTaskNotify(xRadioTaskHandle, 0xDEADBEEF, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback enabled");
+					return 1;
+				}
+			}
+			serialSendln("CMD_RF_LOOPBACK unknown selection");
+			return 0;
+		}
+		case CMD_RF_TX:{
+			//xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
+			RadioDAT_t currQueuedPacket;
+			memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+			strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
+			uint8_t data_len = strlen((char*)cmd->cmd_data);
+			currQueuedPacket.data[data_len] = '\r';
+			currQueuedPacket.data[data_len + 1] = '\n';
+			currQueuedPacket.size = data_len + 2;
+			currQueuedPacket.unused = 0xFA;
+			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+			return 1;
+		}
+		case CMD_RF_RESET: {
+			xTaskNotify(xRadioTaskHandle, RF_NOTIF_RESET, eSetValueWithOverwrite);
+			serialSendln("CMD_RF_RESET");
+			return 1;
+		}
+		case CMD_RF_STX: {
+			xTaskNotify(xRadioTaskHandle, RF_NOTIF_STX, eSetValueWithOverwrite);
+			serialSendln("RF_NOTIF_STX");
 			return 1;
 		}
 	}
@@ -805,8 +874,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.cmd_id			= CMD_RF,
 				.func			= cmdRF,
 				.name			= "rf",
-				.subcmds		= NULL,
-				.num_subcmds	= 0,
+				.subcmds		= CMD_RF_OPTS,
+				.num_subcmds	= LEN(CMD_RF_OPTS),
 		},
 		{
 				.cmd_id			= CMD_TASK,
@@ -902,6 +971,10 @@ int8_t checkAndRunCommand(const CMD_t *cmd) {
 }
 
 int8_t checkAndRunCommandStr(char *cmd) {
+	size_t running_total = 0;
+	char cmd_copy[128] = {0};
+	strcpy(cmd_copy, cmd);
+
 	const char delim[] = " ";
 	char *intendedCmd = strtok(cmd, delim);
 	/**
@@ -924,6 +997,8 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	 */
 	if (IS_OUT_OF_BOUNDS(cmd_opt, CMD_OPTS)) return 0;
 
+	running_total += strlen(intendedCmd) + 1; // + len of delim
+
 	/**
 	 * Compare the second word if it exists (which is the user's intended sub-command)
 	 * with all known sub-commands for that command.
@@ -940,11 +1015,13 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	{
 		if(strcmp(intendedCmd, subcmd_opt->name) == 0) {
 			subcmd_id = subcmd_opt->subcmd_id;
+			running_total += strlen(intendedCmd) + 1; // + len of delim
 			break;
 		}
 	}
 
 	CMD_t cmd_t = {.cmd_id = cmd_opt->cmd_id, .subcmd_id = subcmd_id};
+
 	/**
 	 * The third token will be interpreted as a hex string if it exists.
 	 * No preceding 0x required.
@@ -963,13 +1040,18 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	unsigned int i = 0;
 	if (data != NULL) {
 		const int data_len = strlen(data);
-		for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
-			char c[3] = {NULL};
-			c[0] = *(data + i);
-			// TODO: fix dereference beyond null char
-			const char n = *(data + i + 1);
-			c[1] = n == '\0' ? '0' : n;
-			cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
+		if (cmd_t.cmd_id == CMD_RF && cmd_t.subcmd_id == CMD_RF_TX) {
+			memcpy(cmd_t.cmd_data, cmd_copy + running_total, strlen(cmd_copy));
+		} else {
+
+			for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
+				char c[3] = {NULL};
+				c[0] = *(data + i);
+				// TODO: fix dereference beyond null char
+				const char n = *(data + i + 1);
+				c[1] = n == '\0' ? '0' : n;
+				cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
+			}
 		}
 	}
 	serialSend((char *)cmd_t.cmd_data);
