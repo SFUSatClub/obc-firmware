@@ -303,8 +303,6 @@ void vRadioTask(void *pvParameters) {
 				rfTestSequence();
 				break;
 			} case 0x77777777:{
-
-
 				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 				numBytesAvailInFIFO = readRegister(RXBYTES);
 				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", numBytesAvailInFIFO, CRC_status_int ? "OK!" : "BAD!");
