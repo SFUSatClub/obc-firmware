@@ -351,10 +351,6 @@ void vRadioTask(void *pvParameters) {
 				break;
 			}
 		}
-		uint8_t rxbytes = readRegister(RXBYTES);
-		uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
-		snprintf(buffer, sizeof(buffer), "radio task (0x%x), numBytes: 0x%x", notif, rx_numbytes);
-		serialSendln(buffer);
 
 		if(IS_STATE(STATE_IDLE)){	//TODO: this should be handled by reg config or ISR
 			strobe(SRX);
