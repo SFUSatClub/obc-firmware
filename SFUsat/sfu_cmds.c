@@ -12,9 +12,11 @@
 #include "sfu_state.h"
 #include "sfu_utils.h"
 #include "sfu_rtc.h"
+#include "sfu_task_radio.h"
 #include "deployables.h"
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
+
 
 struct subcmd_opt {
 	const char *name;
@@ -279,10 +281,51 @@ int8_t cmdExec(const CMD_t *cmd) {
  * RF Command
  */
 
+static const struct subcmd_opt CMD_RF_OPTS[] = {
+		{
+				.subcmd_id	= CMD_RF_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_RF_LOOPBACK,
+				.name		= "loopback",
+		},
+		{
+				.subcmd_id	= RF_TEST_SEQUENCE,
+				.name		= "tx",
+		},
+};
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
-		case CMD_EXEC_RADIO: {
-			initRadio();
+		case CMD_RF_NONE: {
+			RadioDAT_t currQueuedPacket;
+			//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+			strcpy((char *)currQueuedPacket.data, "test test test 123");
+			currQueuedPacket.size = sizeof("test test test 123") - 1;
+			currQueuedPacket.unused = 0xDE;
+			xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+
+			return 1;
+		}
+		case CMD_RF_LOOPBACK: {
+			uint8_t option = cmd->cmd_data[0];
+			switch (option) {
+				case 0x00: {
+					xTaskNotify(xRadioTaskHandle, 0xBEEFDEAD, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback disabled");
+					return 1;
+				}
+				case 0x10: {
+					xTaskNotify(xRadioTaskHandle, 0xDEADBEEF, eSetValueWithOverwrite);
+					serialSendln("RF SPI loopback enabled");
+					return 1;
+				}
+			}
+			serialSendln("CMD_RF_LOOPBACK unknown selection");
+			return 0;
+		}
+		case RF_TEST_SEQUENCE:{
+			rfTestSequence();
 			return 1;
 		}
 	}
@@ -737,8 +780,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.cmd_id			= CMD_RF,
 				.func			= cmdRF,
 				.name			= "rf",
-				.subcmds		= NULL,
-				.num_subcmds	= 0,
+				.subcmds		= CMD_RF_OPTS,
+				.num_subcmds	= LEN(CMD_RF_OPTS),
 		},
 		{
 				.cmd_id			= CMD_TASK,
