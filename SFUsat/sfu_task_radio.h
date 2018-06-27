@@ -21,7 +21,6 @@ void vRadioCHIME(void *pvParameters);
 BaseType_t initRadio();
 static int writeToTxFIFO(const uint8 *src, uint8 size);
 static void gio_rf_interrupt_init(void);
-static void receivePacket(uint8_t *destPayload);
 
 void rf_interrupt_init(void); // standalone initializer for tasks and semaphore
 void gio_notification_RF(gioPORT_t *port, uint32 bit); // called in gionotification, raises semaphore to start the task
