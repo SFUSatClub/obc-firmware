@@ -296,6 +296,11 @@ static const struct subcmd_opt CMD_RF_OPTS[] = {
 				.subcmd_id	= CMD_RF_RESET,
 				.name		= "reset",
 		},
+		{
+				.subcmd_id	= CMD_RF_STX,
+				.name		= "stx",
+		},
+
 };
 int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
@@ -327,7 +332,7 @@ int8_t cmdRF(const CMD_t *cmd) {
 			return 0;
 		}
 		case CMD_RF_TX:{
-			xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
+			//xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
 			RadioDAT_t currQueuedPacket;
 			memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
 			strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
@@ -342,6 +347,11 @@ int8_t cmdRF(const CMD_t *cmd) {
 		case CMD_RF_RESET: {
 			xTaskNotify(xRadioTaskHandle, RF_NOTIF_RESET, eSetValueWithOverwrite);
 			serialSendln("CMD_RF_RESET");
+			return 1;
+		}
+		case CMD_RF_STX: {
+			xTaskNotify(xRadioTaskHandle, RF_NOTIF_STX, eSetValueWithOverwrite);
+			serialSendln("RF_NOTIF_STX");
 			return 1;
 		}
 	}

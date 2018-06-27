@@ -304,17 +304,24 @@ void vRadioTask(void *pvParameters) {
 				break;
 			} case RF_NOTIF_RX:{
 				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
-				uint8_t rxbytes = readRegister(RXBYTES);
-				uint8_t rx_numbytes = rxbytes & NUM_RXBYTES;
-				snprintf(buffer, sizeof(buffer), "RX ISR numBytes: 0x%x, CRC: %s", rx_numbytes, CRC_status_int ? "OK!" : "BAD!");
-				serialSendln(buffer);
+
+				uint8_t tries = 0;
+				uint8_t rxbytes = 0;
+				uint8_t rx_numbytes = 0;
+				do {
+					rxbytes = readRegister(RXBYTES);
+					rx_numbytes = rxbytes & NUM_RXBYTES;
+					snprintf(buffer, sizeof(buffer), "Try %d: RX ISR numBytes: 0x%x, CRC: %s", tries, rx_numbytes, CRC_status_int ? "OK!" : "BAD!");
+					serialSendln(buffer);
+				} while (tries++ < 10 && rx_numbytes < SMARTRF_SETTING_PKTLEN_VAL_TX);
+
 
 				memset( rxbuf, '\0', sizeof(rxbuf) );
 				uint8_t bytes_actually_read = receivePacket(rxbuf, sizeof(rxbuf));
 				rxbuf[sizeof(rxbuf) - 1] = '\0'; // just in case
 
 				/* complete command and CRC are good, feed to UART */
-				if(validateCommand(rxbuf, bytes_actually_read) && CRC_status_int) {
+				if(validateCommand(rxbuf, bytes_actually_read)) {
 					uint8_t cmd_len = strlen((const char*)rxbuf);
 					uint8_t uart_cnt;
 					for(uart_cnt = RF_CALLSIGN_LEN; uart_cnt < cmd_len; uart_cnt++) {
@@ -335,19 +342,25 @@ void vRadioTask(void *pvParameters) {
 
 				break;
 			} case RF_NOTIF_RESET: {
-				uint8_t rxbytes = readRegister(RXBYTES);
-				uint8_t txbytes = readRegister(TXBYTES);
-				uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
-				uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
-				if (rx_overflowed) {
-					serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
-					strobe(SFRX);
-				}
-				if (tx_underflowed) {
-					serialSendln("TX Underflowed; Strobing SFTX...");
-					strobe(SFTX);
-				}
+//				uint8_t rxbytes = readRegister(RXBYTES);
+//				uint8_t txbytes = readRegister(TXBYTES);
+//				uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
+//				uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
+//				if (rx_overflowed) {
+//					serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
+//					strobe(SFRX);
+//				}
+//				if (tx_underflowed) {
+//					serialSendln("TX Underflowed; Strobing SFTX...");
+//					strobe(SFTX);
+//				}
+				strobe(SIDLE);
+				strobe(SFRX);
+				strobe(SFTX);
 				strobe(SRX);
+				break;
+			} case RF_NOTIF_STX: {
+				strobe(STX);
 				break;
 			}
 		}
