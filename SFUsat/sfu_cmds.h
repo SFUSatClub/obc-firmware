@@ -35,6 +35,7 @@
 #define CMD_FILE		0x14
 #define CMD_RESTART		0x16
 #define CMD_SUN			0x18
+#define CMD_GPS			0x20
 
 /**
  * Magic numbers to identify the sub-commands of a command.
@@ -117,6 +118,8 @@
 #define CMD_SUN_PLUSY		0x06
 #define CMD_SUN_MINUSY		0x08
 
+#define CMD_GPS_NONE		0x00
+#define CMD_GPS_RESET		0x02
 
 /**
  * Maximum command argument size.

@@ -23,6 +23,7 @@
 #include "bq25703.h"
 #include "sfu_adc.h"
 #include "stdtelem.h"
+#include "sfu_gps.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
@@ -59,6 +60,7 @@ void vMainTask(void *pvParameters) {
 	spiInit();
 	flash_mibspi_init();
 	sfu_i2c_init();
+	serialGPSInit();
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
@@ -81,6 +83,8 @@ void vMainTask(void *pvParameters) {
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	test_adc_init();
+	readGPS();
+
 
 //	flash_erase_chip();
 
