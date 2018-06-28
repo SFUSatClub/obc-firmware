@@ -374,35 +374,27 @@ void vRadioTask(void *pvParameters) {
 				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
 					prevQueuedPacket.size = 0;
 				} else {
-					snprintf(buffer, sizeof(buffer), "RF(1) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
-					serialSendln(buffer);
+//					snprintf(buffer, sizeof(buffer), "RF(1) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
+//					serialSendln(buffer);
 					prevQueuedPacket.size = 0;
 					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
 				}
 			}
-//			if (currQueuedPacket.size >= PACKET_LENGTH) {
-//				if (!sendPacket(currQueuedPacket.data, currQueuedPacket.size)) {
-//					snprintf(buffer, sizeof(buffer), "RF(2) FAILED buffering packet 0x%02x of %d bytes; requeueing...", currQueuedPacket.unused, currQueuedPacket.size);
-//					serialSendln(buffer);
-//					xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
-//					//vTaskDelay(pdMS_TO_TICKS(1000));
-//				}
-//			} else
 			if (prevQueuedPacket.size + currQueuedPacket.size < PACKET_LENGTH) {
-				snprintf(buffer, sizeof(buffer), "RF(2) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
-				serialSendln(buffer);
+//				snprintf(buffer, sizeof(buffer), "RF(2) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
+//				serialSendln(buffer);
 				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, currQueuedPacket.size);
 				prevQueuedPacket.size += currQueuedPacket.size;
 			}  else if (prevQueuedPacket.size + currQueuedPacket.size == PACKET_LENGTH) {
-				snprintf(buffer, sizeof(buffer), "RF(3) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
-				serialSendln(buffer);
+//				snprintf(buffer, sizeof(buffer), "RF(3) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
+//				serialSendln(buffer);
 				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, currQueuedPacket.size);
 				prevQueuedPacket.size += currQueuedPacket.size;
 				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
 					prevQueuedPacket.size = 0;
 				} else {
-					snprintf(buffer, sizeof(buffer), "RF(3.5) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
-					serialSendln(buffer);
+//					snprintf(buffer, sizeof(buffer), "RF(3.5) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
+//					serialSendln(buffer);
 					prevQueuedPacket.size = 0;
 					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
 				}
@@ -411,13 +403,13 @@ void vRadioTask(void *pvParameters) {
 				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, room);
 				prevQueuedPacket.size += room;
 				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
-					snprintf(buffer, sizeof(buffer), "RF(4) Buffering split packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size - room);
-					serialSendln(buffer);
+//					snprintf(buffer, sizeof(buffer), "RF(4) Buffering split packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size - room);
+//					serialSendln(buffer);
 					memcpy(prevQueuedPacket.data, currQueuedPacket.data + room, currQueuedPacket.size - room);
 					prevQueuedPacket.size = currQueuedPacket.size - room;
 				} else {
-					snprintf(buffer, sizeof(buffer), "RF(5) FAILED buffering split packet 0x%02x of %d bytes; requeueing both...", prevQueuedPacket.unused, prevQueuedPacket.size);
-					serialSendln(buffer);
+//					snprintf(buffer, sizeof(buffer), "RF(5) FAILED buffering split packet 0x%02x of %d bytes; requeueing both...", prevQueuedPacket.unused, prevQueuedPacket.size);
+//					serialSendln(buffer);
 					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
 					prevQueuedPacket.size = 0;
 					RadioDAT_t currSplitQueuedPacket = { 0 };

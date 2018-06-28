@@ -41,7 +41,7 @@ TaskHandle_t xTransmitTelemTaskHandle = NULL;
 
 void generalTelemTask(void *pvParameters){
 	telemConfig[GENERAL_TELEM] = (telem_config_t){	.max = 0, .min = 0, .period = 12000};
-	SET_UART_RF_MUX(UART_RF_MUX_TARGET_BOTH);
+	SET_UART_RF_MUX(UART_RF_MUX_TARGET_NONE);
 	while(1){
 		vTaskDelay(getStdTelemDelay(GENERAL_TELEM));
 		stdTelem.current_state = cur_state;
