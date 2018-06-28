@@ -152,7 +152,6 @@ int16_t sfu_reset_i2c(i2cBASE_t *i2c){
 	}
 
     serialSendln("I2C RESET");
-
 	sfu_i2c_init();
 	xTaskResumeAll();
 	addLogItem(logtype_i2c, error_1);

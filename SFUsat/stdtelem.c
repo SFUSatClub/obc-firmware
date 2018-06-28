@@ -21,7 +21,7 @@
 #include "sfu_fs_structure.h"
 #include "reg_tcram.h"
 #include "sfu_task_utils.h"
-
+#include "bq25703.h"
 UART_RF_MUX_INIT();
 
 telem_config_t telemConfig[NUM_TELEM_POINTS];
@@ -30,6 +30,7 @@ stdtelem_t stdTelem;
 TaskHandle_t xgeneralTelemTaskHandle = NULL;
 TaskHandle_t xobcCurrentTelemTaskHandle = NULL;
 TaskHandle_t xtemperatureTelemTaskHandle = NULL;
+TaskHandle_t xBMSTelemTaskHandle = NULL;
 TaskHandle_t xTransmitTelemTaskHandle = NULL;
 
 /* generalTelemTask()
@@ -55,6 +56,20 @@ void generalTelemTask(void *pvParameters){
 		sfu_write_fname(FSYS_SYS, "R2: %i", stdTelem.ramoccur_2);
 	}
 }
+
+void BMSTelemTask(void *pvParameters){
+	/* be sure to initialize the config of each telem point */
+	telemConfig[BMS_TELEM] = (telem_config_t){	.max = 700, .min = 0, .period = 10000};
+
+	while(1){
+		vTaskDelay(getStdTelemDelay(BMS_TELEM));
+		stdTelem.bms_volt = read_volt();
+		stdTelem.bms_curr = read_curr();
+
+		sfu_write_fname(FSYS_BMS, "%d V, %d uA", stdTelem.bms_volt, stdTelem.bms_curr);
+	}
+}
+
 
 /* current monitor function
  * 		- prototype for how similar functions will work
@@ -144,11 +159,13 @@ void transmitTelemUART(void *pvParameters){
 		UART_RF_MUX_SENDQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
 
-		snprintf(buf, 49, "S3,%i,%i,%i,%i",
+		snprintf(buf, 49, "S3,%i,%i,%i,%i,%i,%i",
 				stdTelem.lb_temp,
 				stdTelem.ub_temp,
 				stdTelem.ramoccur_1,
-				stdTelem.ramoccur_2
+				stdTelem.ramoccur_2,
+				stdTelem.bms_curr,
+				stdTelem.bms_volt
 		);
 		UART_RF_MUX_SENDQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete

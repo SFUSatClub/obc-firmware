@@ -26,7 +26,7 @@
 // enum for indexing
 // array of the structs
 
-#define NUM_TELEM_POINTS 5
+#define NUM_TELEM_POINTS 6
 
 /* used for indexing arrays of timeout, max, min */
 enum telem_index{
@@ -34,7 +34,8 @@ enum telem_index{
 	OBC_CURR_TELEM 	= 1,
 	SUN_SENS_TELEM 	= 2,
 	GPS_TELEM			= 3,
-	TEMP_TELEM 		= 4
+	TEMP_TELEM 		= 4,
+	BMS_TELEM			= 5
 };
 
 typedef struct telem_config{
@@ -55,14 +56,15 @@ typedef struct stdtelem{
 	int16_t ub_temp;
 	uint16_t ramoccur_1;
 	uint16_t ramoccur_2;
+	int16_t bms_curr;
+	int16_t bms_volt;
 } stdtelem_t;
-
-
 
 /* sensor reading functions */
 void generalTelemTask();
 void obcCurrentTelemTask();
 void temperatureTelemTask();
+void BMSTelemTask();
 
 /* Other tasks */
 void transmitTelemUART(void *pvParameters);
@@ -72,6 +74,7 @@ extern TaskHandle_t xgeneralTelemTaskHandle;
 extern TaskHandle_t xobcCurrentTelemTaskHandle;
 extern TaskHandle_t xtemperatureTelemTaskHandle;
 extern TaskHandle_t xTransmitTelemTaskHandle;
+extern TaskHandle_t xBMSTelemTaskHandle;
 
 /* convenience */
 uint32_t getStdTelemDelay(uint8_t telemIndex);

@@ -109,6 +109,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(temperatureTelemTask, "t_temp", 700, NULL, 4, &xtemperatureTelemTaskHandle);
 	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
 	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
+	xTaskCreate(BMSTelemTask, "bms", 900, NULL, 3, &xBMSTelemTaskHandle);
 
  /* Startup things that need RTOS */  
  

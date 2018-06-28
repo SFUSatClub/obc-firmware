@@ -39,7 +39,7 @@ char currentPrefix(void);
 #define SFU_MAX_DATA_WRITE 21  							/* bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp. */
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) 	/* DON'T TOUCH: to size the file write buffer */
 #define FSYS_OFFSET 65 									/* the first char of file names is 'A' */
-#define FSYS_NUM_SUBSYS 4 								/* number of subsystem logs */
+#define FSYS_NUM_SUBSYS 6 								/* number of subsystem logs */
 
 /* ASCII codes for the subsystem log suffix
  * 	- These are passed to read, write so that we can grab the correct file
@@ -51,6 +51,7 @@ char currentPrefix(void);
 #define OBC_CURRENT 	67 		/* C, current log */
 #define TEMPS 			68 		/* D, temperature log */
 #define FSYS_FLAGS		69		/* E, flags */
+#define FSYS_BMS		70		/* F, flags */
 
 #define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(90000) /* we create new file sets on this interval */
 /* Prefix stuff */
