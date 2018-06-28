@@ -45,7 +45,7 @@ int16_t read_temp(uint8_t addr) {
 		int16_t temp;
 		temp = read_temp_raw(addr);
 		if (temp <= -20000) {
-			sfu_reset_i2c(i2cREG1);
+//			sfu_reset_i2c(i2cREG1);
 		}
 		xSemaphoreGive(xI2CMutex);
 		return temp;

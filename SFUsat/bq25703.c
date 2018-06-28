@@ -156,7 +156,7 @@ int16_t read_register(uint8_t addr, uint8_t *reg_return) {
 	BMS_i2c_send(i2cREG1, 1,&cmd);
 
 
-	while(!i2cIsBusBusy(i2cREG1)){}	// RA: do we need this?
+//	while(!i2cIsBusBusy(i2cREG1)){}	// RA: do we need this?
 
 	i2cSetSlaveAdd(i2cREG1, BATT_CHRG);
 	i2cSetCount(i2cREG1, 1); 							// 1 is good for 8-bit register read
