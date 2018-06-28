@@ -314,8 +314,7 @@ int8_t cmdRF(const CMD_t *cmd) {
 	switch (cmd->subcmd_id) {
 		case CMD_RF_NONE: {
 			if(!rfInhibit){
-				RadioDAT_t currQueuedPacket;
-				//memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+				RadioDAT_t currQueuedPacket = { 0 };
 				strcpy((char *)currQueuedPacket.data, "test test test 123");
 				currQueuedPacket.size = sizeof("test test test 123") - 1;
 				currQueuedPacket.unused = 0xDE;
@@ -347,11 +346,18 @@ int8_t cmdRF(const CMD_t *cmd) {
 		}
 		case CMD_RF_TX:{
 			if(!rfInhibit){
-				//xTaskNotify(xRadioTaskHandle, RF_NOTIF_TX, eSetValueWithOverwrite);
-				RadioDAT_t currQueuedPacket;
-				memset(&currQueuedPacket, 0, sizeof(RadioDAT_t));
+				/**
+				 * Expect cmd->cmd_data to be a command string set from command system, i.e.:
+				 * 		> rf tx get tasks
+				 * then cmd->cmd_data will contain bytes "get tasks\0", i.e., it should be a
+				 * valid, null-terminated string.
+				 *
+				 * However, when sending through radio, we don't need these strings to be null-terminated.
+				 * Just that they are terminated with \r\n.
+				 */
+				RadioDAT_t currQueuedPacket = { 0 };
 				strcpy((char *)currQueuedPacket.data, (char *)cmd->cmd_data);
-				uint8_t data_len = strlen((char*)cmd->cmd_data);
+				const uint8_t data_len = strlen((char*)cmd->cmd_data);
 				currQueuedPacket.data[data_len] = '\r';
 				currQueuedPacket.data[data_len + 1] = '\n';
 				currQueuedPacket.size = data_len + 2;
@@ -538,7 +544,8 @@ static const struct subcmd_opt CMD_SUN_OPTS[] = {
 		}
 };
 int8_t cmdSun(const CMD_t *cmd) {
-		if (cmd->subcmd_id == CMD_SUN_NONE){
+	switch (cmd->subcmd_id) {
+		case CMD_SUN_NONE: {
 			serialSendln("SUN:");
 //			read_all_mux_channels(0x00);
 			read_all_mux_channels(0x4C);
@@ -547,27 +554,20 @@ int8_t cmdSun(const CMD_t *cmd) {
 			read_all_mux_channels(0x4F);
 //			read_sun_sensor();					// must loop 4-6 times to get all the values of each sensor of each mux
 			return 1;
-		}
-		if (cmd->subcmd_id == CMD_SUN_PLUSX){
+		} case CMD_SUN_PLUSX: {
 			read_all_mux_channels(0x4C);
 			return 1;
-		}
-		if (cmd->subcmd_id == CMD_SUN_MINUSX){
+		} case CMD_SUN_MINUSX: {
 			read_all_mux_channels(0x4D);
 			return 1;
-		}
-		if (cmd->subcmd_id == CMD_SUN_PLUSY){
+		} case CMD_SUN_PLUSY: {
 			read_all_mux_channels(0x4E);
 			return 1;
-		}
-		if (cmd->subcmd_id == CMD_SUN_MINUSY){
+		} case CMD_SUN_MINUSY: {
 			read_all_mux_channels(0x4F);
 			return 1;
 		}
-		else{
-			return 1;
-		}
-
+	}
 	return 0;
 }
 
@@ -1056,9 +1056,17 @@ int8_t checkAndRunCommandStr(char *cmd) {
 	if (data != NULL) {
 		const int data_len = strlen(data);
 		if (cmd_t.cmd_id == CMD_RF && cmd_t.subcmd_id == CMD_RF_TX) {
-			memcpy(cmd_t.cmd_data, cmd_copy + running_total, strlen(cmd_copy));
+			strncpy((char *)cmd_t.cmd_data, cmd_copy + running_total, sizeof(cmd_t.cmd_data) - 1);
+			cmd_t.cmd_data[sizeof(cmd_t.cmd_data) - 1] = '\0';
+			if (strlen(cmd_copy) > sizeof(cmd_t.cmd_data)) {
+				serialSend("WARNING: string to TX too large; truncated to ");
+				sprintf(buffer, "%d bytes!", sizeof(cmd_t.cmd_data) - 1);
+				serialSendln(buffer);
+			}
+			serialSend("\tcmd_data[]=\"");
+			serialSend((char *)cmd_t.cmd_data);
+			serialSend("\"");
 		} else {
-
 			for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
 				char c[3] = {NULL};
 				c[0] = *(data + i);
@@ -1067,9 +1075,10 @@ int8_t checkAndRunCommandStr(char *cmd) {
 				c[1] = n == '\0' ? '0' : n;
 				cmd_t.cmd_data[i / 2] = strtol(c, NULL, 16);
 			}
+			serialSend((char *)cmd_t.cmd_data);
 		}
 	}
-	serialSend((char *)cmd_t.cmd_data);
+
 
 	/**
 	 * Invoke the intended command with the command struct created above.

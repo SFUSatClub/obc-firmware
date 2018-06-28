@@ -308,13 +308,12 @@ void vRadioTask(void *pvParameters) {
 			} case RF_NOTIF_TX: {
 				rfTestSequence();
 				break;
-			} case RF_NOTIF_RX:{
-				CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
-
+			} case RF_NOTIF_RX: {
 				uint8_t tries = 0;
 				uint8_t rxbytes = 0;
 				uint8_t rx_numbytes = 0;
 				do {
+					CRC_status_int = readRegister(PKTSTATUS) & CRC_OK;
 					rxbytes = readRegister(RXBYTES);
 					rx_numbytes = rxbytes & NUM_RXBYTES;
 					snprintf(buffer, sizeof(buffer), "Try %d: RX ISR numBytes: 0x%x, CRC: %s", tries, rx_numbytes, CRC_status_int ? "OK!" : "BAD!");
@@ -348,18 +347,6 @@ void vRadioTask(void *pvParameters) {
 
 				break;
 			} case RF_NOTIF_RESET: {
-//				uint8_t rxbytes = readRegister(RXBYTES);
-//				uint8_t txbytes = readRegister(TXBYTES);
-//				uint8_t rx_overflowed = rxbytes & RXFIFO_OVERFLOW;
-//				uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
-//				if (rx_overflowed) {
-//					serialSendln("RX Overflowed; data loss occurred. Strobing SFRX...");
-//					strobe(SFRX);
-//				}
-//				if (tx_underflowed) {
-//					serialSendln("TX Underflowed; Strobing SFTX...");
-//					strobe(SFTX);
-//				}
 				strobe(SIDLE);
 				strobe(SFRX);
 				strobe(SFTX);

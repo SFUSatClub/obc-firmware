@@ -128,27 +128,27 @@ int16_t sfu_i2cReceive(i2cBASE_t *i2c, uint32 length, uint8 * data) {
  * - if we reset successfull, num_resets is set to 0 again.
  */
 int16_t sfu_reset_i2c(i2cBASE_t *i2c){
-	vTaskSuspendAll();						/* don't want any scheduling happening while we reset */
-	i2c->MDR = (uint32)((uint32)0U << 5U); 	/* reset i2c peripheral */
-	i2c->PFNC = (0x01);						/* I2C pins to GPIO mode */
-	i2c->DIR = (0x01);						/* SDA is input [bit 1], SCL is output [bit 0], output = 1 */
-	uint8_t i;
+	vTaskSuspendAll();							/* don't want any scheduling happening while we reset */
+	do {
+		i2c->MDR = (uint32)((uint32)0U << 5U); 	/* reset i2c peripheral */
+		i2c->PFNC = (0x01);						/* I2C pins to GPIO mode */
+		i2c->DIR = (0x01);						/* SDA is input [bit 1], SCL is output [bit 0], output = 1 */
+		uint8_t i;
 
-	/* send out some pulses */
-	for(i = 0; i < 10; i++){
-		i2c->DOUT = i2c->DOUT | 0x01; 		/* set SCL high */
-		busyWait(300);
-		i2c->DOUT ^= i2c->DOUT; 			/* set SCL low */
-		busyWait(300);
-	}
+		/* send out some pulses */
+		for(i = 0; i < 10; i++){
+			i2c->DOUT = i2c->DOUT | 0x01; 		/* set SCL high */
+			busyWait(300);
+			i2c->DOUT ^= i2c->DOUT; 			/* set SCL low */
+			busyWait(300);
+		}
+		num_resets++;
 
-	num_resets++;
-	if(num_resets >= 4){
-		while(1);							/* at this point, the watchdog will take care of us */
-	}
+	} while (i2c->DIN & 0x02 != 0x02 && num_resets < 5);	/* check that the data line has gone high (idle) */
 
-	if(i2c->DIN & 0x02 != 0x02){				/* check that the data line has gone high (idle) */
-		sfu_reset_i2c(i2c);					/* we only attempt to try again 4 more times */
+	if(num_resets >= 5) {
+		serialSendln("I2C FAULT");
+		while(1);								/* at this point, the watchdog will take care of us */
 	}
 
     serialSendln("I2C RESET");

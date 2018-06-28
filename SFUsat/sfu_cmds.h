@@ -125,7 +125,7 @@
  * 		- maximized to next word alignment to reduce slop in CMD_t/CMD_SCHED_DATA_t
  * 		and increase effective argument size at no additional memory cost.
  */
-#define CMD_DATA_MAX_SIZE (14)
+#define CMD_DATA_MAX_SIZE (34)
 
 /**
  * Magic numbers to identify a task.
@@ -185,7 +185,7 @@ typedef struct CMD_SCHED_MISC_DATA {
  * 		- cmd_data union size is CMD_SIZE_DATA.
  * 		- there is a time field.
  *
- * Current size: 20 bytes
+ * Current size: 40 bytes
  * Current slop: 0 bytes
  */
 typedef struct CMD_SCHED_DATA {
@@ -207,8 +207,8 @@ typedef struct CMD_SCHED_DATA {
  * Be wary of padding from alignment.
  * Make sure additional command fields are also added to CMD_SCHED_DATA_t.
  *
- * Current size: 24 bytes
- * Current slop: 2 bytes (trailing padding; struct alignment)
+ * Current size: 44 bytes
+ * Current slop: 0 bytes (trailing padding; struct alignment)
  */
 typedef struct CMD {
 	union {
@@ -220,7 +220,7 @@ typedef struct CMD {
 	};
 	uint8_t cmd_id;
 	uint8_t subcmd_id;
-	/* 2 bytes slop here */
+	/* 0 bytes slop here */
 } CMD_t;
 
 /**
