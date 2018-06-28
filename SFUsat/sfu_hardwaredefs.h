@@ -109,6 +109,10 @@
  */
 
 #define OBC_CURRENT_ADC 	2
+
+/* GPS */
+#define GPS_PORT          scilinREG
+
 #endif /* PLATFORM_OBC_V0_4 */
 
 

@@ -17,6 +17,7 @@
 #include "deployables.h"
 #include "sfu_fs_structure.h"
 #include "flash_mibspi.h"
+#include "sfu_gps.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -157,6 +158,11 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_RESTART,
 				.name		= "restart",
 				.info		=  "Restart commands\n"
+		},
+		{
+				.subcmd_id	= CMD_GPS,
+				.name		= "gps",
+				.info		=  "GPS get pos [null] and reset\n"
 		}
 };
 
@@ -433,6 +439,35 @@ int8_t cmdWd(const CMD_t *cmd) {
 		}
 
 	return 1;
+}
+
+/* GPS commands
+ *
+ */
+
+static const struct subcmd_opt CMD_GPS_OPTS[] = {
+		{
+				.subcmd_id	= CMD_GPS_NONE,
+				.name		= "",
+		},
+		{
+				.subcmd_id	= CMD_GPS_RESET,
+				.name		= "reset",
+		},
+
+};
+
+int8_t cmdGPS(const CMD_t *cmd) {
+		if (cmd->subcmd_id == CMD_GPS_RESET){
+			restartGPS();
+			return 1;
+		}
+		if (cmd->subcmd_id == CMD_GPS_NONE){
+			readGPS();
+			return 1;
+		}
+
+	return 0;
 }
 
 /**
@@ -954,6 +989,13 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdRestart,
 				.subcmds		= CMD_RESTART_OPTS,
 				.num_subcmds	= LEN(CMD_RESTART_OPTS),
+		},
+		{
+				.cmd_id			= CMD_GPS,
+				.name			= "gps",
+				.func			= cmdGPS,
+				.subcmds		= CMD_GPS_OPTS,
+				.num_subcmds	= LEN(CMD_GPS_OPTS),
 		}
 };
 

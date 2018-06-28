@@ -50,10 +50,12 @@ int16_t read_temp(uint8_t addr) {
 		xSemaphoreGive(xI2CMutex);
 		return temp;
 	} else {
-		serialSendQ("Temp read can't get mutex");
+		serialSendln("Temp read can't get mutex");
 		addLogItem(logtype_driver, error_1);
+//		xSemaphoreGive(xI2CMutex);
 		return TEMP_READ_ERROR;
 	}
+
 }
 
 /* sanity check that the OBC temp sensor returns something

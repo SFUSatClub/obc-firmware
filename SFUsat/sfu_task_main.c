@@ -23,6 +23,7 @@
 #include "bq25703.h"
 #include "sfu_adc.h"
 #include "stdtelem.h"
+#include "sfu_gps.h"
 
 //  ---------- SFUSat Tests (optional) ----------
 #include "sfu_triumf.h"
@@ -59,6 +60,7 @@ void vMainTask(void *pvParameters) {
 	spiInit();
 	flash_mibspi_init();
 	sfu_i2c_init();
+	serialGPSInit();
 
 	// ---------- SFUSat INIT ----------
 	rtcInit();
@@ -81,12 +83,10 @@ void vMainTask(void *pvParameters) {
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
 	test_adc_init();
+	readGPS();
 //	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
-	gioSetBit(DEPLOY_SELECT_PORT, DEPLOY_SELECT_PIN, 1);	/* set the deploy side */
-	gioSetBit(DEPLOY_EN_PORT, DEPLOY_EN_PIN, 1); /* active high */
-
 	bms_test();
 
 // --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
@@ -109,6 +109,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(temperatureTelemTask, "t_temp", 700, NULL, 4, &xtemperatureTelemTaskHandle);
 	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
 	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
+	xTaskCreate(BMSTelemTask, "bms", 900, NULL, 3, &xBMSTelemTaskHandle);
 
  /* Startup things that need RTOS */  
  
