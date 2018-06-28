@@ -21,14 +21,21 @@
 
 #include "sfu_tasks.h"
 extern unsigned char currCharGPS;
+typedef struct GPSdata {
+   char  longa[30];
+   char  lat[30];
+   char  alt[30];
+   uint8_t flag;
+} GPSdata_t;
 
-#define GPS_CHAR_TIMEOUT 10000
+#define GPS_CHAR_TIMEOUT 30000
 
 void serialGPSInit();
 bool serialGPSSendln(const char*);
 void restartGPS();
 void readGPS();
-void parseGPS(char *);
+//void parseGPS(char *);
+void parseGPS(char *gpsBuff,GPSdata_t *data);
 struct GPSData;
 
 BaseType_t serialGPSSendQ(const char * toSend);

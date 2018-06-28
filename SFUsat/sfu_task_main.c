@@ -85,7 +85,6 @@ void vMainTask(void *pvParameters) {
 	test_adc_init();
 	readGPS();
 
-
 //	flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly

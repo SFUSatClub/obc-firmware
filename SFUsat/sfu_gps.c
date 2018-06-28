@@ -10,6 +10,9 @@
 #include "sfu_task_radio.h"
 #include "sfu_state.h"
 
+
+
+
 unsigned char currCharGPS = '\0';
 bool gps_sciSend(sciBASE_t *sci, uint32 length, uint8 * data);
 bool gps_sciReceive(sciBASE_t *sci, uint32 length, uint8 * data);
@@ -143,6 +146,8 @@ void restartGPS() {
 }
 
 void readGPS() {
+	GPSdata_t data;
+
 	char buff[300] = {'\0'};
 	uint32_t timeout = 0;
 	if(serialGPSSendln("log bestposa ontime 1")){
@@ -161,7 +166,7 @@ void readGPS() {
 			bool gps_good = 1;
 			while (hashtag < 2 && gps_good){
 				 if(!gps_sciReceiveByte(GPS_PORT, &buff[i])){
-					gps_good = 0;
+//					gps_good = 0;
 				 }
 				if(buff[i] == '#'){
 					hashtag ++;
@@ -169,14 +174,20 @@ void readGPS() {
 				i++;
 			}
 			if(gps_good){
+				if(strlen(buff) > 1){
+					serialSendln("GPS RX DATA");
+				}
+				else{
+					serialSendln("GPS NO DATA");
+				}
 				serialSend(buff);
 				serialSendln("GPS DONE");
 				gps_sciReceive(GPS_PORT, 1, &currCharGPS);
-				parseGPS(&buff[0]);
+//				parseGPS(&buff[0], &data);
 			}
-			else{
-				serialSendln("GPS Timeout");
-			}
+//			else{
+//				serialSendln("GPS Timeout");
+//			}
 		}
 		else{
 			serialSendln("Received nothing from GPS");
@@ -184,20 +195,14 @@ void readGPS() {
 	}
 }
 
-struct GPSdata {
-   char  longa[30];
-   char  lat[30];
-   char  alt[30];
-   uint8_t flag;
-};
 
-void parseGPS(char *gpsBuff){
+void parseGPS(char *gpsBuff, GPSdata_t *data){
 /////////////////////////////////TEST 1/////////////////////////////////
 /*
  * This was having issues with snprintf and reading past the end of memory...
  *
  */
-	struct GPSdata data;
+//	struct GPSdata data;
 	const char tok[] = ",";
 	const char headertok[] = ";";
     char info[250] = {'\0'};
@@ -210,31 +215,31 @@ void parseGPS(char *gpsBuff){
 	    do {
 	        int l = strcspn (tmp, tok);
 	        memset(info, '\0', 250);
-	        memset(data.alt, '\0', 250);
-	        memset(data.lat, '\0', 250);
-	        memset(data.longa, '\0', 250);
+	        memset(data->alt, '\0', 250);
+	        memset(data->lat, '\0', 250);
+	        memset(data->longa, '\0', 250);
 
 	        snprintf (info, sizeof(info), "%.*s", l, tmp);
 	        tmp = tmp + l + 1;
 
 	        if (count == 2)
 	        {
-	          strcpy (data.lat, info);
+	          strcpy (data->lat, info);
 	        }
 	        if (count == 3)
 	        {
-	          strcpy (data.longa, info);
+	          strcpy (data->longa, info);
 	        }
 	        if (count == 4)
 	        {
-	          strcpy (data.alt, info);
+	          strcpy (data->alt, info);
 	        }
 
 	        count++;
 
 	        } while (tmp[-1]);
 
-	data.flag = 1;
+	data->flag = 1;
 }
 
 /////////////////////////////////TEST 2/////////////////////////////////
