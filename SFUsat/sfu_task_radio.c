@@ -231,7 +231,6 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  */
 #define FIFO_LENGTH			(64)
 
-#define PACKET_LENGTH 		(SMARTRF_SETTING_PKTLEN_VAL_TX)
 
 static spiDAT1_t spiDataConfig;
 
@@ -259,11 +258,12 @@ void read_RX_FIFO();
 static int8_t sendPacket(const uint8_t *payload, uint8_t size);
 //static void sendPacket(const uint8_t *payload, uint8_t size);
 static void writeRegister(uint8 addr, uint8 val);
-bool validateCommand(uint8_t *input, uint8_t size);
+bool validateCommand(const uint8_t *input, uint8_t size);
 static int receivePacket(uint8_t *destPayload, uint8_t size);
 
 #define RF_CALLSIGN			("VA7TSN")
 #define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
+#define PACKET_LENGTH 		(SMARTRF_SETTING_PKTLEN_VAL_TX - RF_CALLSIGN_LEN)
 
 //Declarations for RF Interrupt
 //SemaphoreHandle_t gioRFSem;
@@ -340,12 +340,13 @@ void vRadioTask(void *pvParameters) {
 						}
 					}
 				} else {
-					serialSendln("Rcvd invalid cmd from rf: ");
-					uint8_t i = 0;
-					for ( i = 0; i < bytes_actually_read; i++ ) {
-						snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, rxbuf[i]);
-						serialSendln(buffer);
-					}
+					serialSend("Rcvd invalid cmd from rf: ");
+					serialSendln((const char *)rxbuf);
+//					uint8_t i = 0;
+//					for ( i = 0; i < bytes_actually_read; i++ ) {
+//						snprintf(buffer, sizeof(buffer), "RX Byte #%d: 0x%02x", i, rxbuf[i]);
+//						serialSendln(buffer);
+//					}
 				}
 
 				break;
@@ -433,7 +434,7 @@ void vRadioTask(void *pvParameters) {
 /**
  * Check that call sign and /r/n are in the received data
  */
-bool validateCommand(uint8_t *input, uint8_t size){
+bool validateCommand(const uint8_t *input, uint8_t size){
 	if (size < RF_CALLSIGN_LEN + 2) {
 		return 0;
 	}
