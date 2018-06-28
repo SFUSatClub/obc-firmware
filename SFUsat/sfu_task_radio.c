@@ -272,14 +272,15 @@ bool enableRFISR = 0;
 bool rfInhibit = 1;
 
 void vRadioTask(void *pvParameters) {
+	xRadioTXQueue = xQueueCreate(40, sizeof(RadioDAT_t));
+	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	rfInhibit = 1;
 	serialSendQ("RF INHIBITED");
 	vTaskDelay(pdMS_TO_TICKS(30000));
 	rfInhibit = 0;
 	serialSendQ("RF ENABLED");
 	enableRFISR = 0;
-	xRadioTXQueue = xQueueCreate(40, sizeof(RadioDAT_t));
-	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
+
 	initRadio();
 	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN);
 	strobe(SRX);
@@ -331,7 +332,7 @@ void vRadioTask(void *pvParameters) {
 					uint8_t uart_cnt;
 					for(uart_cnt = RF_CALLSIGN_LEN; uart_cnt < cmd_len; uart_cnt++) {
 						/* loop through the command, including \r\n, don't send null char */
-						if(xQueueSend(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE) {
+						if(xQueueSendToBack(xSerialRXQueue, &rxbuf[uart_cnt], 500) != pdTRUE) {
 							serialSendln("RF RX -> UART ERR");
 							break;
 						}

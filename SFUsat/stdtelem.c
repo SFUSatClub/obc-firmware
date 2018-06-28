@@ -20,6 +20,9 @@
 #include "stdtelem.h"
 #include "sfu_fs_structure.h"
 #include "reg_tcram.h"
+#include "sfu_task_utils.h"
+
+UART_RF_MUX_INIT();
 
 telem_config_t telemConfig[NUM_TELEM_POINTS];
 stdtelem_t stdTelem;
@@ -37,7 +40,7 @@ TaskHandle_t xTransmitTelemTaskHandle = NULL;
 
 void generalTelemTask(void *pvParameters){
 	telemConfig[GENERAL_TELEM] = (telem_config_t){	.max = 0, .min = 0, .period = 12000};
-
+	SET_UART_RF_MUX(UART_RF_MUX_TARGET_BOTH);
 	while(1){
 		vTaskDelay(getStdTelemDelay(GENERAL_TELEM));
 		stdTelem.current_state = cur_state;
@@ -118,9 +121,7 @@ bool checkMaxMin(uint8_t telemIndex, int32_t reading){
  * 	- transmit the most recent stdtelem on the UART
  * 	- should be higher priority than any telemetry tasks
  */
-
 void transmitTelemUART(void *pvParameters){
-
 	while(1){
 		char buf[50] = {'\0'};
 	    vTaskDelay(pdMS_TO_TICKS(15000)); // frequency to send out stdtelem
@@ -129,9 +130,9 @@ void transmitTelemUART(void *pvParameters){
 				stdTelem.current_state,
 				stdTelem.state_entry_time
 		);
-		serialSendQ(buf);
+
+		UART_RF_MUX_SENDQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
-		clearBuf(buf, 50);
 
 		snprintf(buf, 49, "S2,%i,%i,%c,%i,%i",
 				stdTelem.min_heap,
@@ -140,9 +141,8 @@ void transmitTelemUART(void *pvParameters){
 				stdTelem.obc_current,
 				stdTelem.obc_temp
 		);
-		serialSendQ(buf);
+		UART_RF_MUX_SENDQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
-		clearBuf(buf, 50);
 
 		snprintf(buf, 49, "S3,%i,%i,%i,%i",
 				stdTelem.lb_temp,
@@ -150,9 +150,8 @@ void transmitTelemUART(void *pvParameters){
 				stdTelem.ramoccur_1,
 				stdTelem.ramoccur_2
 		);
-		serialSendQ(buf);
+		UART_RF_MUX_SENDQ(buf);
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
-		clearBuf(buf, 50);
 	}
 }
 
