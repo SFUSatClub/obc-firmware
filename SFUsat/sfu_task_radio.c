@@ -231,7 +231,7 @@ const uint16 SMARTRF_VALS_TX[NUM_CONFIG_REGISTERS] = {
  */
 #define FIFO_LENGTH			(64)
 
-//#define pkt_length (30)
+#define PACKET_LENGTH 		(SMARTRF_SETTING_PKTLEN_VAL_TX)
 
 static spiDAT1_t spiDataConfig;
 
@@ -276,7 +276,7 @@ void vRadioTask(void *pvParameters) {
 	xRadioRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	rfInhibit = 1;
 	serialSendQ("RF INHIBITED");
-	vTaskDelay(pdMS_TO_TICKS(30000));
+	//vTaskDelay(pdMS_TO_TICKS(30000));
 	rfInhibit = 0;
 	serialSendQ("RF ENABLED");
 	enableRFISR = 0;
@@ -288,6 +288,8 @@ void vRadioTask(void *pvParameters) {
 	char buffer[100] = {'\0'};
 	uint8_t rxbuf[FIFO_LENGTH] = {'\0'};
 	uint8_t CRC_status_int;
+
+	RadioDAT_t prevQueuedPacket = { 0 };
 	while (1) {
 		enableRFISR = 1;
 
@@ -365,9 +367,65 @@ void vRadioTask(void *pvParameters) {
 
 		RadioDAT_t currQueuedPacket;
 		while (xQueueReceive(xRadioTXQueue, &currQueuedPacket, pdMS_TO_TICKS(1000)) == pdPASS) {
-			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x from xRadioTXQueue", currQueuedPacket.unused);
+			snprintf(buffer, sizeof(buffer), "Dequeued 0x%02x of %d bytes from xRadioTXQueue", currQueuedPacket.unused, currQueuedPacket.size);
 			serialSendln(buffer);
-			sendPacket(currQueuedPacket.data, currQueuedPacket.size);
+			if (prevQueuedPacket.size >= PACKET_LENGTH) {
+				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
+					prevQueuedPacket.size = 0;
+				} else {
+					snprintf(buffer, sizeof(buffer), "RF(1) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
+					serialSendln(buffer);
+					prevQueuedPacket.size = 0;
+					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
+				}
+			}
+//			if (currQueuedPacket.size >= PACKET_LENGTH) {
+//				if (!sendPacket(currQueuedPacket.data, currQueuedPacket.size)) {
+//					snprintf(buffer, sizeof(buffer), "RF(2) FAILED buffering packet 0x%02x of %d bytes; requeueing...", currQueuedPacket.unused, currQueuedPacket.size);
+//					serialSendln(buffer);
+//					xQueueSendToBack(xRadioTXQueue, &currQueuedPacket, 0);
+//					//vTaskDelay(pdMS_TO_TICKS(1000));
+//				}
+//			} else
+			if (prevQueuedPacket.size + currQueuedPacket.size < PACKET_LENGTH) {
+				snprintf(buffer, sizeof(buffer), "RF(2) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
+				serialSendln(buffer);
+				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, currQueuedPacket.size);
+				prevQueuedPacket.size += currQueuedPacket.size;
+			}  else if (prevQueuedPacket.size + currQueuedPacket.size == PACKET_LENGTH) {
+				snprintf(buffer, sizeof(buffer), "RF(3) Buffering packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size);
+				serialSendln(buffer);
+				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, currQueuedPacket.size);
+				prevQueuedPacket.size += currQueuedPacket.size;
+				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
+					prevQueuedPacket.size = 0;
+				} else {
+					snprintf(buffer, sizeof(buffer), "RF(3.5) FAILED buffering packet 0x%02x of %d bytes; requeueing...", prevQueuedPacket.unused, prevQueuedPacket.size);
+					serialSendln(buffer);
+					prevQueuedPacket.size = 0;
+					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
+				}
+			}  else if (prevQueuedPacket.size + currQueuedPacket.size > PACKET_LENGTH) {
+				uint8_t room = PACKET_LENGTH - prevQueuedPacket.size;
+				memcpy(prevQueuedPacket.data + prevQueuedPacket.size, currQueuedPacket.data, room);
+				prevQueuedPacket.size += room;
+				if (sendPacket(prevQueuedPacket.data, prevQueuedPacket.size)) {
+					snprintf(buffer, sizeof(buffer), "RF(4) Buffering split packet 0x%02x of %d bytes", currQueuedPacket.unused, currQueuedPacket.size - room);
+					serialSendln(buffer);
+					memcpy(prevQueuedPacket.data, currQueuedPacket.data + room, currQueuedPacket.size - room);
+					prevQueuedPacket.size = currQueuedPacket.size - room;
+				} else {
+					snprintf(buffer, sizeof(buffer), "RF(5) FAILED buffering split packet 0x%02x of %d bytes; requeueing both...", prevQueuedPacket.unused, prevQueuedPacket.size);
+					serialSendln(buffer);
+					xQueueSendToBack(xRadioTXQueue, &prevQueuedPacket, 0);
+					prevQueuedPacket.size = 0;
+					RadioDAT_t currSplitQueuedPacket = { 0 };
+					memcpy(currSplitQueuedPacket.data, currQueuedPacket.data + room, currQueuedPacket.size - room);
+					currSplitQueuedPacket.size = currQueuedPacket.size - room;
+					xQueueSendToBack(xRadioTXQueue, &currSplitQueuedPacket, 0);
+				}
+
+			}
 		}
 	}
 }
@@ -433,73 +491,6 @@ static int8_t sendPacket(const uint8_t *payload, uint8_t size) {
 	strobe(STX);
 	return payload_bytes_written;
 }
-
-//static void sendPacket_(const uint8_t *payload, uint8_t size) {
-//	char buffer[100] = {'\0'};
-//
-//	/**
-//	 * Strobe a NOP just to see current status byte.
-//	 */
-//	strobe(SNOP);
-//
-//	uint8_t txbytes = readRegister(TXBYTES);
-//	uint8_t tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
-//	uint8_t tx_numbytes = txbytes & NUM_TXBYTES;
-//	/**
-//	 * Since we just retrieved tx_underflowed from the above TXBYTES register read, the
-//	 * following check of bit STATE_TXFIFO_UNDERFLOW in its corresponding statusByte response
-//	 * will be the same.
-//	 *
-//	 * TODO: Potential sanity check with assert(tx_underflowed && IS_STATE(STATE_TXFIFO_UNDERFLOW))
-//	 */
-//	if (IS_STATE(STATE_TXFIFO_UNDERFLOW)) {
-//		serialSendln("TX Underflowed; Strobing SFTX...");
-//		strobe(SFTX);
-//	}
-//
-//	snprintf(buffer, sizeof(buffer), "TX underflowed:%s numbytes:%d FIFO_BYTES_AVAILABLE: 0x%x\n",
-//			tx_underflowed ? "yes" : "no",
-//			tx_numbytes,
-//			statusByte & FIFO_BYTES_AVAILABLE);
-//	serialSend(buffer);
-//
-//	/**
-//	 * Append Tobi's call sign VA7TSN at front.
-//	 *
-//	 * Perform checks to make sure we're copying within both array and ptr bounds.
-//	 */
-//	uint8_t payload_w_callsign[FIFO_LENGTH] = { 0 };
-//	strncpy( (char *)payload_w_callsign, RF_CALLSIGN, sizeof(payload_w_callsign) - 1);
-//	const uint8_t adjusted_size = sizeof(payload_w_callsign) - RF_CALLSIGN_LEN;
-//	const uint8_t max_bytes_to_copy = size < adjusted_size ? size : adjusted_size;
-//	/**
-//	 * TODO: Restructure code to not allow this to happen.
-//	 */
-//	if (size > max_bytes_to_copy) {
-//		snprintf(buffer, sizeof(buffer), "RF failed to packetize %d bytes", size - max_bytes_to_copy);
-//		serialSendln(buffer);
-//	}
-//	memcpy(payload_w_callsign + RF_CALLSIGN_LEN, payload, max_bytes_to_copy);
-//
-//	/**
-//	 * Strobe a NOP to ensure last operation was a write.
-//	 * Then statusByte will be primed with FIFO_BYTES_AVAILABLE for TX FIFO.
-//	 */
-//	strobe(SNOP);
-//	if (writeToTxFIFO(payload_w_callsign, SMARTRF_SETTING_PKTLEN_VAL_TX) == 1) {
-//		snprintf(buffer, sizeof(buffer), "%d Bytes Radio TX FIFO written", size);
-//		serialSendln(buffer);
-//	} else {
-//		snprintf(buffer, sizeof(buffer), "Radio did not write");
-//		serialSendln(buffer);
-//	}
-//	txbytes = readRegister(TXBYTES);
-//	tx_underflowed = txbytes & TXFIFO_UNDERFLOW;
-//	tx_numbytes = txbytes & NUM_TXBYTES;
-//	snprintf(buffer, sizeof(buffer), "AFTER: tx_underflowed:%s tx_numbytes:%d", tx_underflowed ? "yes" : "no", tx_numbytes);
-//	serialSendln(buffer);
-//	strobe(STX);
-//}
 
 /**
  * TODO: Do we want to receive one full "packet" first? I.e., only start reading from RX FIFO if rx_numbytes > packetsize ?
