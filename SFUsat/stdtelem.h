@@ -18,6 +18,11 @@
 #ifndef SFUSAT_STDTELEM_H_
 #define SFUSAT_STDTELEM_H_
 
+#include "sfu_state.h"
+#include "FreeRTOS.h"
+#include "rtos_semphr.h"
+#include "rtos_task.h"
+
 /* enums for config so that we can reasonably easily update them from the ground */
 /* enum for check period */
 /* enums for max and min sensor values */
@@ -42,7 +47,14 @@ typedef struct telem_config{
 	int16_t max;		// max permissible sensor reading
 	int16_t min;		// min permissible sensor reading
 	uint32_t period;	// period in ms
-} telem_config_t;
+	uint32_t timestamp;	// timestamp of update
+} telemConfig_t;
+
+/* This union is used to easily write/retrieve of the struct from flash */
+typedef union{
+	telemConfig_t payload;
+	uint8_t byteAddr[sizeof(telemConfig_t)];
+} telemConfigWrap_t;
 
 typedef struct stdtelem{
 	State_t current_state;

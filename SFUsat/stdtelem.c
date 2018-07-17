@@ -22,9 +22,10 @@
 #include "reg_tcram.h"
 #include "sfu_task_utils.h"
 #include "bq25703.h"
+#include "sfu_flags.h"
 UART_RF_MUX_INIT();
 
-telem_config_t telemConfig[NUM_TELEM_POINTS];
+telemConfig_t telemConfig[NUM_TELEM_POINTS];
 stdtelem_t stdTelem;
 
 TaskHandle_t xgeneralTelemTaskHandle = NULL;
@@ -40,8 +41,9 @@ TaskHandle_t xTransmitTelemTaskHandle = NULL;
  */
 
 void generalTelemTask(void *pvParameters){
-	telemConfig[GENERAL_TELEM] = (telem_config_t){	.max = 0, .min = 0, .period = 12000};
-	SET_UART_RF_MUX(UART_RF_MUX_TARGET_NONE);
+	telemConfig[GENERAL_TELEM] = (telemConfig_t){	.max = 0, .min = 0, .period = 12000};
+	SET_UART_RF_MUX(UART_RF_MUX_TARGET_UART);
+	// none, uart, rf
 	while(1){
 		vTaskDelay(getStdTelemDelay(GENERAL_TELEM));
 		stdTelem.current_state = cur_state;
@@ -59,7 +61,7 @@ void generalTelemTask(void *pvParameters){
 
 void BMSTelemTask(void *pvParameters){
 	/* be sure to initialize the config of each telem point */
-	telemConfig[BMS_TELEM] = (telem_config_t){	.max = 700, .min = 0, .period = 10000};
+	telemConfig[BMS_TELEM] = (telemConfig_t){	.max = 700, .min = 0, .period = 10000};
 
 	while(1){
 		vTaskDelay(getStdTelemDelay(BMS_TELEM));
@@ -76,7 +78,7 @@ void BMSTelemTask(void *pvParameters){
  */
 void obcCurrentTelemTask(void *pvParameters){
 	/* be sure to initialize the config of each telem point */
-	telemConfig[OBC_CURR_TELEM] = (telem_config_t){	.max = 700, .min = 0, .period = 10000};
+	telemConfig[OBC_CURR_TELEM] = (telemConfig_t){	.max = 700, .min = 0, .period = 10000};
 	uint16_t reading;
 
 	while(1){
@@ -96,7 +98,7 @@ void obcCurrentTelemTask(void *pvParameters){
  * 	- records temperatures from across the satellite
  */
 void temperatureTelemTask(void *pvParameters){
-	telemConfig[TEMP_TELEM] = (telem_config_t){	.max = 130, .min = -40, .period = 10000};
+	telemConfig[TEMP_TELEM] = (telemConfig_t){	.max = 130, .min = -40, .period = 10000};
 	volatile uint32_t res;
 	while(1){
 		vTaskDelay(getStdTelemDelay(TEMP_TELEM));
