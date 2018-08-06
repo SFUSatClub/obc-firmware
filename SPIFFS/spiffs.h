@@ -290,7 +290,7 @@ typedef struct spiffs_t {
   // mounted flag
   u8_t mounted;
   // user data
-  void *user_data; // RA: we point this towards the current file prefix in sfusat_spiffs_init
+  void *user_data;
   // config magic
   u32_t config_magic;
 } spiffs;

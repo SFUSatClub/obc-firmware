@@ -27,6 +27,7 @@
 #include "sfusat_spiffs.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
+#include "sfu_flags.h"
 
 void vFilesystemLifecycleTask(void *pvParameters);
 
@@ -70,6 +71,13 @@ void sfu_fs_init();
 void sfu_write_fname(char f_suffix, char *fmt, ...); 	/* write printf style data to a file name */
 void sfu_read_fname(char f_suffix, uint8_t* outbuf, uint32_t size);
 
+
+
+/* New flags */
+void writeAllFlagsToFlash();
+bool readAllFlagsFromFlash(flag_memory_table_wrap_t *flagWrap);
+void writeFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset);
+void readFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset);
 #endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */
 
 

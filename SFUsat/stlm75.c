@@ -15,6 +15,7 @@
 #include "sfu_i2c.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
+#include "rtos_mpu_wrappers.h"
 #include "sfu_uart.h"
 #include "sfu_task_logging.h"
 
@@ -52,6 +53,7 @@ int16_t read_temp(uint8_t addr) {
 	} else {
 		serialSendln("Temp read can't get mutex");
 		addLogItem(logtype_driver, error_1);
+
 //		xSemaphoreGive(xI2CMutex);
 		return TEMP_READ_ERROR;
 	}

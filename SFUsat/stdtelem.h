@@ -44,16 +44,16 @@ enum telem_index{
 };
 
 typedef struct telem_config{
+	uint32_t timestamp;	// timestamp of update
 	int16_t max;		// max permissible sensor reading
 	int16_t min;		// min permissible sensor reading
 	uint32_t period;	// period in ms
-	uint32_t timestamp;	// timestamp of update
 } telemConfig_t;
 
 /* This union is used to easily write/retrieve of the struct from flash */
 typedef union{
 	telemConfig_t payload;
-	uint8_t byteAddr[sizeof(telemConfig_t)];
+	uint8_t all[sizeof(telemConfig_t)];
 } telemConfigWrap_t;
 
 typedef struct stdtelem{
