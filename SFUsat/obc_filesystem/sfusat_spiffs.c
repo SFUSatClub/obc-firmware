@@ -19,7 +19,6 @@
 
 spiffs fs;
 spiffs_config cfg;
-char sfu_prefix; 					// holds our prefix, gets mapped to fs.user_data
 SemaphoreHandle_t spiffsHALMutex; // protects the low level HAL functions in SPIFFS
 SemaphoreHandle_t spiffsTopMutex; 	// ensures we won't interrupt a read with a write and v/v
 
@@ -64,7 +63,6 @@ void spiffs_read_task(void *pvParameters) {
 			serialSendQ("Read can't get top mutex.");
 		}
 		vTaskDelay(pdMS_TO_TICKS(5000));
-
 	}
 }
 
@@ -75,8 +73,6 @@ void spiffs_read_task(void *pvParameters) {
 void sfusat_spiffs_init() {
 	spiffsHALMutex = xSemaphoreCreateMutex(); // protects HAL functions
 	spiffsTopMutex = xSemaphoreCreateMutex(); // makes sure we can't interrupt a read with a write and v/v
-	sfu_prefix = PREFIX_START;
-	fs.user_data = &sfu_prefix;
 	my_spiffs_mount();
 }
 

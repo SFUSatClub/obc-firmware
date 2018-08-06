@@ -50,7 +50,7 @@ void generalTelemTask(void *pvParameters){
 		stdTelem.state_entry_time = stateEntryTime();
 		stdTelem.min_heap = xPortGetMinimumEverFreeHeapSize();
 		stdTelem.fs_free_blocks = fs.free_blocks;
-		stdTelem.fs_prefix = *(char *) fs.user_data;
+		stdTelem.fs_prefix = getCurrentPrefix();
 		stdTelem.ramoccur_1 = tcram1REG->RAMOCCUR;
 		stdTelem.ramoccur_2 = tcram2REG->RAMOCCUR;
 
@@ -65,8 +65,8 @@ void BMSTelemTask(void *pvParameters){
 
 	while(1){
 		vTaskDelay(getStdTelemDelay(BMS_TELEM));
-		stdTelem.bms_volt = read_volt();
-		stdTelem.bms_curr = read_curr();
+		stdTelem.bms_volt = 234;//read_volt();
+		stdTelem.bms_curr = 45;//read_curr();
 
 		sfu_write_fname(FSYS_BMS, "%d V, %d uA", stdTelem.bms_volt, stdTelem.bms_curr);
 	}
@@ -173,30 +173,3 @@ void transmitTelemUART(void *pvParameters){
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
 	}
 }
-
-
-
-//void vStdTelemTask(void *pvParameters){
-//	char buf[50] = {'\0'};
-//	int16_t OBC_temp;
-//	while(1){
-//		OBC_temp = read_temp(OBC_TEMP);
-//		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c, %i",
-//				getCurrentTime(), 					// epoch at send
-//				cur_state, 							// state
-//				stateEntryTime(), 					// time we entered state
-//				xPortGetMinimumEverFreeHeapSize(), 	// min heap
-//				fs.free_blocks,						// filesys free blocks
-//				*(char *) fs.user_data,				// filesys prefix
-//				OBC_temp
-//		);
-//		serialSendQ(buf);
-//		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
-//		// TODO: add temps, voltages, currents
-//		// TODO: send out from radio
-//		/* for large, time consuming things like voltages and currents, we can have the normal read tasks
-//		 * send their info to a queue with depth 1. This task will pick up that (most recent) data whenever it runs,
-//		 * allowing these values to be updated in the background by their respective tasks.
-//		 */
-//	}
-//}

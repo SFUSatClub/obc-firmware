@@ -36,6 +36,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.FLOAT_SUPPORT.1986310569" name="Specify floating point support (--float_support)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.FLOAT_SUPPORT" value="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.FLOAT_SUPPORT.vfplib" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH.1318080434" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/SFUsat}&quot;"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SFUsat/obc_filesystem}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/printf}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS}"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
@@ -129,6 +130,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE.573119300" name="Designate enum type (--enum_type)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE" value="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE.packed" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH.1951219147" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/printf}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SFUsat/obc_filesystem}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS}"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/SFUsat}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
@@ -229,6 +231,7 @@
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS/test}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/printf}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SFUsat/obc_filesystem}"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/SFUsat}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/platform-obc-v0.4/include}&quot;"/>

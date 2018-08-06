@@ -530,11 +530,11 @@ int8_t cmdFile(const CMD_t *cmd) {
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_CDUMP){
-			dumpFile(currentPrefix(), cmd->cmd_file_data.suffix);
+			dumpFile(getCurrentPrefix(), cmd->cmd_file_data.suffix);
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_CPREFIX){
-			serialSendln((const char*)currentPrefix());
+			serialSendln((const char*)getCurrentPrefix());
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_SIZE){
