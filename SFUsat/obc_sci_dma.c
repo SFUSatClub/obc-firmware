@@ -127,30 +127,6 @@ void Update_DMA_Comp_Flag()
 	sciREG->CLEARINT = (1 << 16);
 }
 
-void sci_printf (char * format, ...) {
-	uint8 cSCI_printfbuffer[256] = {0};
-	uint32 length;
-
-#ifdef Enable_CIO
-	printf(format);
-#endif
-
-#ifdef Enable_SCI_Out
-	va_list args;
-	va_start (args, format);
-	length = vsprintf ((char *)cSCI_printfbuffer, format, args);
-	va_end (args);
-	cSCI_printfbuffer[length+1] = 0;
-	cSCI_printfbuffer[length+2] = 0;
-	//sciSend(scilinREG, strlen((const char *)cSCI_printfbuffer) + 3, cSCI_printfbuffer);
-	sciSend(sciREG, strlen((const char *)cSCI_printfbuffer) + 3, cSCI_printfbuffer);
-#endif
-
-#ifdef Enable_File_CIO
-	fprintf(fid, format);
-#endif
-} // sci_printf
-
 /** @fn void number_string(char *string, uint32 count)
 *   @brief Generate null ternimated string of characters starting at zero to count.
 *   @note This function pads the end with extra null characters and overrun warning
