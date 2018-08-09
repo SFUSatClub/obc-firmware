@@ -60,6 +60,7 @@
 
 /* USER CODE BEGIN (0) */
 #include "sfu_uart.h"
+extern Update_DMA_Comp_Flag();
 
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
@@ -209,6 +210,7 @@ void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (54) */
+	Update_DMA_Comp_Flag();
 /* USER CODE END */
 }
 /* USER CODE BEGIN (55) */
