@@ -30,6 +30,7 @@
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
 #include "sfu_task_logging.h"
+#include "obc_sci_dma.h"
 
 // Perpetual tasks - these run all the time
 TaskHandle_t xSerialTaskHandle = NULL;
@@ -55,7 +56,7 @@ void vMainTask(void *pvParameters) {
 	serialInit();
 	gioInit();
 	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle); // Start this right away so we don't reset
-
+	uart_dma_test();
 	sfuADCInit();
 	spiInit();
 	flash_mibspi_init();

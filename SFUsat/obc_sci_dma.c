@@ -6,6 +6,9 @@
  */
 
 #include "obc_sci_dma.h"
+#include "sys_common.h"
+#include "sfu_uart.h"
+
 
 /** @fn void scidmaSend(char *source_address, short mode)
 *   @brief Initialize the SCI and DMA to tranfer SCI data via DMA
@@ -143,4 +146,34 @@ void number_string(char *string, uint32 count) {
 
 	/* For debug purposes add extra characters to identify overrun */
 	sprintf (&buffer[i + offset],"\0\0\0\0\0\0\0\0 !!! Overrun !!! ");
+}
+
+/* Preconditions:
+ * 		- sciInit has been called
+ */
+void uart_dma_test(){
+    // ---- DMA test
+	uint32 IDLECOUNT = 0;
+//	sciInit();
+	/* Init SCI for DMA transfers */
+	scidmaInit(sciREG);
+
+	/* Print header on SCI */
+	serialSendln("\033[2J"); // Clear terminal & return home commands
+	serialSendln("*******************************************************************************\n\r\n\r");
+	serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
+
+	/* Setup null terminated string to transmit */
+	number_string((char *) buffer, 500);
+    scidmaSend(buffer);
+
+    /* Wait for the DMA interrupt ISR to set the Flag   */
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    	IDLECOUNT++;
+    }
+
+    /* scidmaSend is complete and can be called again   */
+    serialSendln("\n\r\n\r");
+    serialSendln("scidmaSend Example Complete");
+    serialSendln("\n\r\n\r");
 }
