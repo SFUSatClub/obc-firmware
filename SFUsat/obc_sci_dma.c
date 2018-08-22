@@ -3,9 +3,23 @@
  *
  *  Created on: Aug 8, 2018
  *      Author: sbork
+ *      Most of the codde obtained from http://www.ti.com/lit/an/spna213/spna213.pdf
  */
 
 #include "obc_sci_dma.h"
+#include "stdio.h"
+#include "string.h"
+
+// High level SCI DMA send function
+void uartDmaSend(char *string) {
+	// Cannot send a DMA request until previous one is complete
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    }
+
+	// Added extra line to eliminate message rewrite until it's fixed
+	sprintf (&buffer[0],"%s \n\r\n\r", string);
+	scidmaSend(buffer);
+}
 
 /** @fn void scidmaSend(char *source_address, short mode)
 *   @brief Initialize the SCI and DMA to tranfer SCI data via DMA
@@ -67,19 +81,7 @@ void scidmaInit(sciBASE_t *sci)
 	/* Enable DMA */
 	dmaEnable();
 
-	if (sci == scilinREG) {          			/* SCI2 is the default serial comport on LAUNCHXL2 launch pads*/
-
-		/* Enable Interrupt after reception of data */
-		dmaEnableInterrupt(DMA_CH0, BTC);		/* DMA_CH0 is highest priority */
-
-		/* assigning dma request: channel-0 with request line - 1  - TX*/
-		/* DMA Request 29 is for LIN ( SCI2) Transmit */
-		/* Refer Data sheet - Default DMA Request Map section */
-		dmaReqAssign(DMA_CH0,29);
-
-	} else if (sci == sciREG) { 				/* SCI1 */
-		//return;					   				/* SCI1 is not supported at this time */
-
+	if (sci == sciREG) { 				/* SCI1 */
 		/* Enable Interrupt after reception of data */
 		dmaEnableInterrupt(DMA_CH0, BTC);		/* DMA_CH0 is highest priority */
 
