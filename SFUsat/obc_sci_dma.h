@@ -16,13 +16,14 @@
 
 #define Enable_SCI_Out
 
-void uartDmaSend(char* string);
+void uart_dma_send(char* string);
 
 void scidmaInit(sciBASE_t *sci);
 void scidmaSend(char *source_address);
 void Update_DMA_Comp_Flag();
 void number_string(char *string, uint32 count);
 
+void uart_dma_test();
 /* dma control packet configuration stack */
 g_dmaCTRL dma_config;
 g_dmaCTRL g_dmaCTRLPKT;

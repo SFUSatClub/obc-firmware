@@ -107,24 +107,9 @@ int main(void)
 
 
 
-
-
-    // ---- DMA test
-	uint32 IDLECOUNT = 0;
-	sciInit();
-	/* Init SCI for DMA transfers */
-	scidmaInit(sciREG);
-
-	uartDmaSend("Testing SCI DMA. Message #1");
-	uartDmaSend("Testing SCI DMA. Message #2");
-    /* Wait for the DMA interrupt ISR to set the Flag   */
-    while(DMA_Comp_Flag != 0x55AAD09E){
-    	IDLECOUNT++;
-    }
-
-    /* scidmaSend is complete and can be called again   */
-    serialSendln("scidmaSend Example Complete");
-
+    uart_dma_test();
+    uart_dma_send("BLBALABALBALBA\n");
+    uart_dma_send("HAHAHAHAHAH");
 
 
     /**
