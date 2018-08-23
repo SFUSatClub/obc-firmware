@@ -16,6 +16,7 @@
 
 #define Enable_SCI_Out
 
+void uart_dma_init();
 void uart_dma_send(char* string);
 
 void scidmaInit(sciBASE_t *sci);

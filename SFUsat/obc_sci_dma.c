@@ -12,7 +12,15 @@
 #include "stdio.h"
 #include "string.h"
 
+
+void uart_dma_init() {
+	scidmaInit(sciREG);
+}
+
 // High level SCI DMA send function
+/* Preconditions:
+ * 		- sciInit and uart_dma_init has been called
+ */
 void uart_dma_send(char *string) {
 	// Cannot send a DMA request until previous one is complete
     while(DMA_Comp_Flag != 0x55AAD09E){
@@ -157,16 +165,20 @@ void uart_dma_test(){
 	uint32 IDLECOUNT = 0;
 //	sciInit();
 	/* Init SCI for DMA transfers */
-	scidmaInit(sciREG);
+	uart_dma_init();
 
 	/* Print header on SCI */
-	serialSendln("\033[2J"); // Clear terminal & return home commands
+	//serialSendln("\033[2J"); // Clear terminal & return home commands
 	serialSendln("*******************************************************************************\n\r\n\r");
-	serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
+	//serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
 
 	/* Setup null terminated string to transmit */
-	number_string((char *) buffer, 500);
-    scidmaSend(buffer);
+	//number_string((char *) buffer, 500);
+    //scidmaSend(buffer);
+
+    uart_dma_send("DMA UART test message #1");
+
+    uart_dma_send("DMA UART test message #2");
 
     /* Wait for the DMA interrupt ISR to set the Flag   */
     while(DMA_Comp_Flag != 0x55AAD09E){
