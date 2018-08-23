@@ -105,13 +105,6 @@ int main(void)
 	_enable_IRQ();
     _enable_interrupt_();
 
-
-
-    uart_dma_test();
-    uart_dma_send("BLBALABALBALBA\n");
-    uart_dma_send("HAHAHAHAHAH");
-
-
     /**
      * Task vMainTask is where all of the top level tasks will be created from.
      *
