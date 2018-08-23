@@ -92,6 +92,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 */
 
 /* USER CODE BEGIN (2) */
+#include "obc_sci_dma.h"
 /* USER CODE END */
 
 int main(void)
@@ -103,6 +104,28 @@ int main(void)
 	 */
 	_enable_IRQ();
     _enable_interrupt_();
+
+
+
+
+
+    // ---- DMA test
+	uint32 IDLECOUNT = 0;
+	sciInit();
+	/* Init SCI for DMA transfers */
+	scidmaInit(sciREG);
+
+	uartDmaSend("Testing SCI DMA. Message #1");
+	uartDmaSend("Testing SCI DMA. Message #2");
+    /* Wait for the DMA interrupt ISR to set the Flag   */
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    	IDLECOUNT++;
+    }
+
+    /* scidmaSend is complete and can be called again   */
+    serialSendln("scidmaSend Example Complete");
+
+
 
     /**
      * Task vMainTask is where all of the top level tasks will be created from.
