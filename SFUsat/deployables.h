@@ -12,8 +12,8 @@
 #ifndef SFUSAT_DEPLOYABLES_H_
 #define SFUSAT_DEPLOYABLES_H_
 #include "FreeRTOS.h"
+#include "obc_hardwaredefs.h"
 #include "rtos_task.h"
-#include "sfu_hardwaredefs.h"
 
 #ifdef DEPLOY_TESTMODE			/* #defined in sfu_hwdefs */
 #define DEPLOY_DELAY	300		/* 5 minutes */

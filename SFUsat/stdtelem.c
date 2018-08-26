@@ -4,23 +4,23 @@
  *  Created on: May 22, 2018
  *      Author: Richard
  */
+#include <obc_adc.h>
+#include <obc_fs_structure.h>
+#include <obc_hardwaredefs.h>
+#include <obc_rtc.h>
+#include <obc_spiffs.h>
+#include <obc_state.h>
+#include <obc_task_utils.h>
+#include <obc_tasks.h>
+#include <obc_utils.h>
 #include "adc.h"
 #include "sys_pmu.h"
-#include "sfu_tasks.h"
-#include "sfu_hardwaredefs.h"
 #include "flash_mibspi.h"
-#include "sfu_rtc.h"
-#include "sfu_utils.h"
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
-#include "sfu_adc.h"
-#include "sfu_state.h"
-#include "sfusat_spiffs.h"
 #include "stlm75.h"
 #include "stdtelem.h"
-#include "sfu_fs_structure.h"
 #include "reg_tcram.h"
-#include "sfu_task_utils.h"
 #include "bq25703.h"
 UART_RF_MUX_INIT();
 

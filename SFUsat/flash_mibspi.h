@@ -25,9 +25,9 @@
 #ifndef SFUSAT_FLASH_MIBSPI_H_
 #define SFUSAT_FLASH_MIBSPI_H_
 
-#include "sfu_hardwaredefs.h"
 #include "mibspi.h"
 #include "FreeRTOS.h"
+#include "obc_hardwaredefs.h"
 #include "rtos_semphr.h"
 
 // flags for complete transfers

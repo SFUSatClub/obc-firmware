@@ -30,12 +30,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <obc_state.h>
+#include <obc_uart.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "printf.h"
-#include "sfu_state.h"
-#include "sfu_uart.h"
 
 
 

@@ -9,14 +9,14 @@
  *      Primary function: read_temp()
  *
  */
+#include <obc_i2c.h>
+#include <obc_task_logging.h>
+#include <obc_uart.h>
 #include "i2c.h"
 #include "stlm75.h"
 #include "reg_i2c.h"
-#include "sfu_i2c.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
-#include "sfu_uart.h"
-#include "sfu_task_logging.h"
 
 /* To access a register of the device, you write the register pointer bits in the command/pointer
  * register (lowest 2 bits). This register holds its value between set operations, so you only

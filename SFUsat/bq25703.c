@@ -5,13 +5,13 @@
  *      Author: Eric Kwok
  */
 
+#include <obc_i2c.h>
+#include <obc_uart.h>
 #include "i2c.h"
 #include "stlm75.h"
 #include "reg_i2c.h"
-#include "sfu_i2c.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"
-#include "sfu_uart.h"
 #include "bq25703.h"
 
 #define RD_CMD 0x1

@@ -8,14 +8,14 @@
  *      Main reference: FreeRTOS Tutorial Guide Chapter 6.4 - Binary Semaphores
  */
 
+#include <examples/obcsat_examples.h>
+#include <obc_hardwaredefs.h>
+#include <obc_tasks.h>
 #include "gio.h"
-#include "examples/sfusat_examples.h"
-#include "sfu_hardwaredefs.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "rtos_semphr.h"
-#include "sfu_tasks.h"
 
 /* HALCoGen Setup
  * 		- TMS570LS0714PGE > Driver Enable > Enable GIO Driver

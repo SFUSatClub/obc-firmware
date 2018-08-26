@@ -5,9 +5,9 @@
  *      Author: petera
  */
 
+#include <obc_spiffs.h>
 #include "spiffs.h"
 #include "spiffs_nucleus.h"
-#include "sfusat_spiffs.h"
 #include "spiffs_config.h"
 
 #if SPIFFS_CACHE == 1

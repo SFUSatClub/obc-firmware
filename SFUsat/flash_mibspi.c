@@ -13,9 +13,9 @@
  *      Therefore, 16 sectors per block
  */
 
+#include <obc_spiffs.h>
+#include <obc_utils.h>
 #include "flash_mibspi.h"
-#include "sfu_utils.h"
-#include "sfusat_spiffs.h"
 
 // Transfer group completion flags
 uint8_t TG0_IS_Complete;

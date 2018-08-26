@@ -52,11 +52,11 @@
 #endif
 
 //  ---------- SFUSat Hardware ----------
-#include "sfu_uart.h"
+#include <obc_uart.h>
 
 //  ---------- SFUSat System ----------
-#include "sfu_tasks.h"
-#include "sfu_utils.h"
+#include <obc_tasks.h>
+#include <obc_utils.h>
 
 /* USER CODE END */
 

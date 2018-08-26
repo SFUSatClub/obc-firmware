@@ -5,10 +5,10 @@
  *      Author: Derrick
  */
 
-#include "sfu_i2c.h"
+#include <obc_i2c.h>
+#include <obc_uart.h>
 #include "adc.h"
 #include "sun_sensor.h"
-#include "sfu_uart.h"
 
 //address of muxes
 #define Sensor_MUX_X_pos  0x4C

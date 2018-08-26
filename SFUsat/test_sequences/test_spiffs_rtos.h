@@ -18,8 +18,8 @@
 
 #ifndef SFUSAT_TEST_SEQUENCES_TEST_SPIFFS_RTOS_H_
 #define SFUSAT_TEST_SEQUENCES_TEST_SPIFFS_RTOS_H_
-#include "../SPIFFS/sfusat_spiffs.h"
-#include "../SPIFFS/sfu_fs_structure.h"
+#include "../../SPIFFS/obc_fs_structure.h"
+#include "../../SPIFFS/obc_spiffs.h"
 #include "../SPIFFS/spiffs.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"

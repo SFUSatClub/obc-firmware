@@ -5,9 +5,9 @@
  *      Author: Richard
  */
 
+#include <obc_rtc.h>
+#include <obc_uart.h>
 #include "deployables.h"
-#include "sfu_rtc.h"
-#include "sfu_uart.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 
