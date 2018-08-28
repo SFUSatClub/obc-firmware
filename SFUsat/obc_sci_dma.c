@@ -11,10 +11,18 @@
 #include "sfu_uart.h"
 #include "stdio.h"
 #include "string.h"
+#include "sfu_hardwaredefs.h"
 
+char buffer[4 * 500];
+g_dmaCTRL g_dmaCTRLPKT;
+uint32 DMA_Comp_Flag;
+
+void scidmaInit(sciBASE_t *sci);
+void scidmaSend(char *source_address);
+void number_string(char *string, uint32 count);
 
 void uart_dma_init() {
-	scidmaInit(sciREG);
+	scidmaInit(UART_PORT);
 }
 
 // High level SCI DMA send function
@@ -26,8 +34,16 @@ void uart_dma_send(char *string) {
     while(DMA_Comp_Flag != 0x55AAD09E){
     }
 
-	// Added extra line to eliminate message rewrite until it's fixed
-	sprintf (&buffer[0],"%s \n\r\n\r", string);
+	sprintf (&buffer[0],"%s", string);
+	scidmaSend(buffer);
+}
+
+void uart_dma_sendln(char *string) {
+	// Cannot send a DMA request until previous one is complete
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    }
+
+	sprintf (&buffer[0],"%s\n\r", string);
 	scidmaSend(buffer);
 }
 
@@ -101,7 +117,7 @@ void scidmaInit(sciBASE_t *sci)
 		dmaReqAssign(DMA_CH0,31);
 
 	} else {
-		return;					 				/* Unknown register */
+		return;					 				/* If we are not using SCI1, add a new case */
 	}
 
     /* - Populate dma control packets structure */
@@ -158,29 +174,33 @@ void number_string(char *string, uint32 count) {
 }
 
 /* Preconditions:
- * 		- sciInit has been called
+ * 		- uart_dma_init has been called
  */
 void uart_dma_test(){
-    // ---- DMA test
 	uint32 IDLECOUNT = 0;
-//	sciInit();
-	/* Init SCI for DMA transfers */
-	uart_dma_init();
 
 	/* Print header on SCI */
-	//serialSendln("\033[2J"); // Clear terminal & return home commands
+	serialSendln("\033[2J"); // Clear terminal & return home commands
 	serialSendln("*******************************************************************************\n\r\n\r");
-	//serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
+	serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
 
-	/* Setup null terminated string to transmit */
-	//number_string((char *) buffer, 500);
-    //scidmaSend(buffer);
-
-    uart_dma_send("DMA UART test message #1");
-
-    uart_dma_send("DMA UART test message #2");
+    uart_dma_send("DMA UART test message #1 out of 3\n\r");
+    uart_dma_send("DMA UART test message #2 out of 3\n\r");
+    uart_dma_send("DMA UART test message #3 out of 3\n\r");
 
     /* Wait for the DMA interrupt ISR to set the Flag   */
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    	IDLECOUNT++;
+    }
+
+	/* Setup null terminated string to transmit */
+	number_string((char *) buffer, 500);
+    scidmaSend(buffer);
+    uart_dma_sendln("********");
+    uart_dma_sendln("DMA UART test message #1 out of 3");
+    uart_dma_sendln("DMA UART test message #2 out of 3");
+    uart_dma_sendln("DMA UART test message #3 out of 3");
+
     while(DMA_Comp_Flag != 0x55AAD09E){
     	IDLECOUNT++;
     }
