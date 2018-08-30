@@ -3,7 +3,7 @@
  *
  *  Created on: Aug 8, 2018
  *      Author: sbork
- *      Most of the codde obtained from http://www.ti.com/lit/an/spna213/spna213.pdf
+ *      Most of the code obtained from http://www.ti.com/lit/an/spna213/spna213.pdf
  */
 
 #include "obc_sci_dma.h"
@@ -184,9 +184,12 @@ void uart_dma_test(){
 	serialSendln("*******************************************************************************\n\r\n\r");
 	serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
 
-    uart_dma_send("DMA UART test message #1 out of 3\n\r");
-    uart_dma_send("DMA UART test message #2 out of 3\n\r");
-    uart_dma_send("DMA UART test message #3 out of 3\n\r");
+    uart_dma_send("1/12: DMA UART test message #1 out of 3\n\r");
+    serialSendln("2/12: Regular serial function message #1 out of 3");
+    uart_dma_send("3/12: DMA UART test message #2 out of 3\n\r");
+    serialSendln("4/12: Regular serial function message #2 out of 3");
+    uart_dma_send("5/12: DMA UART test message #3 out of 3\n\r");
+    serialSendln("6/12: Regular serial function message #3 out of 3");
 
     /* Wait for the DMA interrupt ISR to set the Flag   */
     while(DMA_Comp_Flag != 0x55AAD09E){
@@ -197,9 +200,13 @@ void uart_dma_test(){
 	number_string((char *) buffer, 500);
     scidmaSend(buffer);
     uart_dma_sendln("********");
-    uart_dma_sendln("DMA UART test message #1 out of 3");
-    uart_dma_sendln("DMA UART test message #2 out of 3");
-    uart_dma_sendln("DMA UART test message #3 out of 3");
+    serialSendln("7/12: Regular serial function message #1 out of 3");
+    uart_dma_sendln("8/12: DMA UART test message #1 out of 3");
+    serialSendln("9/12: Regular serial function message #2 out of 3");
+    uart_dma_sendln("10/12: DMA UART test message #2 out of 3\n\r");
+    serialSendln("11/12: Regular serial function message #3 out of 3\n\r");
+    uart_dma_sendln("12/12: DMA UART test message #3 out of 3");
+
 
     while(DMA_Comp_Flag != 0x55AAD09E){
     	IDLECOUNT++;
