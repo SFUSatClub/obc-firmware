@@ -96,6 +96,7 @@ extern void mibspi1HighLevelInterrupt(void);
 extern void linHighLevelInterrupt(void);
 extern void adc1Group1Interrupt(void);
 extern void vPortYeildWithinAPI(void);
+extern void dmaBTCAInterrupt(void);
 extern void mibspi5HighLevelInterrupt(void);
 extern void sciHighLevelInterrupt(void);
 
@@ -303,7 +304,7 @@ typedef struct vim_config_reg
                                     | (uint32)((uint32)0U << 5U)\
                                     | (uint32)((uint32)0U << 6U)\
                                     | (uint32)((uint32)0U << 7U)\
-                                    | (uint32)((uint32)0U << 8U)\
+                                    | (uint32)((uint32)1U << 8U)\
                                     | (uint32)((uint32)0U << 9U)\
                                     | (uint32)((uint32)0U << 10U)\
                                     | (uint32)((uint32)0U << 11U)\

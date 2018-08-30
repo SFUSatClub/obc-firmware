@@ -92,6 +92,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, signed char *pcTaskName
 */
 
 /* USER CODE BEGIN (2) */
+#include "obc_sci_dma.h"
 /* USER CODE END */
 
 int main(void)

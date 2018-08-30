@@ -30,6 +30,7 @@
 #include "unit_tests/unit_tests.h"
 #include "examples/sfusat_examples.h"
 #include "sfu_task_logging.h"
+#include "obc_sci_dma.h"
 
 // Perpetual tasks - these run all the time
 TaskHandle_t xSerialTaskHandle = NULL;
@@ -55,6 +56,7 @@ void vMainTask(void *pvParameters) {
 	serialInit();
 	gioInit();
 	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle); // Start this right away so we don't reset
+	uart_dma_init();
 
 	sfuADCInit();
 	spiInit();
@@ -78,10 +80,11 @@ void vMainTask(void *pvParameters) {
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
 	serialSendQ("created queue");
-
+    //uart_dma_send("DMA UART test message #3 out of 3");
 	// ---------- INIT TESTS ----------
 	// TODO: if tests fail, actually do something
 	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	uart_dma_test();
 	test_adc_init();
 	readGPS();
 //	flash_erase_chip();
