@@ -4,15 +4,15 @@
  *  Created on: May 22, 2018
  *      Author: Richard
  */
-#include <obc_adc.h>
-#include <obc_fs_structure.h>
-#include <obc_hardwaredefs.h>
-#include <obc_rtc.h>
-#include <obc_spiffs.h>
-#include <obc_state.h>
-#include <obc_task_utils.h>
-#include <obc_tasks.h>
-#include <obc_utils.h>
+#include "obc_adc.h"
+#include "obc_fs_structure.h"
+#include "obc_hardwaredefs.h"
+#include "obc_rtc.h"
+#include "obc_spiffs.h"
+#include "obc_state.h"
+#include "obc_task_utils.h"
+#include "obc_tasks.h"
+#include "obc_utils.h"
 #include "adc.h"
 #include "sys_pmu.h"
 #include "flash_mibspi.h"

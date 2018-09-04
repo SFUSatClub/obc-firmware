@@ -5,9 +5,9 @@
  *      Author: steven
  */
 
-#include <obc_rtc.h>
-#include <obc_scheduler.h>
-#include <obc_uart.h>
+#include "obc_rtc.h"
+#include "obc_scheduler.h"
+#include "obc_uart.h"
 
 
 void shift(int idx, int dir);

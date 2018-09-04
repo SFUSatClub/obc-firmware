@@ -6,8 +6,8 @@
  *
  *      This file contains our modifications to the x_notification functions provided by HALCoGen. Keeping them all in here makes it easy to track our changes.
  */
-#include <obc_hardwaredefs.h>
-#include <obc_task_radio.h>
+#include "obc_hardwaredefs.h"
+#include "obc_task_radio.h"
 #include "flash_mibspi.h"
 #include "unit_tests/unit_tests.h"
 //#include "examples/sfusat_examples.h"

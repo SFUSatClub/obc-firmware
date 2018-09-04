@@ -15,10 +15,10 @@
  *      - http://processors.wiki.ti.com/index.php/I2C_Tips (this one is great)
  */
 
-#include <obc_i2c.h>
-#include <obc_task_logging.h>
-#include <obc_uart.h>
-#include <obc_utils.h>
+#include "obc_i2c.h"
+#include "obc_task_logging.h"
+#include "obc_uart.h"
+#include "obc_utils.h"
 #include "i2c.h"
 #include "FreeRTOS.h"
 #include "rtos_semphr.h"

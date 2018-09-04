@@ -5,10 +5,10 @@
  *      Author: steven
  */
 
-#include <obc_hardwaredefs.h>
-#include <obc_smartrf_cc1101.h>
-#include <obc_task_radio.h>
-#include <obc_uart.h>
+#include "obc_hardwaredefs.h"
+#include "obc_smartrf_cc1101.h"
+#include "obc_task_radio.h"
+#include "obc_uart.h"
 #include "string.h"
 
 //Interrupt stuff

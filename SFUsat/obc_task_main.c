@@ -5,21 +5,21 @@
  *      Authors: Steven and Richard
  */
 
-#include <examples/obcsat_examples.h>
-#include <obc_adc.h>
-#include <obc_fs_structure.h>
-#include <obc_gps.h>
-#include <obc_i2c.h>
-#include <obc_rtc.h>
-#include <obc_scheduler.h>
-#include <obc_spiffs.h>
-#include <obc_startup.h>
-#include <obc_state.h>
-#include <obc_task_logging.h>
-#include <obc_task_main.h>
-#include <obc_task_radio.h>
-#include <obc_tasks.h>
-#include <obc_triumf.h>
+#include "examples/obcsat_examples.h"
+#include "obc_adc.h"
+#include "obc_fs_structure.h"
+#include "obc_gps.h"
+#include "obc_i2c.h"
+#include "obc_rtc.h"
+#include "obc_scheduler.h"
+#include "obc_spiffs.h"
+#include "obc_startup.h"
+#include "obc_state.h"
+#include "obc_task_logging.h"
+#include "obc_task_main.h"
+#include "obc_task_radio.h"
+#include "obc_tasks.h"
+#include "obc_triumf.h"
 #include "printf.h"
 #include "flash_mibspi.h"
 #include "sun_sensor.h"

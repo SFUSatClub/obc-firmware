@@ -5,9 +5,9 @@
  *      Author: Richard
  */
 
-#include <obc_adc.h>
-#include <obc_hardwaredefs.h>
-#include <obc_utils.h>
+#include "obc_adc.h"
+#include "obc_hardwaredefs.h"
+#include "obc_utils.h"
 #include "sys_common.h"
 #include "adc.h"
 #include "FreeRTOS.h"

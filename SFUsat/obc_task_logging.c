@@ -5,10 +5,10 @@
  *      Author: Colin
  */
 
-#include <obc_fs_structure.h>
-#include <obc_rtc.h>
-#include <obc_task_logging.h>
-#include <obc_uart.h>
+#include "obc_fs_structure.h"
+#include "obc_rtc.h"
+#include "obc_task_logging.h"
+#include "obc_uart.h"
 
 QueueHandle_t xLoggingQueue;
 

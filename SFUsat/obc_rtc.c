@@ -9,8 +9,8 @@
 #include "spi.h"
 
 #include <math.h>
-#include <obc_hardwaredefs.h>
-#include <obc_rtc.h>
+#include "obc_hardwaredefs.h"
+#include "obc_rtc.h"
 
 SemaphoreHandle_t xRTCMutex;
 spiDAT1_t rtc_spiConfig;

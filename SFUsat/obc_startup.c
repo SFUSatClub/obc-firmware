@@ -10,11 +10,11 @@
  *      Author: Lana, Richard
  */
 
-#include <obc_flags.h>
-#include <obc_fs_structure.h>
-#include <obc_startup.h>
-#include <obc_uart.h>
-#include <obc_utils.h>
+#include "obc_flags.h"
+#include "obc_fs_structure.h"
+#include "obc_startup.h"
+#include "obc_uart.h"
+#include "obc_utils.h"
 #include "can.h"
 #include "reg_system.h"
 #include "flash_mibspi.h"

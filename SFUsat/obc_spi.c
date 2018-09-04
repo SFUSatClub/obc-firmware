@@ -5,8 +5,8 @@
  *      Author: steven
  */
 
-#include <obc_spi.h>
-#include <obc_uart.h>
+#include "obc_spi.h"
+#include "obc_uart.h"
 
 static spiDAT1_t spiDataConfig;
 

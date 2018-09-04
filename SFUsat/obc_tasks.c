@@ -1,10 +1,10 @@
-#include <obc_cmds.h>
-#include <obc_hardwaredefs.h>
-#include <obc_rtc.h>
-#include <obc_spiffs.h>
-#include <obc_state.h>
-#include <obc_tasks.h>
-#include <obc_utils.h>
+#include "obc_cmds.h"
+#include "obc_hardwaredefs.h"
+#include "obc_rtc.h"
+#include "obc_spiffs.h"
+#include "obc_state.h"
+#include "obc_tasks.h"
+#include "obc_utils.h"
 #include "adc.h"
 #include "sys_pmu.h"
 

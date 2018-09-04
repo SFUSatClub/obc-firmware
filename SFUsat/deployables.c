@@ -5,15 +5,15 @@
  *      Author: Richard
  */
 
-#include <obc_rtc.h>
-#include <obc_uart.h>
+#include "obc_rtc.h"
+#include "obc_uart.h"
 #include "deployables.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
 
-#define DEPLOY_PREARM 0xAA		/* this is how we start */
-#define DEPLOY_DISARM 0xBB		/* set this from the ground */
-#define DEPLOY_ARMED 0xCC		/* danger mode. this will shoot things out */
+#define DEPLOY_PREARM 	0xAA		/* this is how we start */
+#define DEPLOY_DISARM 	0xBB		/* set this from the ground */
+#define DEPLOY_ARMED 	0xCC		/* danger mode. this will shoot things out */
 #define DEPLOY_SUCCESS	0x55
 
 static uint8_t deploy_arm_status = DEPLOY_PREARM;

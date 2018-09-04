@@ -2,7 +2,7 @@
  * sfu_flags.h
  *
  *  Created on: Jun 23, 2018
- *      Author: Richard
+ *      Authors: Lana, Richard
  *
  *      - the primary aim of this is reusable flags that don't run into each other, not storage savings :D
  *

@@ -1,5 +1,5 @@
-#include <obc_hardwaredefs.h>
-#include <obc_utils.h>
+#include "obc_hardwaredefs.h"
+#include "obc_utils.h"
 #include "gio.h"
 #include "reg_system.h"
 

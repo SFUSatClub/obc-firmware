@@ -6,10 +6,10 @@
  *      This is a set of functions to test out the UART. They are interrupt driven but still fairly simple.
  */
 
-#include <obc_hardwaredefs.h>
-#include <obc_state.h>
-#include <obc_task_radio.h>
-#include <obc_uart.h>
+#include "obc_hardwaredefs.h"
+#include "obc_state.h"
+#include "obc_task_radio.h"
+#include "obc_uart.h"
 #include "printf.h"
 
 unsigned char currChar = '\0';

@@ -9,9 +9,9 @@
  *      Primary function: read_temp()
  *
  */
-#include <obc_i2c.h>
-#include <obc_task_logging.h>
-#include <obc_uart.h>
+#include "obc_i2c.h"
+#include "obc_task_logging.h"
+#include "obc_uart.h"
 #include "i2c.h"
 #include "stlm75.h"
 #include "reg_i2c.h"

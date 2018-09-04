@@ -5,8 +5,8 @@
  *      Author: Derrick
  */
 
-#include <obc_i2c.h>
-#include <obc_uart.h>
+#include "obc_i2c.h"
+#include "obc_uart.h"
 #include "adc.h"
 #include "sun_sensor.h"
 

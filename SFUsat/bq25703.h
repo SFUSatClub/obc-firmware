@@ -44,28 +44,28 @@ typedef union battery_status{
 
 // register addresses (LSByte)
 #define CHARGERSTATUS_REG   0x20
-#define ADCOPTION_REG    0x3A
-#define ADCVSYSVBAT_REG   0x2C
-#define CHARGEOPT1_REG    0x30
-#define ADCOPTION_REG_MSB  0x3B
-#define ADCOPTION_REG_LSB  0x3A
-#define ADCVSYSVBAT_REG   0x2C
-#define CHARGEOPT0_REG    0x01
+#define ADCOPTION_REG    	0x3A
+#define ADCVSYSVBAT_REG   	0x2C
+#define CHARGEOPT1_REG    	0x30
+#define ADCOPTION_REG_MSB  	0x3B
+#define ADCOPTION_REG_LSB  	0x3A
+#define ADCVSYSVBAT_REG   	0x2C
+#define CHARGEOPT0_REG    	0x01
 //#define CHARGEOPT1_REG    0x31
-#define ADCIBAT_REG      0x28
+#define ADCIBAT_REG      	0x28
 
 /* Status reg bitmask */
 /* MSByte of status register */
-#define STAT_AC_STAT_BIT   0b10000000
+#define STAT_AC_STAT_BIT  	0b10000000
 #define STAT_IN_VINDPM_BIT  0b00010000
 #define STAT_IN_IINDPM_BIT  0b00001000
-#define STAT_IN_FCHRG_BIT  0b00000100
-#define STAT_IN_PCHRG_BIT  0b00000010
+#define STAT_IN_FCHRG_BIT  	0b00000100
+#define STAT_IN_PCHRG_BIT  	0b00000010
 
 /* ADC Option Bitmask */
 /* MSByte of option register */
-#define ADCOPT_ADC_CONV_BIT    0b10000000
-#define ADCOPT_ADC_START_BIT  0b01000000
+#define ADCOPT_ADC_CONV_BIT    	0b10000000
+#define ADCOPT_ADC_START_BIT  	0b01000000
 
 /* MSByte of Charge Option 0 register */
 #define CHARGEOPT0_EN_LWPWR    0b10000000
@@ -74,25 +74,25 @@ typedef union battery_status{
 #define CHARGEOPT1_EN_IBAT     0b10000000
 
 /* LSByte of option register */
-#define ADCOPT_EN_ADC_CMPIN_BIT  0b10000000
-#define ADCOPT_EN_ADC_VBUS_BIT  0b01000000
-#define ADCOPT_EN_ADC_PSYS_BIT  0b00100000
-#define ADCOPT_EN_ADC_IIN    0b00010000
-#define ADCOPT_EN_ADC_IDCHG    0b00001000
-#define ADCOPT_EN_ADC_ICHG    0b00000100
-#define ADCOPT_EN_ADC_VSYS    0b00000010
-#define ADCOPT_EN_ADC_VBAT    0b00000001
+#define ADCOPT_EN_ADC_CMPIN_BIT  	0b10000000
+#define ADCOPT_EN_ADC_VBUS_BIT 		0b01000000
+#define ADCOPT_EN_ADC_PSYS_BIT  	0b00100000
+#define ADCOPT_EN_ADC_IIN    		0b00010000
+#define ADCOPT_EN_ADC_IDCHG    		0b00001000
+#define ADCOPT_EN_ADC_ICHG    		0b00000100
+#define ADCOPT_EN_ADC_VSYS    		0b00000010
+#define ADCOPT_EN_ADC_VBAT    		0b00000001
 
 // TODO: rename these
 //chip addresses
-#define OBC_BATT     0x2C
-#define OBC_CHRGR     0x20
-#define OBC_ADC     0x3A
-#define OBC_ILIM_MSB  0x03
-#define OBC_ILIM_LSB  0x02
-#define OBC_OPT0     0x00
-#define OBC_OPT1    0x30
-#define OBC_IBAT     0x28
+#define OBC_BATT     	0x2C
+#define OBC_CHRGR     	0x20
+#define OBC_ADC     	0x3A
+#define OBC_ILIM_MSB  	0x03
+#define OBC_ILIM_LSB  	0x02
+#define OBC_OPT0     	0x00
+#define OBC_OPT1    	0x30
+#define OBC_IBAT     	0x28
 
 uint16_t read_batt_volt_raw();
 int16_t read_volt();

@@ -7,7 +7,7 @@
  *      //Referenced with http://e2e.ti.com/support/microcontrollers/hercules/f/312/t/163123#pi320098=3
  */
 
-#include <obc_i2c.h>
+#include "obc_i2c.h"
 #include "i2c.h"
 #include "sys_common.h"
 #include "i2c_forum_test.h"

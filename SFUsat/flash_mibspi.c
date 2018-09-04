@@ -13,8 +13,8 @@
  *      Therefore, 16 sectors per block
  */
 
-#include <obc_spiffs.h>
-#include <obc_utils.h>
+#include "obc_spiffs.h"
+#include "obc_utils.h"
 #include "flash_mibspi.h"
 
 // Transfer group completion flags

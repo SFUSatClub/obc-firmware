@@ -6,10 +6,10 @@
  *      Author: Steven, Richard
  */
 
-#include <obc_rtc.h>
-#include <obc_state.h>
-#include <obc_uart.h>
-#include <stdio.h>
+#include "obc_rtc.h"
+#include "obc_state.h"
+#include "obc_uart.h"
+//#include <stdio.h>
 
 
 State_t cur_state;
