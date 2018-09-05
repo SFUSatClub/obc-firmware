@@ -60,6 +60,9 @@ void vMainTask(void *pvParameters) {
 	sfu_i2c_init();
 	serialGPSInit();
 
+
+
+
 	// ---------- SFUSat INIT ----------
 	rtcInit();
     gio_interrupt_example_rtos_init();
@@ -84,6 +87,7 @@ void vMainTask(void *pvParameters) {
 	readGPS();
 //	flash_erase_chip();
 
+
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	bms_test();
 
@@ -102,6 +106,28 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(vRadioTask, "radio", 600, NULL, portPRIVILEGE_BIT | 6, &xRadioTaskHandle);
 	xTaskCreate(deploy_task, "deploy", 128, NULL, 4, &deployTaskHandle);
 
+
+//	writeAllFlagsToFlash();
+//	volatile flag_memory_table_wrap_t flash_flags;
+//	readAllFlagsFromFlash(&flash_flags);
+//
+//	volatile flagCharWrap_t tester;
+//	volatile telemConfigWrap_t test2;
+//	volatile telemConfigWrap_t t2_result;
+//
+//	tester.payload.flag = 'K';
+//	tester.payload.timestamp = 6669;
+//
+//	test2.payload.min = -999;
+//	test2.payload.max = 1313;
+//	test2.payload.period = 2222;
+//	test2.payload.timestamp = 99991;
+//	write_RESET_FLAG(tester.byteAddr);
+//	write_GEN_TELEM(test2.byteAddr);
+//	readAllFlagsFromFlash(&flash_flags);
+//
+//	read_GEN_TELEM(&t2_result);
+
 	/* Std telemetry */
 	xTaskCreate(generalTelemTask, "t_gen", 300, NULL, 3, &xgeneralTelemTaskHandle);
 	xTaskCreate(temperatureTelemTask, "t_temp", 700, NULL, 4, &xtemperatureTelemTaskHandle);
@@ -110,7 +136,7 @@ void vMainTask(void *pvParameters) {
 	xTaskCreate(BMSTelemTask, "bms", 900, NULL, 3, &xBMSTelemTaskHandle);
 
  /* Startup things that need RTOS */  
- 
+	// RA: FLAGS
 	logPBISTFails();
 	sfu_startup_logs();
 

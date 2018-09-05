@@ -4,21 +4,20 @@
  * Refactored code from sfu_uart.* by Seleena
  *
  * */
-#include "obc_cmds.h"
-
 #include <assert.h>
 
-#include "../SPIFFS/obc_fs_structure.h"
-#include "sun_sensor.h"
-#include "deployables.h"
-#include "flash_mibspi.h"
-#include "obc_gps.h"
-#include "obc_rtc.h"
+#include "obc_uart.h"
+#include "obc_cmds.h"
 #include "obc_scheduler.h"
 #include "obc_state.h"
-#include "obc_task_radio.h"
-#include "obc_uart.h"
 #include "obc_utils.h"
+#include "obc_rtc.h"
+#include "sun_sensor.h"
+#include "obc_task_radio.h"
+#include "deployables.h"
+#include "obc_fs_structure.h"
+#include "flash_mibspi.h"
+#include "obc_gps.h"
 
 struct subcmd_opt {
 	const char *name;
@@ -531,11 +530,11 @@ int8_t cmdFile(const CMD_t *cmd) {
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_CDUMP){
-			dumpFile(currentPrefix(), cmd->cmd_file_data.suffix);
+			dumpFile(getCurrentPrefix(), cmd->cmd_file_data.suffix);
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_CPREFIX){
-			serialSendln((const char*)currentPrefix());
+			serialSendln((const char*)getCurrentPrefix());
 			return 1;
 		}
 		if (cmd->subcmd_id == CMD_FILE_SIZE){
@@ -1111,7 +1110,7 @@ int8_t checkAndRunCommandStr(char *cmd) {
 			serialSend("\"");
 		} else {
 			for (i = 0; i < CMD_DATA_MAX_SIZE * 2 && i < data_len; i += 2) {
-				char c[3] = { '\0' };
+				char c[3] = {NULL};
 				c[0] = *(data + i);
 				// TODO: fix dereference beyond null char
 				const char n = *(data + i + 1);

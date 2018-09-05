@@ -5,25 +5,60 @@
  *      Author: Richard
  */
 
-#include <obc_flags.h>
-#include <obc_fs_structure.h>
-#include <obc_rtc.h>
-#include <obc_spiffs.h>
-#include <obc_task_logging.h>
-#include <obc_tasks.h>
-#include <obc_uart.h>
-#include <obc_utils.h>
 #include "sys_common.h"
+#include "obc_fs_structure.h"
+#include "obc_spiffs.h"
 #include "spiffs.h"
+#include "obc_uart.h"
+#include "obc_utils.h"
+#include "obc_rtc.h"
+#include "obc_tasks.h"
+#include "obc_task_logging.h"
+#include "obc_flags.h"
+#include "filesystem_test_tasks.h"
 
-TaskHandle_t xSPIFFSHandle = NULL; // RA
-TaskHandle_t xSPIFFSRead = NULL; // RA
 uint32_t fs_num_increments;
+char sfu_prefix; 					// filesystem prefix
 
 // * Todo:
 // add error handler that will attempt to create files if they don't exist or something
 // * delete oldest function (calls this), called by rescue
 // fs rescue task
+
+/* Private functions */
+static void refresh_files(); 									/* handles deletion and creation. Note: takes about a second to run */
+static void sfu_create_log_files_noMutex(); 								/* creates files w/ current prefix and records creation time */
+static void sfu_create_all_files(); 						/* creates files w/ current prefix and records creation time, wrapped in mutex */
+static void sfu_create_persistent_files_noMutex();
+static void create_filename(char* namebuf, char file_suffix); /* creates filename with appropriate prefix and suffix */
+static void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, ...);
+static void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
+static void format_entry(char* buf, char *fmt, va_list argptr); /* formats our file entries with timestamp and data */
+static void write_fd(spiffs_file fd, char *fmt, ...); 			/* printf style write to an already open file */
+static void sfu_delete_prefix_noMutex(const char prefix); 				/* deletes the files with the specified prefix */
+static void increment_prefix_noMutex();
+static void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...);
+static void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
+static void writeAllFlagsToFlash_noMutex();
+static bool readAllFlagsFromFlash_noMutex(flag_memory_table_wrap_t *flagWrap);
+
+/* Filesystem Lifecycle
+ * - creates and deletes files when they're old
+ */
+void vFilesystemLifecycleTask(void *pvParameters) {
+	sfu_fs_init();
+	while (1) {
+		if(fs_num_increments == 0){
+			sfusat_spiffs_init();
+			sfu_create_all_files();
+//			fs_test_tasks();	// Only enable for testing
+		}
+		vTaskDelay(FSYS_LOOP_INTERVAL);
+		refresh_files(); // this handles deletion and creation
+		volatile uint32_t level;
+		level = uxTaskGetStackHighWaterMark( NULL);
+	}
+}
 
 
 /* Dump file
@@ -31,7 +66,6 @@ uint32_t fs_num_increments;
  * - used for downloading an entire file
  * */
 void dumpFile(char prefix, char suffix){
-    #define DUMP_BUF_SIZE 30	/* number of bytes to send out at once. Should eventually match radio TX buffer size */
 	spiffs_file fd = -1;
 	spiffs_stat s;
 	int16_t res;
@@ -87,114 +121,81 @@ void dumpFile(char prefix, char suffix){
 /* CurrentPrefix
  * 	- returns the filesystem's current prefix
  * */
-char currentPrefix(){
-
-	return *(char *) fs.user_data;
+char getCurrentPrefix(){
+	return sfu_prefix;
 }
 
-// -------------- Tasks for testing --------------------
-/* lifecycle
- * - inits, deletes the files in the system as we will in flight
- * - another task is required to write/read the files as would be done normally
- */
-void vFilesystemLifecycleTask(void *pvParameters) {
-	sfu_fs_init();
-	while (1) {
-		if(fs_num_increments == 0){
-			sfusat_spiffs_init();
-			sfu_create_files_wrapped();
-			fs_test_tasks();
-		}
-		vTaskDelay(FSYS_LOOP_INTERVAL);
-		delete_oldest(); // this handles deletion and creation
-		volatile uint32_t level;
-		level = uxTaskGetStackHighWaterMark( NULL);
-	}
-}
 
-/* some tasks that can be used to demonstrate fs functionality */
-void fs_test_tasks(){
-//	xTaskCreate(fs_rando_write, "rando write", 500, NULL, 2, &xSPIFFSHandle);
-//	xTaskCreate(fs_read_task, "FS read", 400, NULL, 3, xSPIFFSRead);
-}
-
-/* random write
- * - writes some random + nonrandom data into the system log file
- * - used to show that file sizes do grow
- */
-void fs_rando_write(void *pvParameters){
-	while(1){
-		vTaskDelay(pdMS_TO_TICKS(4000));
-//		char randomData[5] = {'d'};
-//		sfu_write_fname(FSYS_SYS, "foo %s", randomData);
-		volatile uint16_t thang;
-		thang = 34;
-		sfu_write_fname(FSYS_SYS, "foo %i", thang);
-	}
-}
-
-void fs_read_task(void *pvParameters){
-	uint8_t data[20];
-	while(1){
-		vTaskDelay(pdMS_TO_TICKS(6000));
-		sfu_read_fname(OBC_CURRENT, data, 20);
-		serialSendQ((char*)data);
-	}
-}
-
-// ------------ Core Functions -------------------------
 void sfu_fs_init() {
 	// Todo: grab this from FEE or from config file
 	fs_num_increments = 0;
+	sfu_prefix = PREFIX_START;
 }
 
-void delete_oldest() {
-	/* delete_oldest
-	 * - this function is run at the end of every day.
-	 * - it increments the file prefix and deletes any old files
-	 */
-
+/* refresh_files
+ * - this function is run at the end of every day.
+ * - it increments the file prefix and deletes any old files
+ */
+static void refresh_files() {
 	// take the mutex since we don't want any writes while we're messing with this
 	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		increment_prefix();
+		increment_prefix_noMutex();
 
 		// delete the files with the current prefix since we're replacing it
 		if (fs_num_increments >= PREFIX_QUANTITY) {
-			sfu_delete_prefix(*(char *) fs.user_data);
+			sfu_delete_prefix_noMutex(sfu_prefix);
 		}
 		// create fresh files
-		sfu_create_files();
+		sfu_create_log_files_noMutex();
 		xSemaphoreGive(spiffsTopMutex);
 	} else {
 		serialSendQ("Del oldest can't get top mutex");
 	}
 }
 
-void increment_prefix() {
-	/* increment_prefix
-	 * - increments the fs prefix once we've filled up the files for the day
-	 */
-
+/* increment_prefix_noMutex
+ * - increments the fs prefix once we've filled up the files for the day
+ */
+static void increment_prefix_noMutex() {
 	// CALL WITHIN MUTEX
-	if (*(char *) fs.user_data == (PREFIX_START + PREFIX_QUANTITY - 1)) { // if we're at the end, roll back around
-//		sfu_prefix = PREFIX_START;
-		write_flag_prefix(PREFIX_START);
+	if ((sfu_prefix >= (PREFIX_START + PREFIX_QUANTITY - 1)) || sfu_prefix < PREFIX_START) { // if we're at the end, roll back around
 
+	sfu_prefix = PREFIX_START;
+		// RA: FLAGS
+//		write_flag_prefix(PREFIX_START);
+		FLAG(PREFIX_FLAG,flag) = PREFIX_START;
+		FLAG(PREFIX_FLAG,timestamp) = getCurrentRTCTime();
+		write_PREFIX_FLAG(flag_memory_table.PREFIX_FLAG.all);
 	} else { 							// else just increment to next prefix
-//		sfu_prefix = sfu_prefix + 1;
-		write_flag_prefix(sfu_prefix + 1);
+		sfu_prefix = sfu_prefix + 1;
+		// RA: FLAGS
+//		write_flag_prefix(sfu_prefix + 1);
+		FLAG(PREFIX_FLAG,flag) = sfu_prefix;
+		FLAG(PREFIX_FLAG,timestamp) = getCurrentRTCTime();
+		write_PREFIX_FLAG(flag_memory_table.PREFIX_FLAG.all);
+
+		/* read back and check. Set to PREFIX_START if there's an issue */
+		flagCharWrap_t pfix_read;
+		read_PREFIX_FLAG(pfix_read.all);
+		if(pfix_read.payload.flag != sfu_prefix){
+			serialSendQ("PREFIX MISMATCH");
+			sfu_prefix = PREFIX_START;
+			FLAG(PREFIX_FLAG,flag) = sfu_prefix;
+			write_PREFIX_FLAG(flag_memory_table.PREFIX_FLAG.all);
+		}
+		else{
+			serialSendln("PREFIX MATCH");
+		}
 	}
 	fs_num_increments++;
 }
 
-void sfu_delete_prefix(const char prefix) {
-	/*	sfu_delete_prefix
-	 * 		- This function deletes all files with the specified prefix
-	 * 		- Used to get rid of the oldest set of files when we loop back around
-	 */
-
+/*	sfu_delete_prefix_noMutex
+ * 		- This function deletes all files with the specified prefix
+ * 		- Used to get rid of the oldest set of files when we loop back around
+ */
+static void sfu_delete_prefix_noMutex(const char prefix) {
 	// MUST CALL WITHIN MUTEX
-
 	spiffs_DIR d;
 	struct spiffs_dirent e;
 	struct spiffs_dirent *pe = &e;
@@ -236,18 +237,34 @@ void sfu_delete_prefix(const char prefix) {
 	SPIFFS_closedir(&d);
 }
 
-/* sfu_create_files
- * - This function creates a file for every subsystem suffix with SPIFFS' current index prefix.
+/* sfu_create_all_files
+ * - Creates a file for every subsystem suffix with SPIFFS' current prefix.
+ * - also create flag files if they don't exist yet
  *
  * Preconditions:
- * 	- all files with the index prefix have been deleted
- * 	- index prefix in spiffs is the one to create files for
- * 	- so if we roll over and want to create up a new set of 'a' files,
- * 		- set index prefix to 'a'
+ *  - given a prefix:
+ * 		- all files with the prefix have been deleted
+ * 		- prefix in spiffs (sfu_prefix) is the one to create files for
+ *
+ * 	- Example: if we roll over and want to create up a new set of 'a' files,
+ * 		- set prefix to 'a'
  * 		- remove all existing 'a' files
  * 		- call this function
  */
-void sfu_create_files() {
+static void sfu_create_all_files(){
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		sfu_create_persistent_files_noMutex();
+		sfu_create_log_files_noMutex();
+		xSemaphoreGive(spiffsTopMutex);
+	} else {
+		serialSendQ("FCnm");
+	}
+}
+
+/* sfu_create_log_files_noMutex
+ * - create the set of filesystem log files for the current sfu_prefix
+ */
+static void sfu_create_log_files_noMutex() {
 	// CALL WITHIN MUTEX
 	char genBuf[20] = { '\0' };
 	char nameBuf[3] = { '\0' };
@@ -280,22 +297,11 @@ void sfu_create_files() {
 	}
 }
 
-void sfu_create_files_wrapped(){
-	/* Simply a wrapper around create files. We don't want to try to write while we're creating new files */
-	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
-		sfu_create_persistent_files();
-		sfu_create_files();
-		xSemaphoreGive(spiffsTopMutex);
-	} else {
-		serialSendQ("FCnm");
-	}
-}
-
 
 /* sfu_create_persistent_files
- * - This function creates files that do not get periodically deleted (ex. flags file)
+ * - Creates the flag file if it doesn't yet exist
  */
-void sfu_create_persistent_files() {
+static void sfu_create_persistent_files_noMutex() {
 	// CALL WITHIN MUTEX
 	char genBuf[20] = { '\0' };
 	char nameBuf[3] = { '\0' };
@@ -314,26 +320,40 @@ void sfu_create_persistent_files() {
 			snprintf(genBuf, 20, "OpenFile: %i", SPIFFS_errno(&fs));
 			serialSendQ(genBuf);
 		} else{
-			/* created ok - register a as the prefix*/
+			/* created ok - write out the default flags*/
 			snprintf(genBuf, 20, "Create Flags");
 			serialSendQ(genBuf);
 			if (SPIFFS_close(&fs, fd) < 0) {
 				snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
 				serialSendQ(genBuf);
 			}
-			sfu_write_fname_offset_noMutex(nameBuf[1], PREFIX_FLAG_START, PREFIX_FLAG_BASE);
+
+			/* initialize flag table and write to flash */
+			initFlagTable();
+			writeAllFlagsToFlash_noMutex();
+			// RA: FLAGS
+//			sfu_write_fname_offset_noMutex(nameBuf[1], PREFIX_FLAG_START, PREFIX_FLAG_BASE);
 			/* file closed above implicitly */
-			sfu_prefix = read_flag_prefix_noMutex();
+//			sfu_prefix = read_flag_prefix_noMutex();
+			if (SPIFFS_close(&fs, fd) < 0) {
+					snprintf(genBuf, 20, "CloseF: %i", SPIFFS_errno(&fs));
+					serialSendQ(genBuf);
+			}
+			sfu_prefix = FLAG(PREFIX_FLAG, flag);
 		}
 	} else {
 		/* already existed */
 		serialSendQ("Detected flag file");
-		sfu_prefix = read_flag_prefix_noMutex();
+		// RA: FLAGS
+//		sfu_prefix = read_flag_prefix_noMutex();
+//		sfu_prefix = 'a';
+		flag_memory_table_wrap_t flags;
+		readAllFlagsFromFlash_noMutex(&flags);
+		flag_memory_table = flags.flagTable;
+		sfu_prefix = FLAG(PREFIX_FLAG, flag);
+
 		/* implicit closure above */
 	}
-
-	clearBuf(genBuf, 20);
-	snprintf(genBuf, 11, "Create: %s", nameBuf);
 
 	if(serialSendQ((const char*)genBuf) != pdPASS){
 		serialSendQ("CREATE PRINT FAIL");
@@ -345,7 +365,7 @@ void sfu_create_persistent_files() {
  *  ------ !!! MUST BE CALLED FROM WITHIN A MUTEX !!! --------------
  * Having a file descriptor means we've already opened the file up
  */
-void write_fd(spiffs_file fd, char *fmt, ...) {
+static void write_fd(spiffs_file fd, char *fmt, ...) {
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 	volatile va_list argptr;
 	va_start(argptr, fmt);
@@ -415,7 +435,7 @@ void sfu_write_fname(char f_suffix, char *fmt, ...) {
  *
  * 	In the comments, SFU_WRITE_DATA_BUF has an assumed value of 33 bytes
  */
-void format_entry(char* buf, char *fmt, va_list argptr) {
+static void format_entry(char* buf, char *fmt, va_list argptr) {
 	uint32_t x;
 	x = getCurrentRTCTime();
 
@@ -462,7 +482,7 @@ void sfu_read_fname(char f_suffix, uint8_t * outbuf, uint32_t size){
 	}
 }
 
-void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...) {
+static void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...) {
 	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
@@ -502,7 +522,7 @@ void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...) {
 	}
 }
 
-void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, ...) {
+static void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, ...) {
 	char nameBuf[3] = { '\0' };
 	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
 
@@ -537,18 +557,18 @@ void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, .
 	}
 }
 
-void create_filename(char* namebuf, char file_suffix) {
-	/* there's only one flag file, it has prefix 'a' */
+static void create_filename(char* namebuf, char file_suffix) {
+	/* there's only one flag file, it has prefix 'z' so we don't make a bunch of them */
 	if(file_suffix == FSYS_FLAGS){
 		namebuf[0] = 'z';
 	}
 	else{
-		namebuf[0] = *(char *) fs.user_data; // file name prefix. Void pointer help: https://www.geeksforgeeks.org/void-pointer-c/
+		namebuf[0] = sfu_prefix; // file name prefix. Void pointer help: https://www.geeksforgeeks.org/void-pointer-c/
 	}
 	namebuf[1] = file_suffix;
 }
 
-void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset){
+static void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset){
 	char buf[20] = {'\0'};
 	char nameBuf[3] = { '\0' };
 	create_filename(nameBuf, f_suffix);
@@ -574,7 +594,7 @@ void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size,
 	}
 }
 
-void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset){
+static void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset){
 	char buf[20] = {'\0'};
 	char nameBuf[3] = { '\0' };
 
@@ -606,38 +626,182 @@ void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_
 	}
 }
 
-char read_flag_prefix_noMutex(void){
-	// read at prefix offset
-	uint8_t buf[20] = {'\0'};
-	sfu_read_fname_offset_noMutex(FSYS_FLAGS, buf, PREFIX_FLAG_LEN + 1, 0);//PREFIX_FLAG_START);
-	return buf[PREFIX_FLAG_LEN];
-}
 
-void write_flag_prefix(char input_prefix){
-	// CALL WITHIN MUTEX
-		char genBuf[20] = { '\0' };
-		char nameBuf[3] = { '\0' };
-		char writeBuf[] = PREFIX_FLAG_BASE;
-		spiffs_file fd;
-		my_spiffs_mount();
 
+
+/* New flag file system */
+void writeAllFlagsToFlash(){
+	flag_memory_table_wrap_t flags;
+	flags.flagTable = flag_memory_table;
+	char nameBuf[3] = { '\0' };
+	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
+
+	spiffs_file fd;
+
+	// Formatting done, enter mutex and open + write the file
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
 		create_filename(nameBuf, FSYS_FLAGS);
-		fd = SPIFFS_open(&fs, (const char *) nameBuf, SPIFFS_RDWR, 0); /* attempt to open */
+		my_spiffs_mount();
+		fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND | SPIFFS_RDWR, 0);
 
-		if (fd < 0) {
-			snprintf(genBuf, 20, "Update pfix !open");
-			serialSendQ(genBuf);
-		} else{
-			snprintf(genBuf, 20, "Updating Prefix");
-			serialSendQ(genBuf);
-			writeBuf[PREFIX_FLAG_LEN] = input_prefix;
-			sfu_write_fname_offset_noMutex(nameBuf[1], PREFIX_FLAG_START, writeBuf);
-				/* file closed above implicitly */
-			sfu_prefix = read_flag_prefix_noMutex();
-			if(sfu_prefix != input_prefix){
-				snprintf(genBuf, 20, "PREFIX MISMATCH");
-				serialSendQ(genBuf);
-				sfu_prefix = 'a';	/* worst case we just hard code a prefix */
+		if (fd < 0) { 	// if there's an error opening
+			snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		else { 		// no error, write to it
+			if (SPIFFS_write(&fs, fd, flags.flagTableBytes, sizeof(flags)) < 0) {
+				snprintf(buf, 20, "FFww: %i", SPIFFS_errno(&fs));
+				serialSendQ(buf);
+			}
+			if (SPIFFS_close(&fs, fd) < 0) {
+				//clearBuf(genBuf, 20);
+				snprintf(buf, 20, "FFce: %i", SPIFFS_errno(&fs));
+				serialSendQ(buf);
 			}
 		}
+		xSemaphoreGive(spiffsTopMutex);
+	} else {serialSendQ("FFwe: can't get top mutex");
+	}
 }
+
+bool readAllFlagsFromFlash(flag_memory_table_wrap_t *flagWrap){
+	char nameBuf[3] = { '\0' };
+	char buf[20] = {'\0'};
+	spiffs_file fd;
+	create_filename(nameBuf, FSYS_FLAGS);
+
+	if (xSemaphoreTake(spiffsTopMutex, pdMS_TO_TICKS(SPIFFS_READ_TIMEOUT_MS)) == pdTRUE) {
+		my_spiffs_mount();
+		fd = SPIFFS_open(&fs, (const char *)nameBuf, SPIFFS_RDONLY, 0);
+
+		if (fd < 0) { 	// if there's an error opening
+			snprintf(buf, 20, "FFno: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+			xSemaphoreGive(spiffsTopMutex);
+			return 0;
+		}
+		else { // read the file
+		  if (SPIFFS_read(&fs, fd, flagWrap, FLAG_TABLE_SIZE) < 0) {
+			  snprintf(buf, 20, "FDnr: %i", SPIFFS_errno(&fs));
+			  serialSendQ(buf);
+		  }
+		  SPIFFS_close(&fs, fd);
+		}
+		xSemaphoreGive(spiffsTopMutex);
+		return 1;
+	}
+	else {
+		serialSendQ("FRwe: can't get top mutex");
+	}
+	return 0;
+}
+
+static void writeAllFlagsToFlash_noMutex(){
+	flag_memory_table_wrap_t flags;
+	flags.flagTable = flag_memory_table;
+	char nameBuf[3] = { '\0' };
+	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
+
+	spiffs_file fd;
+
+	// Formatting done, enter mutex and open + write the file
+	create_filename(nameBuf, FSYS_FLAGS);
+	my_spiffs_mount();
+	fd = SPIFFS_open(&fs, nameBuf, SPIFFS_APPEND | SPIFFS_RDWR, 0);
+
+	if (fd < 0) { 	// if there's an error opening
+		snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
+		serialSendQ(buf);
+	}
+	else { 		// no error, write to it
+		if (SPIFFS_write(&fs, fd, flags.flagTableBytes, sizeof(flags)) < 0) {
+			snprintf(buf, 20, "FFww: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		if (SPIFFS_close(&fs, fd) < 0) {
+			//clearBuf(genBuf, 20);
+			snprintf(buf, 20, "FFce: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+	}
+}
+
+static bool readAllFlagsFromFlash_noMutex(flag_memory_table_wrap_t *flagWrap){
+	char nameBuf[3] = { '\0' };
+	char buf[20] = {'\0'};
+	spiffs_file fd;
+	create_filename(nameBuf, FSYS_FLAGS);
+	fd = SPIFFS_open(&fs, (const char *)nameBuf, SPIFFS_RDONLY, 0);
+
+	if (fd < 0) { 	// if there's an error opening
+		snprintf(buf, 20, "FFno: %i", SPIFFS_errno(&fs));
+		serialSendQ(buf);
+		xSemaphoreGive(spiffsTopMutex);
+		return 0;
+	}
+	else { // read the file
+	  if (SPIFFS_read(&fs, fd, flagWrap, FLAG_TABLE_SIZE) < 0) {
+		  snprintf(buf, 20, "FDnr: %i", SPIFFS_errno(&fs));
+		  serialSendQ(buf);
+	  }
+	  SPIFFS_close(&fs, fd);
+	}
+	return 1;
+}
+
+
+
+void writeFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset){
+	char nameBuf[3] = { '\0' };
+	char buf[SFU_WRITE_DATA_BUF] = { '\0' };
+	spiffs_file fd;
+
+	// Formatting done, enter mutex and open + write the file
+	create_filename(nameBuf, FSYS_FLAGS);
+	my_spiffs_mount();
+
+	fd = SPIFFS_open(&fs, nameBuf, SPIFFS_RDWR, 0);
+	SPIFFS_lseek(&fs, fd, offset, SPIFFS_SEEK_SET);
+
+	if (fd < 0) { 	// if there's an error opening
+		snprintf(buf, 20, "FNoe: %i", SPIFFS_errno(&fs));
+		serialSendQ(buf);
+	}
+	else { 		// no error, write to it
+		if (SPIFFS_write(&fs, fd, bytes, size) < 0) {
+			snprintf(buf, 20, "FNww: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+		if (SPIFFS_close(&fs, fd) < 0) {
+			//clearBuf(genBuf, 20);
+			snprintf(buf, 20, "FNce: %i", SPIFFS_errno(&fs));
+			serialSendQ(buf);
+		}
+	}
+}
+
+void readFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset){
+	char buf[20] = {'\0'};
+	char nameBuf[3] = { '\0' };
+
+	int16_t res;
+	spiffs_file fd;
+
+	create_filename(nameBuf, FSYS_FLAGS);
+	my_spiffs_mount();
+	fd = SPIFFS_open(&fs, (const char *) nameBuf, SPIFFS_RDWR, 0);
+
+	res = SPIFFS_lseek(&fs, fd, offset, SPIFFS_SEEK_SET);	/* lseek increments file index to i'th byte */
+	if (res < 0) { 	// if there's an error opening
+		snprintf(buf, 20, "FROno: %i", SPIFFS_errno(&fs));
+		serialSendQ(buf);
+	}
+	else { // read the file
+	  if (SPIFFS_read(&fs, fd, (uint8_t *)bytes, size) < 0) {
+		  snprintf(buf, 20, "FROnr: %i", SPIFFS_errno(&fs));
+		  serialSendQ(buf);
+	  }
+	  SPIFFS_close(&fs, fd);
+	}
+}
+

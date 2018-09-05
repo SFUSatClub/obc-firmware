@@ -4,27 +4,28 @@
  *  Created on: May 22, 2018
  *      Author: Richard
  */
-#include "obc_adc.h"
-#include "obc_fs_structure.h"
-#include "obc_hardwaredefs.h"
-#include "obc_rtc.h"
-#include "obc_spiffs.h"
-#include "obc_state.h"
-#include "obc_task_utils.h"
-#include "obc_tasks.h"
-#include "obc_utils.h"
 #include "adc.h"
 #include "sys_pmu.h"
+#include "obc_tasks.h"
+#include "obc_hardwaredefs.h"
 #include "flash_mibspi.h"
+#include "obc_rtc.h"
+#include "obc_utils.h"
 #include "unit_tests/unit_tests.h"
 #include "printf.h"
+#include "obc_adc.h"
+#include "obc_state.h"
+#include "obc_spiffs.h"
 #include "stlm75.h"
 #include "stdtelem.h"
+#include "obc_fs_structure.h"
 #include "reg_tcram.h"
+#include "obc_task_utils.h"
 #include "bq25703.h"
+#include "obc_flags.h"
 UART_RF_MUX_INIT();
 
-telem_config_t telemConfig[NUM_TELEM_POINTS];
+telemConfig_t telemConfig[NUM_TELEM_POINTS];
 stdtelem_t stdTelem;
 
 TaskHandle_t xgeneralTelemTaskHandle = NULL;
@@ -40,15 +41,16 @@ TaskHandle_t xTransmitTelemTaskHandle = NULL;
  */
 
 void generalTelemTask(void *pvParameters){
-	telemConfig[GENERAL_TELEM] = (telem_config_t){	.max = 0, .min = 0, .period = 12000};
-	SET_UART_RF_MUX(UART_RF_MUX_TARGET_NONE);
+	telemConfig[GENERAL_TELEM] = (telemConfig_t){	.max = 0, .min = 0, .period = 12000};
+	SET_UART_RF_MUX(UART_RF_MUX_TARGET_UART);
+	// none, uart, rf
 	while(1){
 		vTaskDelay(getStdTelemDelay(GENERAL_TELEM));
 		stdTelem.current_state = cur_state;
 		stdTelem.state_entry_time = stateEntryTime();
 		stdTelem.min_heap = xPortGetMinimumEverFreeHeapSize();
 		stdTelem.fs_free_blocks = fs.free_blocks;
-		stdTelem.fs_prefix = *(char *) fs.user_data;
+		stdTelem.fs_prefix = getCurrentPrefix();
 		stdTelem.ramoccur_1 = tcram1REG->RAMOCCUR;
 		stdTelem.ramoccur_2 = tcram2REG->RAMOCCUR;
 
@@ -59,12 +61,12 @@ void generalTelemTask(void *pvParameters){
 
 void BMSTelemTask(void *pvParameters){
 	/* be sure to initialize the config of each telem point */
-	telemConfig[BMS_TELEM] = (telem_config_t){	.max = 700, .min = 0, .period = 10000};
+	telemConfig[BMS_TELEM] = (telemConfig_t){	.max = 700, .min = 0, .period = 10000};
 
 	while(1){
 		vTaskDelay(getStdTelemDelay(BMS_TELEM));
-		stdTelem.bms_volt = read_volt();
-		stdTelem.bms_curr = read_curr();
+		stdTelem.bms_volt = 234;//read_volt();
+		stdTelem.bms_curr = 45;//read_curr();
 
 		sfu_write_fname(FSYS_BMS, "%d V, %d uA", stdTelem.bms_volt, stdTelem.bms_curr);
 	}
@@ -76,7 +78,7 @@ void BMSTelemTask(void *pvParameters){
  */
 void obcCurrentTelemTask(void *pvParameters){
 	/* be sure to initialize the config of each telem point */
-	telemConfig[OBC_CURR_TELEM] = (telem_config_t){	.max = 700, .min = 0, .period = 10000};
+	telemConfig[OBC_CURR_TELEM] = (telemConfig_t){	.max = 700, .min = 0, .period = 10000};
 	uint16_t reading;
 
 	while(1){
@@ -96,7 +98,7 @@ void obcCurrentTelemTask(void *pvParameters){
  * 	- records temperatures from across the satellite
  */
 void temperatureTelemTask(void *pvParameters){
-	telemConfig[TEMP_TELEM] = (telem_config_t){	.max = 130, .min = -40, .period = 10000};
+	telemConfig[TEMP_TELEM] = (telemConfig_t){	.max = 130, .min = -40, .period = 10000};
 	volatile uint32_t res;
 	while(1){
 		vTaskDelay(getStdTelemDelay(TEMP_TELEM));
@@ -171,30 +173,3 @@ void transmitTelemUART(void *pvParameters){
 	    vTaskDelay(pdMS_TO_TICKS(20)); // delay slightly to allow transmission to complete
 	}
 }
-
-
-
-//void vStdTelemTask(void *pvParameters){
-//	char buf[50] = {'\0'};
-//	int16_t OBC_temp;
-//	while(1){
-//		OBC_temp = read_temp(OBC_TEMP);
-//		snprintf(buf, 50, "STD: %i, %i, %i, %i, %i, %c, %i",
-//				getCurrentTime(), 					// epoch at send
-//				cur_state, 							// state
-//				stateEntryTime(), 					// time we entered state
-//				xPortGetMinimumEverFreeHeapSize(), 	// min heap
-//				fs.free_blocks,						// filesys free blocks
-//				*(char *) fs.user_data,				// filesys prefix
-//				OBC_temp
-//		);
-//		serialSendQ(buf);
-//		vTaskDelay(pdMS_TO_TICKS(5000)); // frequency to send out stdtelem
-//		// TODO: add temps, voltages, currents
-//		// TODO: send out from radio
-//		/* for large, time consuming things like voltages and currents, we can have the normal read tasks
-//		 * send their info to a queue with depth 1. This task will pick up that (most recent) data whenever it runs,
-//		 * allowing these values to be updated in the background by their respective tasks.
-//		 */
-//	}
-//}

@@ -1,5 +1,5 @@
 /*
- * sfu_startup.c
+ * obc_startup.c
  *
  * This file contains our pre-main checks. For example, we can query the registers and determine what kind
  * of reset was asserted before the current run. This will be a good indicator of what's going on when we get up
@@ -10,13 +10,13 @@
  *      Author: Lana, Richard
  */
 
-#include "obc_flags.h"
+#include "can.h"
+#include "reg_system.h"
 #include "obc_fs_structure.h"
 #include "obc_startup.h"
 #include "obc_uart.h"
 #include "obc_utils.h"
-#include "can.h"
-#include "reg_system.h"
+#include "obc_flags.h"
 #include "flash_mibspi.h"
  
 Startup_Data_t startData;
@@ -59,7 +59,10 @@ void logPBISTFails(void){
 	if (isFailureDetected) {
 		bool wasReset = false;
 //		sfu_read_fname(FSYS_FLAGS, data, 50);
-		sfu_read_fname_offset(FSYS_FLAGS, data, RESET_FLAG_LEN + 1, RESET_FLAG_START);
+		// RA: FLAGS
+//		sfu_read_fname_offset(FSYS_FLAGS, data, RESET_FLAG_LEN + 1, RESET_FLAG_START);
+		data[RESET_FLAG_LEN] = '0';
+
 		uint8_t flag_pbist_val = data[RESET_FLAG_LEN];
 
 		if (flag_pbist_val == '1') {
@@ -67,7 +70,8 @@ void logPBISTFails(void){
 		}
 
 		if (!wasReset) {
-			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_FLAG_MSG);
+			// RA: FLAGS
+//			sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_FLAG_MSG);
 			sfu_write_fname(FSYS_SYS, "PBIST FAILED");
 			restart_software();
 		}
@@ -75,7 +79,8 @@ void logPBISTFails(void){
 		/* zero out the reset flag so it can be used next time */
 		serialSendln("NO PBIST FAILS");
 		sfu_write_fname(FSYS_SYS, "PBIST FAILS: NONE");
-		sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_CLEAR_MSG);
+		// RA: FLAGS
+//		sfu_write_fname_offset(FSYS_FLAGS, RESET_FLAG_START, RESET_CLEAR_MSG);
 	}
 }
 
