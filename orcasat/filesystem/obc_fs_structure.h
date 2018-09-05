@@ -20,26 +20,26 @@
  * since we don't have a particularly large number of files at any one time.
  */
 
-#ifndef SPIFFS_OBC_FS_STRUCTURE_H_
-#define SPIFFS_OBC_FS_STRUCTURE_H_
+#ifndef SPIFFS_SFU_FS_STRUCTURE_H_
+#define SPIFFS_SFU_FS_STRUCTURE_H_
 
 #include "spiffs.h"
-#include "FreeRTOS.h"
 #include "obc_spiffs.h"
+#include "FreeRTOS.h"
 #include "rtos_task.h"
+#include "obc_flags.h"
 
-extern TaskHandle_t xSPIFFSHandle;
-extern TaskHandle_t xSPIFFSRead;
+void vFilesystemLifecycleTask(void *pvParameters);
 
 /* commands */
 void dumpFile(char prefix, char suffix);
-char currentPrefix(void);
+char getCurrentPrefix(void);
 
 /* SFUSat Configs */
 #define SFU_MAX_DATA_WRITE 21  							/* bytes or chars. The max amount of data we can write to a file at once that is GUARANTEED not to be chopped off. The actual max depends on the time stamp. */
 #define SFU_WRITE_DATA_BUF (SFU_MAX_DATA_WRITE + 12) 	/* DON'T TOUCH: to size the file write buffer */
 #define FSYS_OFFSET 65 									/* the first char of file names is 'A' */
-#define FSYS_NUM_SUBSYS 6 								/* number of subsystem logs */
+#define FSYS_NUM_SUBSYS 5 								/* number of subsystem logs */
 
 /* ASCII codes for the subsystem log suffix
  * 	- These are passed to read, write so that we can grab the correct file
@@ -50,8 +50,11 @@ char currentPrefix(void);
 #define FSYS_ERROR 		66 		/* B, error log */
 #define OBC_CURRENT 	67 		/* C, current log */
 #define TEMPS 			68 		/* D, temperature log */
-#define FSYS_FLAGS		69		/* E, flags */
-#define FSYS_BMS		70		/* F, flags */
+#define FSYS_BMS		69		/* E, BMS log */
+
+#define FSYS_FLAGS		90		/* Z, flags */
+
+#define DUMP_BUF_SIZE 30		/* number of bytes to send out at once. Should eventually match radio TX buffer size */
 
 #define FSYS_LOOP_INTERVAL pdMS_TO_TICKS(90000) /* we create new file sets on this interval */
 /* Prefix stuff */
@@ -61,33 +64,21 @@ char currentPrefix(void);
 /* variables */
 extern uint32_t fs_num_increments;
 
-/* Tasks */
-void vFilesystemLifecycleTask(void *pvParameters);
-void fs_rando_write(void *pvParameters);
-void fs_read_task(void *pvParameters);
-void fs_test_tasks();
+
 
 /* Functions */
 void sfu_fs_init();
-void delete_oldest(); 									/* handles deletion and creation. Note: takes about a second to run */
-void sfu_create_files(); 								/* creates files w/ current prefix and records creation time */
-void sfu_create_files_wrapped(); 						/* creates files w/ current prefix and records creation time, wrapped in mutex */
-void sfu_create_persistent_files();
-void create_filename(char* namebuf, char file_suffix); /* creates filename with appropriate prefix and suffix */
 void sfu_write_fname(char f_suffix, char *fmt, ...); 	/* write printf style data to a file name */
-void sfu_write_fname_offset(char f_suffix, uint32_t offset, char *fmt, ...);
-void sfu_write_fname_offset_noMutex(char f_suffix, uint32_t offset, char *fmt, ...);
 void sfu_read_fname(char f_suffix, uint8_t* outbuf, uint32_t size);
-void sfu_read_fname_offset_noMutex(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
-void sfu_read_fname_offset(char f_suffix, uint8_t* outbuf, uint8_t size, uint32_t offset);
-void write_flag_prefix(char input_prefix);
-void format_entry(char* buf, char *fmt, va_list argptr); /* formats our file entries with timestamp and data */
-void write_fd(spiffs_file fd, char *fmt, ...); 			/* printf style write to an already open file */
-void sfu_delete_prefix(const char prefix); 				/* deletes the files with the specified prefix */
-void increment_prefix();
-char read_flag_prefix_noMutex(void);							/* read file prefix we've saved */
 
-#endif /* SPIFFS_OBC_FS_STRUCTURE_H_ */
+
+
+/* New flags */
+void writeAllFlagsToFlash();
+bool readAllFlagsFromFlash(flag_memory_table_wrap_t *flagWrap);
+void writeFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset);
+void readFlagRaw(uint8_t *bytes, uint8_t size, uint32_t offset);
+#endif /* SPIFFS_SFU_FS_STRUCTURE_H_ */
 
 
 
