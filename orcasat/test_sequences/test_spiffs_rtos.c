@@ -4,8 +4,8 @@
  *  Created on: Mar 13, 2018
  *      Author: Richard
  */
-#include <obc_rtc.h>
-#include <obc_uart.h>
+#include "obc_rtc.h"
+#include "obc_uart.h"
 #include "test_spiffs_rtos.h"
 void spiffs_write_check_test(void *pvParameters) {
 	/* we probably won't really use this - prefer tests within sfu_fs_structure since they use our wrappers */

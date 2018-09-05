@@ -10,7 +10,7 @@
  *      - chip erase and sector erase
  */
 
-#include <obc_uart.h>
+#include "obc_uart.h"
 #include "unit_tests.h"
 #include "flash_mibspi.h"
 #include "printf.h"

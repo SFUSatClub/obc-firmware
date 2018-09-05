@@ -9,8 +9,8 @@
  *      erase it every time we start up.
  */
 
-#include "sfu_triumf.h"
-#include "sfu_uart.h"
+#include "obc_triumf.h"
+#include "obc_uart.h"
 void test_triumf_init(){
 	  if(flash_test_JEDEC()){
 	    	serialSendln("Passed flash JEDEC test!");

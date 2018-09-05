@@ -8,9 +8,9 @@
  *      Main reference: FreeRTOS Tutorial Guide Chapter 6.4 - Binary Semaphores
  */
 
-#include <examples/obcsat_examples.h>
-#include <obc_hardwaredefs.h>
-#include <obc_tasks.h>
+#include "obcsat_examples.h"
+#include "obc_hardwaredefs.h"
+#include "obc_tasks.h"
 #include "gio.h"
 #include "FreeRTOS.h"
 #include "rtos_task.h"
