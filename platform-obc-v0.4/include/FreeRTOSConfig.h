@@ -75,7 +75,7 @@
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
-#include "sfu_hardwaredefs.h"
+#include "obc_hardwaredefs.h"
 /*-----------------------------------------------------------
  * Application specific definitions.
  *

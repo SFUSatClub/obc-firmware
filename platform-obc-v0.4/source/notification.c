@@ -48,6 +48,7 @@
 
 /* Include Files */
 
+#include <obc_uart.h>
 #include "esm.h"
 #include "sys_selftest.h"
 #include "adc.h"
@@ -59,7 +60,6 @@
 #include "sys_dma.h"
 
 /* USER CODE BEGIN (0) */
-#include "sfu_uart.h"
 
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)

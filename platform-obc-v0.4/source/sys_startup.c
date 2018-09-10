@@ -54,6 +54,7 @@
 
 /* Include Files */
 
+#include <obc_startup.h>
 #include "sys_common.h"
 #include "system.h"
 #include "sys_vim.h"
@@ -63,7 +64,6 @@
 #include "mibspi.h"
 
 /* USER CODE BEGIN (1) */
-#include "sfu_startup.h"
 #include "reg_can.h"
 
 /* USER CODE END */
