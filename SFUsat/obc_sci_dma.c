@@ -173,6 +173,7 @@ void number_string(char *string, uint32 count) {
 	sprintf (&buffer[i + offset],"\0\0\0\0\0\0\0\0 !!! Overrun !!! ");
 }
 
+#include "sys_pmu.h"
 /* Preconditions:
  * 		- uart_dma_init has been called
  */
@@ -180,11 +181,14 @@ void uart_dma_test(){
 	uint32 IDLECOUNT = 0;
 
 	/* Print header on SCI */
-	serialSendln("\033[2J"); // Clear terminal & return home commands
+	//serialSendln("\033[2J"); // Clear terminal & return home commands
 	serialSendln("*******************************************************************************\n\r\n\r");
 	serialSendln("scidmaSend Example - DMA to transfer single Bytes from RAM to the SCI\n\r");
 
     uart_dma_send("1/12: DMA UART test message #1 out of 3\n\r");
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    }
+
     serialSendln("2/12: Regular serial function message #1 out of 3");
     uart_dma_send("3/12: DMA UART test message #2 out of 3\n\r");
     serialSendln("4/12: Regular serial function message #2 out of 3");
@@ -199,6 +203,36 @@ void uart_dma_test(){
 	/* Setup null terminated string to transmit */
 	number_string((char *) buffer, 500);
     scidmaSend(buffer);
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    	IDLECOUNT++;
+    }
+
+
+    _pmuInit_();
+    _pmuResetCounters_();
+    _pmuStartCounters_(pmuCYCLE_COUNTER);
+    char* message = "01234567890123456789";
+    serialSend(message);
+    _pmuStopCounters_(pmuCYCLE_COUNTER);
+    uint32 varTotalCycleCount = _pmuGetCycleCount_();
+    char buffer1[20];
+    sprintf(buffer1, "\n\rSCI 10 bytes took: %d\n\r", varTotalCycleCount);
+    serialSendln(buffer1);
+
+    _pmuResetCounters_();
+    _pmuStartCounters_(pmuCYCLE_COUNTER);
+    uart_dma_send(message);
+    while(DMA_Comp_Flag != 0x55AAD09E){
+    	IDLECOUNT++;
+    }
+    _pmuStopCounters_(pmuCYCLE_COUNTER);
+    varTotalCycleCount = _pmuGetCycleCount_();
+    char buffer2[20];
+    sprintf(buffer2, "\n\rDMA 10 bytes took: %d\n\r", varTotalCycleCount);
+    serialSendln(buffer2);
+
+
+
     uart_dma_sendln("********");
     serialSendln("7/12: Regular serial function message #1 out of 3");
     uart_dma_sendln("8/12: DMA UART test message #1 out of 3");
