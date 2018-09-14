@@ -211,8 +211,11 @@ void uart_dma_test(){
     _pmuInit_();
     _pmuResetCounters_();
     _pmuStartCounters_(pmuCYCLE_COUNTER);
-    char* message = "01234567890123456789";
-    serialSend(message);
+    char* message = "0123456789";
+    uint32 counter = 0;
+    for (counter = 0; counter < 100; counter ++) {
+    	serialSend(message);
+    }
     _pmuStopCounters_(pmuCYCLE_COUNTER);
     uint32 varTotalCycleCount = _pmuGetCycleCount_();
     char buffer1[20];
@@ -221,9 +224,11 @@ void uart_dma_test(){
 
     _pmuResetCounters_();
     _pmuStartCounters_(pmuCYCLE_COUNTER);
-    uart_dma_send(message);
-    while(DMA_Comp_Flag != 0x55AAD09E){
-    	IDLECOUNT++;
+    for (counter = 0; counter < 100; counter ++) {
+    	uart_dma_send(message);
+    	while(DMA_Comp_Flag != 0x55AAD09E){
+    		IDLECOUNT++;
+    	}
     }
     _pmuStopCounters_(pmuCYCLE_COUNTER);
     varTotalCycleCount = _pmuGetCycleCount_();
