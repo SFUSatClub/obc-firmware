@@ -13,9 +13,6 @@
 #include "rtos_queue.h"
 
 void vRadioTask( void *pvParameters );
-
-void vRadioRX(void *pvParameters);
-void vRadioTX(void *pvParameters);
 void vRadioCHIME(void *pvParameters);
 
 BaseType_t initRadio();

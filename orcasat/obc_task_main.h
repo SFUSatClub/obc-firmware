@@ -20,8 +20,6 @@ extern TaskHandle_t xBlinkyTaskHandle;
 extern TaskHandle_t xTickleTaskHandle;
 extern TaskHandle_t xADCTaskHandle;
 extern TaskHandle_t xStateTaskHandle;
-extern TaskHandle_t xFlashReadHandle;
-extern TaskHandle_t xFlashWriteHandle;
 extern TaskHandle_t xLogToFileTaskHandle;
 
 #endif /* SFUSAT_OBC_TASK_MAIN_H_ */

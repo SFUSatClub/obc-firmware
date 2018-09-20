@@ -38,8 +38,6 @@ TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFilesystemTaskHandle = NULL;
 
 // Radio tasks
-TaskHandle_t xRadioRXHandle = NULL;
-TaskHandle_t xRadioTXHandle = NULL;
 TaskHandle_t xRadioCHIMEHandle = NULL;
 TaskHandle_t xLogToFileTaskHandle = NULL;
 
