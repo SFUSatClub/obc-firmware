@@ -11,7 +11,7 @@
 #include "obc_uart.h"
 #include "string.h"
 
-//Interrupt stuff
+/* Interrupt stuff */
 #include "rtos_semphr.h"
 #include "rtos_task.h"
 
@@ -252,11 +252,9 @@ static uint8 readRegister(uint8 addr);
 static int readFromRxFIFO(uint8 *dest, uint8 numBytesToRead);
 static void strobe(uint8 addr);
 static uint8 * readAllStatusRegisters();
-//void rfTestSequence();
 static void printStatusByte();
 void read_RX_FIFO();
 static int8_t sendPacket(const uint8_t *payload, uint8_t size);
-//static void sendPacket(const uint8_t *payload, uint8_t size);
 static void writeRegister(uint8 addr, uint8 val);
 bool validateCommand(const uint8_t *input, uint8_t size);
 static int receivePacket(uint8_t *destPayload, uint8_t size);
@@ -265,7 +263,11 @@ static int receivePacket(uint8_t *destPayload, uint8_t size);
 #define RF_CALLSIGN_LEN		(sizeof(RF_CALLSIGN) - 1) // Don't include the null terminator
 #define PACKET_LENGTH 		(SMARTRF_SETTING_PKTLEN_VAL_TX - RF_CALLSIGN_LEN)
 
-//Declarations for RF Interrupt
+/**
+ * TODO: Declarations for RF Interrupt.
+ *		- Need to revisit this since in testing the CC1101 did not behave as expected (we want it to trigger when there
+ *		is certain number of bytes free in FIFO, but sometimes it triggers and sometimes it doesn't).
+ */
 //SemaphoreHandle_t gioRFSem;
 TaskHandle_t xRFInterruptTaskHandle;
 bool enableRFISR = 0;
@@ -362,7 +364,12 @@ void vRadioTask(void *pvParameters) {
 			}
 		}
 
-		if(IS_STATE(STATE_IDLE)){	//TODO: this should be handled by reg config or ISR
+		/**
+		 * TODO: Use timer and return timeout error if radio never returns to IDLE.
+		 * 		- Should be done for most state transitions.
+		 * 		- Should also be handled by reg config or ISR.
+		 */
+		if (IS_STATE(STATE_IDLE)) {
 			strobe(SRX);
 		}
 
@@ -508,15 +515,18 @@ static int receivePacket(uint8_t *destPayload, uint8_t destSize) {
 	return bytes_actually_read;
 }
 
+/**
+ * Sends a predefined packet out the radio.
+ *
+ * Used for testing.
+ */
 void rfTestSequence() {
-	/* note: always give an array of len [SMARTRF_SETTING_PKTLEN_VAL_TX - 6]
+	/* Note: always give an array of len [SMARTRF_SETTING_PKTLEN_VAL_TX - 6]
 	 * to sendPacket.
 	 *
 	 * Place a null character at the end of the valid data.
 	 */
-
 	strobe(SNOP);
-//	char buffer[100] = {'\0'};
 	uint8 mystr[] = "ack\r\n\0";
 	uint8 test[SMARTRF_SETTING_PKTLEN_VAL_TX] = { 0 };
 
@@ -530,8 +540,6 @@ void rfTestSequence() {
 		strobe(SRX);
 	}
 	printStatusByte();
-
-	//TODO: use timer and return timeout error if radio never returns to IDLE, this should be done for most state transitions
 }
 
 static uint8 readRegister(uint8 addr) {
@@ -710,87 +718,12 @@ static int configureRadio(const uint16_t config[NUM_CONFIG_REGISTERS], const uin
     return checkConfig(SMARTRF_VALS_TX);
 }
 
-//void vRFInterruptTask(void *pvParameters){
-//	// This task gets invoked by the ISR callback (notification) whenever the pin sees a rising edge
-//
-//	//pulled from example
-//	while(1){
-//		serialSendln("It's an RF one!");
-//		vTaskDelay(pdMS_TO_TICKS(5000));
-//
-//		//uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
-//		//uint8 RX_dest[RXBYTES] = {0};
-//		//char buffer[RXBYTES];
-//		//char buffer2[16];
-//		//uint8 count = 0;
-//		//uint8 size = 0;
-//		//const uint8 RX_FIFO_MAX_SIZE = 111100; //60
-//
-//
-//		xSemaphoreTake(gioRFSem, portMAX_DELAY);
-//
-//		read_RX_FIFO();
-//
-//		//snprintf(buffer2, 30, "RXBYTES: %02x \n", num_of_RXBYTES);
-//		//serialSendln(buffer2);
-//
-//
-////		while (NUM_RXBYTES < RX_FIFO_MAX_SIZE) {
-////			//(NUM_RXBYTES);
-////			serialSendQ("LOOPING HERE");
-////			vTaskDelay(pdMS_TO_TICKS(1000));
-////		}
-//
-//
-//
-////		if (readRegister(RXBYTES) != 0) {
-////			readFromRxFIFO(RX_dest, num_of_RXBYTES);
-////			for (count = 0; count < num_of_RXBYTES; count++) {
-////				snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
-////				serialSendln(buffer);
-////			}
-////		}
-//		//strobe(SFRX);
-//	}
-//}
-
-//void read_RX_FIFO() {
-//	serialSendln("Reading RX_FIFO");
-//	uint8 num_of_RXBYTES = RXBYTES & NUM_RXBYTES;
-//	uint8 RX_dest[RXBYTES] = { 0 };
-//	char buffer[RXBYTES];
-//	//char buffer2[16];
-//	uint8 count = 0;
-//	uint8 pktlen = 60;
-//
-//	if (readRegister(RXBYTES) >= pktlen) {
-//		readFromRxFIFO(RX_dest, num_of_RXBYTES);
-//		for (count = 0; count < num_of_RXBYTES; count++) {
-//			snprintf(buffer, 30, "RX: %02x %02x \n", count, RX_dest[count]);
-//			serialSendln(buffer);
-//		}
-//	}
-//
-//}
-
-//void rf_interrupt_init(void){
-//	//pulled from example
-//	gioRFSem = xSemaphoreCreateBinary();
-//	xRFInterruptTaskHandle = NULL;
-//
-//	if(gioRFSem != NULL){ // setup the task to handle the ISR
-//		xTaskCreate(vRFInterruptTask, "RF Interrupt", 200, NULL, 3, xRFInterruptTaskHandle);
-//	}
-//
-//	gioEnableNotification(RF_IRQ_PORT, RF_IRQ_PIN); // enable the notification callback for this particular pin
-//}
-
-void gio_notification_RF(gioPORT_t *port, uint32 bit){
-	// This gets called by the ISR callback (notification). Doesn't need to be in another function, but this just keeps things tidy
-	// See FreeRTOS tutorial guide pg. 200
-
-	//pulled from Example
-
+void gio_notification_RF(gioPORT_t *port, uint32 bit) {
+	/**
+	 * This gets called by the ISR callback (notification). Doesn't need to be in another function, but this just keeps things tidy
+	 * See FreeRTOS tutorial guide pg. 200
+	 * Pulled from example.
+	 */
 	BaseType_t xHigherPriorityTaskWoken;
 	xHigherPriorityTaskWoken = pdFALSE;
 
@@ -804,7 +737,6 @@ void gio_notification_RF(gioPORT_t *port, uint32 bit){
 }
 
 BaseType_t initRadio() {
-	//what task should SPI initialization occure in?
 	spiDataConfig.CS_HOLD = RF_CONFIG_CS_HOLD;
 	spiDataConfig.WDEL = RF_CONFIG_WDEL;
     spiDataConfig.DFSEL = RF_CONFIG_DFSEL;
@@ -833,14 +765,9 @@ BaseType_t initRadio() {
     	serialSendln(buffer);
     }
 
-
     strobe(SNOP);
-//attach irq
-
     strobe(SRX);
-//move here ##
 
-//Move ##
 	return pdPASS;
 }
 

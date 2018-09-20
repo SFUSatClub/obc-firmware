@@ -3,6 +3,11 @@
  *
  *  Created on: Apr 30, 2017
  *      Author: steven
+ *
+ *      DEPRECATED
+ *
+ *      Our radio was initially the CC1125, but we've now moved to the CC1101.
+ *      TODO: Delete this.
  */
 
 #ifndef SFUSAT_OBC_SMARTRF_CC1125_H_

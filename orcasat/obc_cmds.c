@@ -3,7 +3,7 @@
  * Created: May 30 2017
  * Refactored code from sfu_uart.* by Seleena
  *
- * */
+ */
 #include <assert.h>
 
 #include "obc_uart.h"
@@ -128,7 +128,7 @@ static const struct subcmd_opt CMD_HELP_OPTS[] = {
 				.subcmd_id	= CMD_WD,
 				.name		= "wd",
 				.info		= "Suspends watchdog tickle tasks.\n"
-          				"  reset\n"
+								"  reset\n"
 								"    Reset but no erase\n"
 								"  freset\n"
 								"    Reset with erase"
@@ -968,8 +968,8 @@ static const struct cmd_opt CMD_OPTS[] = {
 				.func			= cmdSun,
 				.subcmds		= CMD_SUN_OPTS,
 				.num_subcmds	= LEN(CMD_SUN_OPTS),
-    },
-	{
+		},
+		{
       	  	  	.cmd_id			= CMD_DEPLOY,
 				.name			= "deploy",
 				.func			= cmdDeploy,

@@ -42,7 +42,7 @@ static const char *STARTUP_STRING[] = {
 		FOREACH_STARTUP(GENERATE_STRING)
 };
 
-typedef struct Startup_Data{
+typedef struct Startup_Data {
 	Start_t resetSrc;
 } Startup_Data_t;
 

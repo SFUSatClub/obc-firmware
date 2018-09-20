@@ -23,6 +23,7 @@
 #include "obc_task_utils.h"
 #include "bq25703.h"
 #include "obc_flags.h"
+
 UART_RF_MUX_INIT();
 
 telemConfig_t telemConfig[NUM_TELEM_POINTS];

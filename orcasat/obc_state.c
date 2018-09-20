@@ -9,8 +9,6 @@
 #include "obc_rtc.h"
 #include "obc_state.h"
 #include "obc_uart.h"
-//#include <stdio.h>
-
 
 State_t cur_state;
 InstanceData_t state_persistent_data;
@@ -103,7 +101,7 @@ State_t runState(State_t currstate, InstanceData_t *data) {
     return newState;
 };
 
-void stateMachineInit(){
+void stateMachineInit() {
 //	serialSendln("STARTING STATE MACHINE");
 	cur_state = STATE_SAFE;
 	state_persistent_data.previous_state = STATE_SAFE; // will always start in safe. Then automatically go to low power if necessary.
@@ -112,16 +110,16 @@ void stateMachineInit(){
 	state_persistent_data.manual_state_switch = NUM_STATES; // don't change states
 }
 
-void setStateRTOS_mode(){
+void setStateRTOS_mode() {
 	state_persistent_data.in_RTOS = 1;
 	serialSendQ("RTOS ON");
 }
-bool getStateRTOS_mode(){
+bool getStateRTOS_mode() {
 	return state_persistent_data.in_RTOS;
 }
 
-void printStateInfo(State_t currstate, InstanceData_t *data){
-	if (!data->in_RTOS){
+void printStateInfo(State_t currstate, InstanceData_t *data) {
+	if (!data->in_RTOS) {
 		serialSend("Current state: ");
 		serialSendln(stateNameString[currstate]);
 		serialSend("Previous state: ");
@@ -133,7 +131,7 @@ void printStateInfo(State_t currstate, InstanceData_t *data){
 		serialSendQ(stateNameString[currstate]);
 	}
 }
-void printPrevState(State_t currstate, InstanceData_t *data){
+void printPrevState(State_t currstate, InstanceData_t *data) {
 	if (!data->in_RTOS){
 		serialSend("Previous state: ");
 		serialSendln(stateNameString[data->previous_state]); // prev state name
@@ -145,22 +143,20 @@ void printPrevState(State_t currstate, InstanceData_t *data){
 	}
 }
 
-void printStateEntryTime(){
+void printStateEntryTime() {
 	char buf[30] = {'\0'};
 	snprintf(buf, 30, "ENTER TIME: %i",stateEntryTime());
 	serialSendQ((const char *)buf);
 }
 
-uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set){
+uint8_t setStateManual(InstanceData_t *data, uint8_t state_to_set) {
 	if (state_to_set < NUM_STATES){
 		data->manual_state_switch = state_to_set;
 		return state_to_set;
-	}
-	else{
-		if (!data->in_RTOS){
+	} else {
+		if (!data->in_RTOS) {
 			serialSendln("Invalid switch state command.");
-		}
-		else{
+		} else {
 			serialSendQ("Invalid switch state command.");
 		}
 		return NUM_STATES;
@@ -174,7 +170,7 @@ Transition Logic is handled by the doStateX functions above.
 Currently the manual override takes precedence over any auto switching functionality, which is probably wise.
 */
 
-uint8_t stateCheckPowerGood(InstanceData_t *data){
+uint8_t stateCheckPowerGood(InstanceData_t *data) {
 	switch(data->manual_state_switch){
 		case STATE_LOW_POWER:
 			return 0; // returning 0 here means we enter low power mode. A little backwards but semantic with function name :/
@@ -183,7 +179,7 @@ uint8_t stateCheckPowerGood(InstanceData_t *data){
 			return 1; // don't enter low power since we aren't actually checking for it yet
 	}
 }
-uint8_t stateCheckEnterSafe(InstanceData_t *data){
+uint8_t stateCheckEnterSafe(InstanceData_t *data) {
 	switch(data->manual_state_switch){
 		case STATE_SAFE:
 			return 1;
@@ -198,7 +194,7 @@ uint8_t stateCheckEnterSafe(InstanceData_t *data){
  * 	- provide nice interfaces to getting some state information
  */
 
-uint32_t stateEntryTime(){
+uint32_t stateEntryTime() {
 	// return the time we enter the current state
 	return state_persistent_data.enter_time;
 }

@@ -23,9 +23,9 @@ extern TaskHandle_t xStateEntryHandle;
         state(STATE_LOW_POWER)   \
         state(NUM_STATES)  \
 
-typedef enum{
+typedef enum {
     FOREACH_STATE(GENERATE_ENUM)
-}State_t;
+} State_t;
 
 static const char *stateNameString[] = {
     FOREACH_STATE(GENERATE_STRING)

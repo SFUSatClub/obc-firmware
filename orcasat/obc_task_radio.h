@@ -32,8 +32,6 @@ typedef struct RadioDAT {
 extern QueueHandle_t xRadioTXQueue;
 extern QueueHandle_t xRadioRXQueue;
 extern bool rfInhibit;
-uint8 hello;
-
 
 #define RF_NOTIF_TX			(0x101)
 #define RF_NOTIF_RX			(0x201)

@@ -29,7 +29,9 @@
 #include "stdtelem.h"
 #include "unit_tests/unit_tests.h"
 
-// Perpetual tasks - these run all the time
+/**
+ * Perpetual tasks - these run all the time.
+ */
 TaskHandle_t xSerialTaskHandle = NULL;
 TaskHandle_t xRadioTaskHandle = NULL;
 TaskHandle_t xTickleTaskHandle = NULL;
@@ -37,59 +39,70 @@ TaskHandle_t xBlinkyTaskHandle = NULL;
 TaskHandle_t xStateTaskHandle = NULL;
 TaskHandle_t xFilesystemTaskHandle = NULL;
 
-// Radio tasks
+/**
+ * Currently unused tasks.
+ */
 TaskHandle_t xRadioCHIMEHandle = NULL;
 TaskHandle_t xLogToFileTaskHandle = NULL;
 
-/* MainTask for all platforms except launchpad */
+/**
+ * This is the vMainTask for all platforms except the launchpad platform.
+ *
+ * Note: Assure changes made here are also reflected in launchpad's vMainTask.
+ */
 #if defined(PLATFORM_OBC_V0_5) || defined(PLATFORM_OBC_V0_4) || defined(PLATFORM_OBC_V0_3)
 void vMainTask(void *pvParameters) {
 	/**
-	 * Hardware initialization
+	 * Hardware initialization phase.
 	 */
-
 	serialInit();
 	gioInit();
-	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle); // Start this right away so we don't reset
-
+	/**
+	 * Start the watchdog right away so we don't reset.
+	 */
+	xTaskCreate(vExternalTickleTask, "tickle", 128, NULL, WATCHDOG_TASK_DEFAULT_PRIORITY, &xTickleTaskHandle);
 	sfuADCInit();
 	spiInit();
 	flash_mibspi_init();
 	sfu_i2c_init();
 	serialGPSInit();
-
-
-
-
-	// ---------- SFUSat INIT ----------
 	rtcInit();
+
     gio_interrupt_example_rtos_init();
-	stateMachineInit(); // we start in SAFE mode
+    /**
+     * The state machine starts in SAFE mode.
+     */
+	stateMachineInit();
 
-	// ---------- BRINGUP/PRELIMINARY PHASE ----------
-	serialSendln("SFUSat Started!");
+
+	/**
+	 * RTOS initialization phase.
+	 */
+	serialSendln("ORCASAT Started!");
+
 	printStartupType();
-
-	// ---------- INIT RTOS FEATURES ----------
-	// TODO: encapsulate these
 	xSerialTXQueue = xQueueCreate(30, sizeof(portCHAR *));
 	xSerialRXQueue = xQueueCreate(10, sizeof(portCHAR));
 	xLoggingQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LoggingQueueStructure_t));
 
-	serialSendQ("created queue");
-
-	// ---------- INIT TESTS ----------
-	// TODO: if tests fail, actually do something
-	// Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	/**
+	 * Test initialization phase.
+	 *
+	 * TODO: if tests fail, actually do something
+	 * Also, we can't actually run some of these tests in the future. They erase the flash, for example
+	 */
 	test_adc_init();
 	readGPS();
-//	flash_erase_chip();
-
+	//flash_erase_chip();
 
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	bms_test();
 
-// --------------------------- SPIN UP TOP LEVEL TASKS ---------------------------
+	/**
+	 * Spin up top level tasks.
+	 *
+	 * TODO: Transition to static task allocations.
+	 */
 	xTaskCreate( blinky,  						// Function for the task to run
 			"blinky", 							// Text name for the task. This is to facilitate debugging only.
 			configMINIMAL_STACK_SIZE,  			// Stack depth - in words. So 4x this = bytes, 32x this = bits.
@@ -97,60 +110,55 @@ void vMainTask(void *pvParameters) {
 			BLINKY_TASK_DEFAULT_PRIORITY,	  	// Priorities are in sfu_tasks.h
 			&xBlinkyTaskHandle );				// Task handles are above
 
-	//NOTE: Task priorities are #defined in sfu_tasks.h
-	xTaskCreate(vSerialTask, "serial", 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY, &xSerialTaskHandle);
-	xTaskCreate(vStateTask, "state", 400, NULL, STATE_TASK_DEFAULT_PRIORITY, &xStateTaskHandle);
-	xTaskCreate(vFilesystemLifecycleTask, "fs", 500, NULL, FLASH_TASK_DEFAULT_PRIORITY, &xFilesystemTaskHandle);
-	xTaskCreate(vRadioTask, "radio", 600, NULL, portPRIVILEGE_BIT | 6, &xRadioTaskHandle);
-	xTaskCreate(deploy_task, "deploy", 128, NULL, 4, &deployTaskHandle);
+	xTaskCreate(vSerialTask				, "serial"	, 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY	, &xSerialTaskHandle);
+	xTaskCreate(vStateTask				, "state"	, 400, NULL, STATE_TASK_DEFAULT_PRIORITY	, &xStateTaskHandle);
+	xTaskCreate(vFilesystemLifecycleTask, "fs"		, 500, NULL, FLASH_TASK_DEFAULT_PRIORITY	, &xFilesystemTaskHandle);
+	xTaskCreate(vRadioTask				, "radio"	, 600, NULL, portPRIVILEGE_BIT |
+																	RADIO_TASK_DEFAULT_PRIORITY	, &xRadioTaskHandle);
+	xTaskCreate(deploy_task				, "deploy"	, 128, NULL, 4								, &deployTaskHandle);
 
+	/**
+	 * Standard telemetry tasks.
+	 */
+	xTaskCreate(generalTelemTask		, "t_gen", 300, NULL, 3					 , &xgeneralTelemTaskHandle);
+	xTaskCreate(temperatureTelemTask	, "t_temp", 700, NULL, STDTELEM_PRIORITY , &xtemperatureTelemTaskHandle);
+	xTaskCreate(transmitTelemUART		, "t_send", 900, NULL, STDTELEM_PRIORITY , &xTransmitTelemTaskHandle);
+	xTaskCreate(obcCurrentTelemTask		, "t_curr", 900, NULL, 3				 , &xobcCurrentTelemTaskHandle);
+	xTaskCreate(BMSTelemTask			, "t_bms", 900, NULL, 3					 , &xBMSTelemTaskHandle);
 
-//	writeAllFlagsToFlash();
-//	volatile flag_memory_table_wrap_t flash_flags;
-//	readAllFlagsFromFlash(&flash_flags);
-//
-//	volatile flagCharWrap_t tester;
-//	volatile telemConfigWrap_t test2;
-//	volatile telemConfigWrap_t t2_result;
-//
-//	tester.payload.flag = 'K';
-//	tester.payload.timestamp = 6669;
-//
-//	test2.payload.min = -999;
-//	test2.payload.max = 1313;
-//	test2.payload.period = 2222;
-//	test2.payload.timestamp = 99991;
-//	write_RESET_FLAG(tester.byteAddr);
-//	write_GEN_TELEM(test2.byteAddr);
-//	readAllFlagsFromFlash(&flash_flags);
-//
-//	read_GEN_TELEM(&t2_result);
-
-	/* Std telemetry */
-	xTaskCreate(generalTelemTask, "t_gen", 300, NULL, 3, &xgeneralTelemTaskHandle);
-	xTaskCreate(temperatureTelemTask, "t_temp", 700, NULL, 4, &xtemperatureTelemTaskHandle);
-	xTaskCreate(transmitTelemUART, "t_send", 900, NULL, STDTELEM_PRIORITY, &xTransmitTelemTaskHandle);
-	xTaskCreate(obcCurrentTelemTask, "t_curr", 900, NULL, 3, &xobcCurrentTelemTaskHandle);
-	xTaskCreate(BMSTelemTask, "bms", 900, NULL, 3, &xBMSTelemTaskHandle);
-
- /* Startup things that need RTOS */  
+	/* Startup things that need RTOS */
 	// RA: FLAGS
 	logPBISTFails();
 	sfu_startup_logs();
 
+	/**
+	 * Non-essential "tests".
+	 * These are mainly to demonstrate usage of the command/scheduling system.
+	 *
+	 * TODO: the following command/scheduling system will likely change soon.
+	 */
 
-// --------------------------- OTHER TESTING STUFF ---------------------------
-	// Right when we spin up the main task, get the heap (example of a command we can issue)
-
+	/**
+	 * Right when we spin up the main task, get the heap (example of a command we can issue)
+	 */
 	CMD_t test_cmd = {.cmd_id = CMD_GET, .subcmd_id = CMD_GET_HEAP};
 	Event_t test_event = {.seconds_from_now = 3, .action = test_cmd};
 	addEvent(test_event);
 
-	// Example of scheduling a task
+	/**
+	 * Example of scheduling a command.
+	 *
+	 * This will run the "get tasks" command 1 second after boot.
+	 */
 	test_event.seconds_from_now = 1;
 	test_event.action.subcmd_id = CMD_GET_TASKS;
 	addEvent(test_event);
 
+	/**
+	 * Example of scheduling a more complicated command.
+	 *
+	 * Commented out since this will suspend TASK_BLINKY.
+	 */
 //	CMD_t test_schd = {
 //			.cmd_id = CMD_SCHED,
 //			.subcmd_id = CMD_SCHED_ADD,
@@ -159,7 +167,7 @@ void vMainTask(void *pvParameters) {
 //						.scheduled_cmd_id = CMD_TASK,
 //						.scheduled_subcmd_id = CMD_TASK_SUSPEND,
 //						.scheduled_cmd_data = {
-//								0x40,
+//								0x40, // This is TASK_BLINKY (0x04) but shifted left since first 4 bits is expected to be the ID. See definition of CMD_SCHED_DATA.
 //								0x00
 //				}
 //			}
@@ -170,12 +178,22 @@ void vMainTask(void *pvParameters) {
 
 	serialSendln("main tasks created");
 
+	/**
+	 * This is how the command scheduler currently works:
+	 * 		- the main task is responsible for running the scheduler
+	 * 		- the scheduler currently relies on the main task to call tempAddSecondToHET every second
+	 * 			- TODO: hook up the RTC and HET (high end timer) to the scheduler to avoid this "hack"
+	 * 		- if the current call of getAction has a scheduled event ready to fire, getAction will return a copy
+	 * 		of this command to scheduled_cmd
+	 * 		- checkAndRunCommand will then execute the command as appropriate
+	 */
 	while (1) {
-		CMD_t g;
-		if (getAction(&g)) {
+		CMD_t scheduled_cmd;
+
+		if (getAction(&scheduled_cmd)) {
 			char buffer[16] = {0};
-			snprintf(buffer, 16, "%d:%d:%s", g.cmd_id, g.subcmd_id, g.cmd_data);
-			checkAndRunCommand(&g);
+			snprintf(buffer, 16, "%d:%d:%s", scheduled_cmd.cmd_id, scheduled_cmd.subcmd_id, scheduled_cmd.cmd_data);
+			checkAndRunCommand(&scheduled_cmd);
 			serialSendQ(buffer);
 		}
 		tempAddSecondToHET();
@@ -185,11 +203,12 @@ void vMainTask(void *pvParameters) {
 }
 #else
 
-/* MainTask for launchpad
+/**
+ * MainTask for launchpad
  * 	- launchpad doesn't usually have external HW connected
  * 	- running our HW init functions with non-existent hardware will often hang the system
  * 	- so skip certain HW initialization, task creation for HW-specific things
- * 	 */
+ */
 
 void vMainTask(void *pvParameters) {
 	/**

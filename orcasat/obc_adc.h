@@ -13,9 +13,4 @@ void sfuADCInit();
 void adcUpdate();
 uint16_t OBCCurrent();
 
-
-/* Kinda old, but has nice explanation */
-void vADCRead(void *pvParameters);
-
-
 #endif /* SFUSAT_OBC_ADC_H_ */

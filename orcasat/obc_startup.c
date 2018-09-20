@@ -12,6 +12,7 @@
 
 #include "can.h"
 #include "reg_system.h"
+
 #include "obc_fs_structure.h"
 #include "obc_startup.h"
 #include "obc_uart.h"

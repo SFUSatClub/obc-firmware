@@ -10,20 +10,25 @@
 #include "adc.h"
 #include "sun_sensor.h"
 
-//address of muxes
+/**
+ * Address of muxes
+ */
 #define Sensor_MUX_X_pos  0x4C
 #define Sensor_MUX_X_neg  0x4D
 #define Sensor_MUX_Y_pos  0x4E
 #define Sensor_MUX_Y_neg  0x4F
 
-// CHIP COMMANDS
+/**
+ * CHIP COMMANDS
+ */
 #define RD_CMD 0x1
 #define WR_CMD 0x0
 
 volatile output_value output[32]; //Changed from 16 to 32
 
 
-/* adc from mux
+/**
+ * ADC from mux
  * - returns the ADC channel (0 based, so the real ADC number) associated with a mux
  */
 uint8_t adc_from_mux(uint8_t mux_addr){
@@ -42,7 +47,8 @@ uint8_t adc_from_mux(uint8_t mux_addr){
 	return 0; /* should never get here */
 }
 
-/* ADC CHANNEL VAL
+/**
+ * ADC CHANNEL VAL
  * 	- The results from the ADC aren't necessarily in order or at the same position as the channel #
  * 	- search through the data array until we hit the correct ID (channel number = 0 based)
  */
@@ -198,13 +204,13 @@ bool read_sun_sensor() {						// must loop 4-6 times to get all the values of ea
 	uint8_t i = 0;
 	for(i = 0; i < 8; i++)
 	{
-		//Loops through the channels of each mux. Pulls the data from the data line
+		// Loops through the channels of each mux. Pulls the data from the data line
 		set_mux_channel(mux1[i].mux_addr, mux1[i].mux_channel);
 		set_mux_channel(mux2[i].mux_addr, mux2[i].mux_channel);
 		set_mux_channel(mux3[i].mux_addr, mux3[i].mux_channel);
 		set_mux_channel(mux4[i].mux_addr, mux4[i].mux_channel);
 
-		//Reading Data from the corresponding channel number for each mux
+		// Reading Data from the corresponding channel number for each mux
 		adcStartConversion(adcREG1, adcGROUP1); //Sample all channels on ADC1
 		uint32_t timeout = 0;
 		while((adcIsConversionComplete(adcREG1, adcGROUP1)) == 0 && timeout < 30000){

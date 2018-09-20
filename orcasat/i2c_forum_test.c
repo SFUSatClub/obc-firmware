@@ -4,7 +4,7 @@
  *  Created on: Jun 25, 2018
  *      Author: Derrick
  *
- *      //Referenced with http://e2e.ti.com/support/microcontrollers/hercules/f/312/t/163123#pi320098=3
+ *      Referenced http://e2e.ti.com/support/microcontrollers/hercules/f/312/t/163123#pi320098=3
  */
 
 #include "obc_i2c.h"
@@ -12,7 +12,7 @@
 #include "sys_common.h"
 #include "i2c_forum_test.h"
 
-void I2cDriver_init(void){
+void I2cDriver_init(void) {
     uint32_t bit_count = I2C_8_BIT;
 
     /** - i2c out of reset */
@@ -120,8 +120,7 @@ void I2cDriver_init(void){
     g_i2cTransfer_t.data   = NULL;
 }
 
-void I2cDriver_write(uint8 slaveDeviceAddress, uint32 writeAddress, uint8 const * writeBuffer, uint32 writeLength)
-{
+void I2cDriver_write(uint8 slaveDeviceAddress, uint32 writeAddress, uint8 const * writeBuffer, uint32 writeLength) {
    if (writeLength > 0){
 //      assert(writeBuffer);
 
@@ -158,8 +157,7 @@ void I2cDriver_write(uint8 slaveDeviceAddress, uint32 writeAddress, uint8 const 
    }
 }
 
-void I2cDriver_read(uint8 slaveDeviceAddress, uint32 readAddress, uint8 * readBuffer, uint32 readLength)
-{
+void I2cDriver_read(uint8 slaveDeviceAddress, uint32 readAddress, uint8 * readBuffer, uint32 readLength) {
    // Something to do?
    if (readLength > 0)
    {
@@ -206,12 +204,10 @@ void I2cDriver_read(uint8 slaveDeviceAddress, uint32 readAddress, uint8 * readBu
 }
 
 // Function which has to be implemented for the generated code from HALCoGen
-void i2cNotification(i2cBASE_t *i2c, uint32 flags)
-{
+void i2cNotification(i2cBASE_t *i2c, uint32 flags) {
 }
 
-static void waitWhileDeviceIsBusy(uint8 slaveDeviceAddress)
-{
+static void waitWhileDeviceIsBusy(uint8 slaveDeviceAddress) {
    // Wait until the bus is not busy
    while (I2C->STR & I2C_BUSBUSY);
 
@@ -252,8 +248,7 @@ static void waitWhileDeviceIsBusy(uint8 slaveDeviceAddress)
    }
 }
 
-static boolean sendByte(uint8 byte)
-{
+static boolean sendByte(uint8 byte) {
    // Wait for the TXRDY flag to transmit data or ARDY if we get NACKed
    while ((I2C->STR & (I2C_TX_INT | I2C_ARDY_INT)) == 0);
 
@@ -269,8 +264,7 @@ static boolean sendByte(uint8 byte)
    return TRUE;
 }
 
-static boolean receiveByte(uint8 * byte)
-{
+static boolean receiveByte(uint8 * byte) {
    // Wait for the RXRDY flag to transmit data or ARDY if we get NACKed
    while ((I2C->STR & (I2C_RX_INT | I2C_ARDY_INT)) == 0);
 

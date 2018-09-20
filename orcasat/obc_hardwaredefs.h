@@ -1,6 +1,7 @@
 #ifndef SFUSAT_HWDEFS_H_
 #define SFUSAT_HWDEFS_H_
-/* HARDWARE DEFINITIONS
+/**
+ * HARDWARE DEFINITIONS
  *
  * To facilitate easy switching of peripherals and pins, all hardware connections will be defined as macros here.
  * That way, we just update the actual GPIO pin here, and the macro assigned to say, the RTC CS pin (GPIO) will be updated to the correct one.
@@ -64,10 +65,10 @@
 #define RF_IRQ_PORT				gioPORTA
 #define RF_IRQ_PIN				5
 /**
- * Active low. So mask just the bit we want to 0 and set everything else to 1.
+ * Active low; mask just the bit we want to 0 and set everything else to 1.
  */
-#define RF_CONFIG_CS_LB			~( (uint8_t) 2 );	// Lower band CC1101 CS; 435 MHz
-#define RF_CONFIG_CS_UB			~( (uint8_t) 16 );	// Upper band CC1101 CS; 790 MHz
+#define RF_CONFIG_CS_LB			~( (uint8_t) 2 )	// Lower band CC1101 CS; 435 MHz
+#define RF_CONFIG_CS_UB			~( (uint8_t) 16 )	// Upper band CC1101 CS; 790 MHz
 
 /**
  * IRQs
@@ -88,7 +89,7 @@
 #define FLASH_20_BYTE_GROUP		3 // TG 20 byte length
 #define FLASH_CHIP_TYPE 		1 // 0 = SST26, 1 = IS25LP016D
 
-/*
+/**
  * Deployment
  */
 #define RF_DEPLOY0_PIN			0
@@ -105,13 +106,15 @@
 #define DEPLOY_EN_PIN			4			/* MIBSPI1CS4 [xGPIO6] output	RA: enabled pulldown in HCG since this is active high */
 #define DEPLOY_EN_PORT			mibspiPORT1
 
-/* ADC
+/**
+ * ADC
  */
+#define OBC_CURRENT_ADC 		2
 
-#define OBC_CURRENT_ADC 	2
-
-/* GPS */
-#define GPS_PORT          scilinREG
+/**
+ * GPS
+ */
+#define GPS_PORT          		scilinREG
 
 #endif /* PLATFORM_OBC_V0_4 */
 

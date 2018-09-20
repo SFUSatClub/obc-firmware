@@ -3,6 +3,9 @@
  *
  *  Created on: Jul 20, 2017
  *      Author: steven
+ *
+ *      These configurations are generated from SMARTRF studio and are used to
+ *      initialize the radio on startup.
  */
 
 #ifndef SFUSAT_OBC_SMARTRF_CC1101_H_

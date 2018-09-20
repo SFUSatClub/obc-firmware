@@ -3,6 +3,10 @@
  *
  *  Created on: Mar 26, 2017
  *      Author: steven
+ *
+ *      The scheduler schedules commands to run in the future.
+ *
+ *      The type Event_t wraps a CMD_t and associates the command with various scheduling-related fields.
  */
 
 #ifndef SFUSAT_OBC_SCHEDULER_H_

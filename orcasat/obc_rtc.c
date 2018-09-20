@@ -4,11 +4,11 @@
  *  Created on: Jun 12, 2017
  *      Author: Steven + Richard + Victor
  */
+#include <math.h>
 
 #include "gio.h"
 #include "spi.h"
 
-#include <math.h>
 #include "obc_hardwaredefs.h"
 #include "obc_rtc.h"
 
