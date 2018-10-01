@@ -226,6 +226,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ABI.1849833706" name="Application binary interface. (--abi)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ABI" value="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ABI.eabi" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE.805372205" name="Designate enum type (--enum_type)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE" value="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.ENUM_TYPE.packed" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH.1705846847" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_16.9.compilerID.INCLUDE_PATH" valueType="includePath">
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/third-party}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/SPIFFS}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/printf}"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/orcasat}&quot;"/>
@@ -283,7 +284,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="SFUsat/obc_triumf.c|platform-obc-v0.3|platform-launchpad" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="third-party/libmpack/test|SFUsat/obc_triumf.c|platform-obc-v0.3|platform-launchpad" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

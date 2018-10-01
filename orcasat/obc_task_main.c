@@ -28,6 +28,7 @@
 #include "bq25703.h"
 #include "stdtelem.h"
 #include "unit_tests/unit_tests.h"
+#include "libmpack/src/object.h"
 
 /**
  * Perpetual tasks - these run all the time.
@@ -177,6 +178,44 @@ void vMainTask(void *pvParameters) {
 	showActiveEvents();
 
 	serialSendln("main tasks created");
+
+
+
+	  mpack_token_t tokbuf[0xff];
+	  size_t tokbufpos = 0;
+	  char mpackbuf[256];
+	  char *buf = mpackbuf;
+	  size_t buflen = sizeof(mpackbuf);
+	  mpack_tokbuf_t writer = (mpack_tokbuf_t) MPACK_TOKBUF_INITIAL_VALUE;
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(1);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0x7f);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0xff);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0xffff);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0xffffffff);
+	  tokbuf[tokbufpos++] = mpack_pack_sint(0x7fffffffffffffff);
+	  size_t i;
+	  for (i = 0; i < tokbufpos; i++)
+	    mpack_write(&writer, &buf, &buflen, tokbuf + i);
+	  uint8_t expected[] = {
+	    0x00,
+	    0x01,
+	    0x7f,
+	    0xcc, 0xff,
+	    0xcd, 0xff, 0xff,
+	    0xce, 0xff, 0xff, 0xff, 0xff,
+	    0xcf, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+	  };
+
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * This is how the command scheduler currently works:
