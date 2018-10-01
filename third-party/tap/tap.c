@@ -293,6 +293,10 @@ tap_end_todo () {
     todo_mesg = NULL;
 }
 
+/**
+ * Steven: OBC does not easily support these features of tap; disable them.
+ */
+#ifdef BUILD_NORMAL_TAP
 #ifndef _WIN32
 #include <sys/mman.h>
 #include <sys/param.h>
@@ -352,3 +356,4 @@ like_at_loc (int for_match, const char *file, int line, const char *got,
     return test;
 }
 #endif
+#endif // BUILD_NORMAL_TAP

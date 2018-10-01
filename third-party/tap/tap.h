@@ -1,3 +1,8 @@
+/**
+ * Moved from third-party/libmpack/tests/dep/tap/
+ *
+ * - Added macro BUILD_NORMAL_TAP to exclude compilation of unsupported features.
+ */
 /*
 libtap - Write tests in C
 Copyright 2012 Jake Gelbman <gelbman@gmail.com>
@@ -65,7 +70,7 @@ void    tap_end_todo    (void);
 #define dies_ok(...)     dies_ok_common(1, __VA_ARGS__)
 #define lives_ok(...)    dies_ok_common(0, __VA_ARGS__)
 
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(BUILD_NORMAL_TAP)
 #define like(...)        tap_skip(1, "like is not implemented on Windows")
 #define unlike           tap_skip(1, "unlike is not implemented on Windows")
 #define dies_ok_common(...) \
@@ -76,9 +81,6 @@ void    tap_end_todo    (void);
 int     like_at_loc     (int for_match, const char *file, int line,
                          const char *got, const char *expected,
                          const char *fmt, ...);
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 int tap_test_died (int status);
 #define dies_ok_common(for_death, code, ...)                \
     do {                                                    \
