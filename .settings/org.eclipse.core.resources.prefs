@@ -88,5 +88,7 @@ encoding//build-obc-v0.4/printf/subdir_vars.mk=UTF-8
 encoding//build-obc-v0.4/sources.mk=UTF-8
 encoding//build-obc-v0.4/third-party/libmpack/src/subdir_rules.mk=UTF-8
 encoding//build-obc-v0.4/third-party/libmpack/src/subdir_vars.mk=UTF-8
+encoding//build-obc-v0.4/third-party/libmpack/test/subdir_rules.mk=UTF-8
+encoding//build-obc-v0.4/third-party/libmpack/test/subdir_vars.mk=UTF-8
 encoding//build-obc-v0.4/third-party/tap/subdir_rules.mk=UTF-8
 encoding//build-obc-v0.4/third-party/tap/subdir_vars.mk=UTF-8

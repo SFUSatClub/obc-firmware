@@ -95,7 +95,15 @@ void vMainTask(void *pvParameters) {
 	test_adc_init();
 	readGPS();
 	//flash_erase_chip();
-
+	char * stringtest = "onetwothree";
+	int idx;
+	for(idx = 0; idx < sizeof(stringtest) - 1; idx++) {
+		sfu_putchar(stringtest[idx]);
+	}
+	serialSendln("test test one two three");
+	serialSendln("test test one two three");
+	serialSendln("test test one two three");
+	do_mpack_tests();
 	setStateRTOS_mode(&state_persistent_data); // tell state machine we're in RTOS control so it can print correctly
 	bms_test();
 
@@ -113,7 +121,7 @@ void vMainTask(void *pvParameters) {
 
 	xTaskCreate(vSerialTask				, "serial"	, 400, NULL, SERIAL_TASK_DEFAULT_PRIORITY	, &xSerialTaskHandle);
 	xTaskCreate(vStateTask				, "state"	, 400, NULL, STATE_TASK_DEFAULT_PRIORITY	, &xStateTaskHandle);
-	xTaskCreate(vFilesystemLifecycleTask, "fs"		, 500, NULL, FLASH_TASK_DEFAULT_PRIORITY	, &xFilesystemTaskHandle);
+//	xTaskCreate(vFilesystemLifecycleTask, "fs"		, 500, NULL, FLASH_TASK_DEFAULT_PRIORITY	, &xFilesystemTaskHandle);
 	xTaskCreate(vRadioTask				, "radio"	, 600, NULL, portPRIVILEGE_BIT |
 																	RADIO_TASK_DEFAULT_PRIORITY	, &xRadioTaskHandle);
 	xTaskCreate(deploy_task				, "deploy"	, 128, NULL, 4								, &deployTaskHandle);
@@ -121,16 +129,16 @@ void vMainTask(void *pvParameters) {
 	/**
 	 * Standard telemetry tasks.
 	 */
-	xTaskCreate(generalTelemTask		, "t_gen", 300, NULL, 3					 , &xgeneralTelemTaskHandle);
-	xTaskCreate(temperatureTelemTask	, "t_temp", 700, NULL, STDTELEM_PRIORITY , &xtemperatureTelemTaskHandle);
-	xTaskCreate(transmitTelemUART		, "t_send", 900, NULL, STDTELEM_PRIORITY , &xTransmitTelemTaskHandle);
-	xTaskCreate(obcCurrentTelemTask		, "t_curr", 900, NULL, 3				 , &xobcCurrentTelemTaskHandle);
-	xTaskCreate(BMSTelemTask			, "t_bms", 900, NULL, 3					 , &xBMSTelemTaskHandle);
+//	xTaskCreate(generalTelemTask		, "t_gen", 300, NULL, 3					 , &xgeneralTelemTaskHandle);
+//	xTaskCreate(temperatureTelemTask	, "t_temp", 700, NULL, STDTELEM_PRIORITY , &xtemperatureTelemTaskHandle);
+//	xTaskCreate(transmitTelemUART		, "t_send", 900, NULL, STDTELEM_PRIORITY , &xTransmitTelemTaskHandle);
+//	xTaskCreate(obcCurrentTelemTask		, "t_curr", 900, NULL, 3				 , &xobcCurrentTelemTaskHandle);
+//	xTaskCreate(BMSTelemTask			, "t_bms", 900, NULL, 3					 , &xBMSTelemTaskHandle);
 
 	/* Startup things that need RTOS */
 	// RA: FLAGS
-	logPBISTFails();
-	sfu_startup_logs();
+	//logPBISTFails();
+	//sfu_startup_logs();
 
 	/**
 	 * Non-essential "tests".
@@ -181,34 +189,31 @@ void vMainTask(void *pvParameters) {
 
 
 
-	  mpack_token_t tokbuf[0xff];
-	  size_t tokbufpos = 0;
-	  char mpackbuf[256];
-	  char *buf = mpackbuf;
-	  size_t buflen = sizeof(mpackbuf);
-	  mpack_tokbuf_t writer = (mpack_tokbuf_t) MPACK_TOKBUF_INITIAL_VALUE;
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(1);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0x7f);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0xff);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0xffff);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0xffffffff);
-	  tokbuf[tokbufpos++] = mpack_pack_sint(0x7fffffffffffffff);
-	  size_t i;
-	  for (i = 0; i < tokbufpos; i++)
-	    mpack_write(&writer, &buf, &buflen, tokbuf + i);
-	  uint8_t expected[] = {
-	    0x00,
-	    0x01,
-	    0x7f,
-	    0xcc, 0xff,
-	    0xcd, 0xff, 0xff,
-	    0xce, 0xff, 0xff, 0xff, 0xff,
-	    0xcf, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-	  };
-
-
-
+	mpack_token_t tokbuf[0xff];
+	size_t tokbufpos = 0;
+	char mpackbuf[256];
+	char *buf = mpackbuf;
+	size_t buflen = sizeof(mpackbuf);
+	mpack_tokbuf_t writer = (mpack_tokbuf_t) MPACK_TOKBUF_INITIAL_VALUE;
+	tokbuf[tokbufpos++] = mpack_pack_sint(0);
+	tokbuf[tokbufpos++] = mpack_pack_sint(1);
+	tokbuf[tokbufpos++] = mpack_pack_sint(0x7f);
+	tokbuf[tokbufpos++] = mpack_pack_sint(0xff);
+	tokbuf[tokbufpos++] = mpack_pack_sint(0xffff);
+	tokbuf[tokbufpos++] = mpack_pack_sint(0xffffffff);
+	tokbuf[tokbufpos++] = mpack_pack_sint(0x7fffffffffffffff);
+	int i;
+	for (i = 0; i < tokbufpos; i++)
+		mpack_write(&writer, &buf, &buflen, tokbuf + i);
+	uint8_t expected[] = {
+		0x00,
+		0x01,
+		0x7f,
+		0xcc, 0xff,
+		0xcd, 0xff, 0xff,
+		0xce, 0xff, 0xff, 0xff, 0xff,
+		0xcf, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+	};
 
 
 
