@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "fixtures.h"
-#include "tap.h"
+#include "tap/tap.h"
 
 #ifdef FORCE_32BIT_INTS
 #define UFORMAT PRIu32
@@ -27,10 +27,13 @@
 # define MPACK_API static
 # include "../build/mpack.c"
 #else
-# include "../build/mpack.h"
+#include "libmpack/src/core.h"
+#include "libmpack/src/conv.h"
+#include "libmpack/src/object.h"
+#include "libmpack/src/rpc.h"
 #endif
 
-static char buf[0xffffff];
+static char buf[0xfff];
 static size_t bufpos;
 static bool number_conv = false;
 static bool throw = false;
@@ -294,7 +297,8 @@ static void fixture_test(const struct fixture *ff, int fixture_idx)
 
   char repr[32];
   snprintf(repr, sizeof(repr), "%s", fjson);
-  for (size_t i = 0; i < ARRAY_SIZE(chunksizes); i++) {
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(chunksizes); i++) {
     mpack_parser_t parser;
     size_t cs = chunksizes[i];
     char *b;
@@ -354,7 +358,8 @@ static void signed_positive_packs_with_unsigned_format(void)
   tokbuf[tokbufpos++] = mpack_pack_sint(0xffffffff);
   tokbuf[tokbufpos++] = mpack_pack_sint(0x7fffffffffffffff);
 #endif
-  for (size_t i = 0; i < tokbufpos; i++)
+  size_t i;
+  for (i = 0; i < tokbufpos; i++)
     mpack_write(&writer, &buf, &buflen, tokbuf + i);
   uint8_t expected[] = {
     0x00,
@@ -386,7 +391,8 @@ static void positive_signed_format_unpacks_as_unsigned(void)
   const char *inp = (const char *)input;
   size_t inplen = sizeof(input);
   mpack_tokbuf_init(&reader);
-  for (size_t i = 0; i < ARRAY_SIZE(toks) && inplen; i++)
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(toks) && inplen; i++)
     mpack_read(&reader, &inp, &inplen, toks + i);
   mpack_uintmax_t expected[] = {
     0x7f,
@@ -652,6 +658,7 @@ static const char *get_error_string(int type)
   else if (type == MPACK_RPC_ETYPE) return "invalid message type"; 
   else if (type == MPACK_RPC_EMSGID) return "invalid message id"; 
   else if (type == MPACK_RPC_ERESPID) return "unmatched response id"; else abort();
+  return "get_error_string: should not get here";
 }
 
 static void rpc_check_incoming(mpack_rpc_session_t *session,
@@ -701,11 +708,12 @@ static void rpc_fixture_test(int fixture_idx)
 {
   const struct rpc_fixture *fixture = rpc_fixtures + fixture_idx;
 
-  for (size_t i = 0; i < ARRAY_SIZE(chunksizes); i++) {
-    for (size_t j = 0; j < 2; j++) { /* test the library from both endpoints */ 
+  size_t i, j, k;
+  for (i = 0; i < ARRAY_SIZE(chunksizes); i++) {
+    for (j = 0; j < 2; j++) { /* test the library from both endpoints */
       mpack_rpc_session_t session;
       mpack_rpc_session_init(&session, fixture->capacity);
-      for (size_t k = 0; k < fixture->count; k++) {
+      for (k = 0; k < fixture->count; k++) {
         size_t cs = chunksizes[i];
         struct rpc_message *msg = fixture->messages + k;
         if (msg->payload[0] == '<') {
@@ -720,11 +728,12 @@ static void rpc_fixture_test(int fixture_idx)
   }
 }
 
-int main(void)
+int do_mpack_tests(void)
 {
-  for (int i = 0; i < fixture_count; i++) {
-    fixture_test(fixtures, i);
-  }
+  int i;
+  //for (i = 0; i < fixture_count; i++) {
+  //  fixture_test(fixtures, i);
+  //}
   signed_positive_packs_with_unsigned_format();
   positive_signed_format_unpacks_as_unsigned();
   unpacking_c1_returns_eread();
@@ -737,10 +746,10 @@ int main(void)
   rpc_request_id_wrap();
   number_conv = true;  /* test using mpack_{pack,unpack}_number to do the
                           numeric conversions */
-  for (int i = 0; i < rpc_fixture_count; i++) {
+  for (i = 0; i < rpc_fixture_count; i++) {
     rpc_fixture_test(i);
   }
-  for (int i = 0; i < number_fixture_count; i++) {
+  for (i = 0; i < number_fixture_count; i++) {
     fixture_test(number_fixtures, i);
   }
   /* test size macros */

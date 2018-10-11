@@ -241,12 +241,12 @@ exit_status () {
         printf("1..%d\n", current_test);
     }
     else if (current_test != expected_tests) {
-        diag("Looks like you planned %d test%s but ran %d.",
+        diag("Planned %d test%s but ran %d.",
             expected_tests, expected_tests > 1 ? "s" : "", current_test);
         retval = 2;
     }
     if (failed_tests) {
-        diag("Looks like you failed %d test%s of %d run.",
+        diag("Failed %d test%s of %d run.",
             failed_tests, failed_tests > 1 ? "s" : "", current_test);
         retval = 1;
     }

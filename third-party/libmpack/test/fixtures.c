@@ -20,8 +20,8 @@ static void write_size_be(uint8_t *p, size_t s)
   }
 }
 
-static char jsbuf[0xffffff];
-static uint8_t mpbuf[0xffffff];
+static char jsbuf[0xfff];
+static uint8_t mpbuf[0xfff];
 
 static void map_generator(char **js, uint8_t **mp, size_t *mplen, size_t s)
 {
@@ -53,7 +53,8 @@ static void map_generator(char **js, uint8_t **mp, size_t *mplen, size_t s)
     mpoff += 4;
   }
 
-  for (size_t i = 0; i < s; i++) {
+  size_t i;
+  for (i = 0; i < s; i++) {
     char b[sizeof(js_item_pattern) + 1];
     snprintf(b, sizeof(b), js_item_pattern, (unsigned int)i);
     memcpy(*js + jsoff, b, sizeof(b) - 1);
@@ -98,7 +99,8 @@ static void array_generator(char **js, uint8_t **mp, size_t *mplen, size_t s)
     mpoff += 4;
   }
 
-  for (size_t i = 0; i < s; i++) {
+  size_t i;
+  for (i = 0; i < s; i++) {
     memcpy(*mp + mpoff, mp_item_pattern, sizeof(mp_item_pattern));
     mpoff += sizeof(mp_item_pattern);
     memcpy(*js + jsoff, js_item_pattern, sizeof(js_item_pattern) - 1);
@@ -154,7 +156,8 @@ static void blob_pattern_generator(char **js, uint8_t **mp, size_t *mplen,
   }
 
   size_t patlen = strlen(pattern);
-  for (size_t i = 0; i < s; i++) {
+  size_t i;
+  for (i = 0; i < s; i++) {
     (*mp)[i + mpoff] = (uint8_t )pattern[i % patlen];
     (*js)[i + jsoff] = pattern[i % patlen];
   }
@@ -563,6 +566,7 @@ const struct fixture fixtures[] = {
   /* bin 16 */
   DF(bin_generator, 0x100),
   DF(bin_generator, 0x101),
+#ifdef DO_LARGE_MPACK_TESTS
   DF(bin_generator, 0x7fff),
   DF(bin_generator, 0xffff),
   /* bin 32, skipping very large values to avoid memory starvation */
@@ -570,6 +574,7 @@ const struct fixture fixtures[] = {
   DF(bin_generator, 0x10001),
   DF(bin_generator, 0x7ffff),
   DF(bin_generator, 0xfffff),
+#endif
   /* ext 8 */ 
   DF(ext_generator, 0x03),
   DF(ext_generator, 0x07),
@@ -577,6 +582,7 @@ const struct fixture fixtures[] = {
   /* ext 16 */
   DF(ext_generator, 0x100),
   DF(ext_generator, 0x101),
+#ifdef DO_LARGE_MPACK_TESTS
   DF(ext_generator, 0x7fff),
   DF(ext_generator, 0xffff),
   /* ext 32 */
@@ -584,6 +590,7 @@ const struct fixture fixtures[] = {
   DF(ext_generator, 0x10001),
   DF(ext_generator, 0x7ffff),
   DF(ext_generator, 0xfffff),
+#endif
   /* float 32(converted to double) */
   F("0.0", 0xca, 0x00, 0x00, 0x00, 0x00),
   F("1.0", 0xca, 0x3f, 0x80, 0x00, 0x00),
@@ -685,6 +692,7 @@ const struct fixture fixtures[] = {
   /* str 16 */
   DF(str_generator, 0x100),
   DF(str_generator, 0x101),
+#ifdef DO_LARGE_MPACK_TESTS
   DF(str_generator, 0x7fff),
   DF(str_generator, 0xffff),
   /* str 32 */
@@ -692,18 +700,23 @@ const struct fixture fixtures[] = {
   DF(str_generator, 0x10001),
   DF(str_generator, 0x7ffff),
   DF(str_generator, 0xfffff),
+#endif
   /* array 16 */
   DF(array_generator, 0x10),
-  DF(array_generator, 0xff),
-  DF(array_generator, 0x100),
+  //DF(array_generator, 0xff), /* OOM */
+  //DF(array_generator, 0x100),
+#ifdef DO_LARGE_MPACK_TESTS
   /* array 32 */
   DF(array_generator, 0x10000),
+#endif
   /* map 16 */
   DF(map_generator, 0x10),
   DF(map_generator, 0xff),
   DF(map_generator, 0x100),
   /* map 32 */
+#ifdef DO_LARGE_MPACK_TESTS
   DF(map_generator, 0x10000),
+#endif
   /* negative fixint */
   F("-32", 0xe0),
   F("-31", 0xe1),
