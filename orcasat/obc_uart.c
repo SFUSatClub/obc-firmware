@@ -63,5 +63,5 @@ void sciNotification(sciBASE_t *sci, unsigned flags) { // this is the interrupt 
 	sciReceive(UART_PORT, 1, &currChar); // go back into receive mode
 }
 void sfu_putchar(char character) { // wrapper for printf
-	serialSend(&character);
+	serialSendCh(character);
 }
